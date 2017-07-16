@@ -1,0 +1,9 @@
+SparseConvNetTorch/build/
+*.t7
+t7/
+*.o
+*.a
+*.so
+build
+__pycache__
+pickle

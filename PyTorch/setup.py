@@ -13,7 +13,7 @@ torch_dir = os.path.dirname(torch.__file__)
 print('Building SCN module')
 if torch.cuda.is_available():
     r = os.system(
-        'cd sparseconvnet/SCN; nvcc init.cu -c -o init.cu.o -ccbin /usr/bin/cc -m64 --std c++11 -Xcompiler ,\"-fopenmp\",\"-fPIC\",\"-O3\",\"-DNDEBUG\" -gencode arch=compute_52,code=sm_52 -gencode arch=compute_20,code=sm_21 -DNVCC -I/usr/local/cuda/include -I' +
+        'cd sparseconvnet/SCN; nvcc init.cu -c -o init.cu.o -ccbin /usr/bin/cc -m64 --std c++11 -Xcompiler ,\"-fopenmp\",\"-fPIC\",\"-O3\",\"-DNDEBUG\" -gencode arch=compute_52,code=sm_52 -gencode arch=compute_30,code=sm_30 -DNVCC -I/usr/local/cuda/include -I' +
         torch_dir +
         '/lib/include -I' +
         torch_dir +

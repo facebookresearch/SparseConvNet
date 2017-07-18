@@ -41,7 +41,7 @@ IF(CUDA_FOUND)
   CUDA_ADD_LIBRARY(cusparseconvnet MODULE ${src-cuda})
   TARGET_LINK_LIBRARIES(cusparseconvnet THC TH)
   IF(APPLE)
-    SET_TARGET_PROPERTIES(inn PROPERTIES
+    SET_TARGET_PROPERTIES(cusparseconvnet PROPERTIES
       LINK_FLAGS "-undefined dynamic_lookup")
   ENDIF()
 

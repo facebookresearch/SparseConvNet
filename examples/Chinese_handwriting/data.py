@@ -22,7 +22,7 @@ if not os.path.exists('pickle/'):
     os.system('mkdir -p t7/train/ t7/test/ POT/ pickle/')
     os.system('unzip OLHWDB1.1trn_pot.zip -d POT/')
     os.system('unzip OLHWDB1.1tst_pot.zip -d POT/')
-    os.system('python3 readPotFiles2.py')
+    os.system('python readPotFiles2.py')
 
 
 def train(spatial_size, Scale, precomputeStride):

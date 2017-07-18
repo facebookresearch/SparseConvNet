@@ -208,7 +208,7 @@ luarocks make sparseconvnet-0.1-0.rockspec
 and/or
 
 cd SparseConvNet/PyTorch/
-pip install .
+python setup.py develop
 ```
 To run the examples you may also need to install unrar and TorchNet:
 ```

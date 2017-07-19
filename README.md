@@ -13,7 +13,7 @@ arXiv 2017
 This library brings [Spatially-sparse convolutional networks](https://github.com/btgraham/SparseConvNet) to Torch/PyTorch. Moreover, it introduces **Valid Sparse Convolutions**, that can be used to build computationally efficient sparse VGG/ResNet/DenseNet-style networks.
 
 With regular 3x3 convolutions, the set of active (non-zero) sites grows rapidly:<br />
-![submanifold](img/img.png) ![submanifold](img/imgf1.png)  ![submanifold](img/imgf1f1.png)  <br />
+![submanifold](img/i.gif) <br />
 With **Valid Sparse Convolutions**, the set of active sites is unchanged. Active sites look at their active neighbors (green); non-active sites (red) have no computational overhead: <br />
 ![submanifold](img/img.gif) <br />
 Stacking Sparse Valid Convolutions to build VGG and ResNet type ConvNets, information can flow along lines or surfaces of active points.<br />

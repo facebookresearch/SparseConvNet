@@ -49,11 +49,11 @@ def ClassificationTrainValidate(model, dataset, p):
         'weightDecay': p['weightDecay'],
         'epoch': 1
     }
-    if os.path.isfile('epoch.pth'):
+    if p['checkPoint'] and os.path.isfile('epoch.pth'):
         optimState['epoch'] = torch.load('epoch.pth') + 1
         print('Restarting at epoch ' +
               str(optimState['epoch']) +
-              ' from model.pickle ..')
+              ' from model.pth ..')
         model = torch.load('model.pth')
 
     print(p)

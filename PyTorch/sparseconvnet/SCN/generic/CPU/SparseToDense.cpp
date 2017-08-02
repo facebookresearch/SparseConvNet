@@ -36,7 +36,7 @@ extern "C" void scn_DR_(SparseToDense_updateOutput)(THLongTensor *inputSize,
     uInt nHot = r.size() / 2;
     SparseToDense_ForwardPass<real>(iF, oF, nPlanes, spatialVolume, &r[0],
                                     nHot);
-    oF += spatialVolume;
+    oF++;
   }
 }
 extern "C" void scn_DR_(SparseToDense_updateGradInput)(
@@ -58,7 +58,7 @@ extern "C" void scn_DR_(SparseToDense_updateGradInput)(
     uInt nHot = r.size() / 2;
     SparseToDense_BackwardPass<real>(diF, doF, nPlanes, spatialVolume, &r[0],
                                      nHot);
-    doF += spatialVolume;
+    doF++;
   }
 }
 #endif

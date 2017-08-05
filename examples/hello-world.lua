@@ -45,15 +45,23 @@ msg={
 }
 
 input:addSample()
+
+local locations = {}
+local featureVectors = {}
+
 for y,line in ipairs(msg) do
   for x = 1,string.len(line) do
     if string.sub(line,x,x) == 'O' then
-      local location = torch.LongTensor{x,y}
-      local featureVector = torch.FloatTensor{1}
-      input:setLocation(location,featureVector,0)
+      table.insert(locations, {x,y})
+      table.insert(featureVectors, {1})
     end
   end
 end
+
+input:setLocations(
+  torch.LongTensor(locations),
+  torch.FloatTensor(featureVectors),
+  0)
 
 --[[
 Optional: allow metadata preprocessing to be done in batch preparation threads

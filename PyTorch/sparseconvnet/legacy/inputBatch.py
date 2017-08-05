@@ -9,7 +9,6 @@ from .metadata import Metadata
 from ..utils import toLongTensor, dim_fn
 from .sparseConvNetTensor import SparseConvNetTensor
 
-
 class InputBatch(SparseConvNetTensor):
     def __init__(self, dimension, spatial_size):
         self.dimension = dimension
@@ -32,6 +31,16 @@ class InputBatch(SparseConvNetTensor):
     def setLocation_(self, location, vector, overwrite=False):
         dim_fn(self.dimension, 'setInputSpatialLocation')(
             self.metadata.ffi, self.features, location, vector, overwrite)
+
+    def setLocations(self, locations, vectors, overwrite=False):
+        assert locations.min() >= 0 and (self.spatial_size.expand_as(locations) - locations).min() > 0
+
+        dim_fn(self.dimension, 'setInputSpatialLocations')(
+            self.metadata.ffi, self.features, locations, vectors, overwrite)
+
+    def setLocations_(self, locations, vector, overwrite=False):
+        dim_fn(self.dimension, 'setInputSpatialLocations')(
+            self.metadata.ffi, self.features, locations, vectors, overwrite)
 
     def addSampleFromTensor(self, tensor, offset, threshold=0):
         self.nActive = dim_fn(

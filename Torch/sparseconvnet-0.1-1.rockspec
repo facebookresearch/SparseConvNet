@@ -5,7 +5,7 @@
 -- LICENSE file in the root directory of this source tree.
 
 package = "sparseconvnet"
-version = "0.1-0"
+version = "0.1-1"
 
 source = {
   url = "",

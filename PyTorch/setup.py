@@ -63,7 +63,7 @@ ffi.build()
 from setuptools import setup, find_packages
 setup(
     name='sparseconvnet',
-    version='0.1',
+    version='0.1.1',
     description='Submanifold (Spatially) Sparse Convolutional Networks https://arxiv.org/abs/1706.01307',
     author='Facebook AI Research',
     author_email='benjamingraham@fb.com',

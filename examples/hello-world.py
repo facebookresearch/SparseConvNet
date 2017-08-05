@@ -35,12 +35,20 @@ msg = [
     " X   X  X    X    X   X  X     X X X X   X  X  X  X  X    X  X  ",
     " X   X  XXX  XXX  XXX  XX       X   X     XX   X  X  XXX  XXX   "]
 input.addSample()
+
+locations = []
+features = []
+
 for y, line in enumerate(msg):
     for x, c in enumerate(line):
         if c == 'X':
-            location = torch.LongTensor([x, y])
-            featureVector = torch.FloatTensor([1])
-            input.setLocation(location, featureVector, 0)
+            locations.append([x,y])
+            features.append([1])
+
+locations = torch.LongTensor(locations)
+features = torch.FloatTensor(features)
+
+input.setLocations(locations, features, 0)
 
 # Optional: allow metadata preprocessing to be done in batch preparation threads
 # to improve GPU utilization.

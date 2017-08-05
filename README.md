@@ -203,7 +203,7 @@ git clone git@github.com:facebookresearch/SparseConvNet.git
 then
 
 cd SparseConvNet/Torch/
-luarocks make sparseconvnet-0.1-0.rockspec
+luarocks make sparseconvnet-0.1-1.rockspec
 
 and/or
 

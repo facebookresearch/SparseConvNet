@@ -40,6 +40,18 @@ return function(sparseconvnet)
     C.dimensionFn(self.dimension,'setInputSpatialLocation')(self.metadata.ffi,
       self.features:cdata(), location:cdata(), vector:cdata(), overwrite)
   end
+  function InputBatch:setLocations(locations, vectors, overwrite)
+    --[[locations is a n_locations x self.dimensional length set of coordinates:
+    torch.LongStorage or a 2-D table]]
+    if type(locations)=='table' then
+      locations = torch.LongStorage(locations)
+    end
+
+    assert(locations:min()>=0 and (self.spatialSize:view(1, self.dimension):expandAs(locations)-locations):min()>0)
+
+    C.dimensionFn(self.dimension,'setInputSpatialLocations')(self.metadata.ffi,
+      self.features:cdata(), locations:cdata(), vectors:cdata(), overwrite)
+  end
   function InputBatch:precomputeMetadata(stride)
     if stride==2 then
       C.dimensionFn(self.dimension,'generateRuleBooks2s2')(self.metadata.ffi)

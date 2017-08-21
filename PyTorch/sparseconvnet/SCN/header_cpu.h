@@ -25,6 +25,9 @@ void scn_1_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_1_setInputSpatialLocation(void **m, THFloatTensor *features,
                                    THLongTensor *location, THFloatTensor *vec,
                                    _Bool overwrite);
+void scn_1_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
+                                   _Bool overwrite);
 double scn_2_addSampleFromThresholdedTensor(void **m, THFloatTensor *features_,
                                             THFloatTensor *tensor_,
                                             THLongTensor *offset_,
@@ -39,7 +42,10 @@ void scn_2_generateRuleBooks3s2(void **m);
 void scn_2_generateRuleBooks2s2(void **m);
 void scn_2_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_2_setInputSpatialLocation(void **m, THFloatTensor *features,
-                                   THLongTensor *location, THFloatTensor *vec,
+                                   THLongTensor* location, THFloatTensor *vec,
+                                   _Bool overwrite);
+void scn_2_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
                                    _Bool overwrite);
 double scn_3_addSampleFromThresholdedTensor(void **m, THFloatTensor *features_,
                                             THFloatTensor *tensor_,
@@ -57,6 +63,9 @@ void scn_3_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_3_setInputSpatialLocation(void **m, THFloatTensor *features,
                                    THLongTensor *location, THFloatTensor *vec,
                                    _Bool overwrite);
+void scn_3_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
+                                   _Bool overwrite);
 double scn_4_addSampleFromThresholdedTensor(void **m, THFloatTensor *features_,
                                             THFloatTensor *tensor_,
                                             THLongTensor *offset_,
@@ -72,6 +81,9 @@ void scn_4_generateRuleBooks2s2(void **m);
 void scn_4_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_4_setInputSpatialLocation(void **m, THFloatTensor *features,
                                    THLongTensor *location, THFloatTensor *vec,
+                                   _Bool overwrite);
+void scn_4_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
                                    _Bool overwrite);
 double scn_5_addSampleFromThresholdedTensor(void **m, THFloatTensor *features_,
                                             THFloatTensor *tensor_,
@@ -89,6 +101,9 @@ void scn_5_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_5_setInputSpatialLocation(void **m, THFloatTensor *features,
                                    THLongTensor *location, THFloatTensor *vec,
                                    _Bool overwrite);
+void scn_5_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
+                                   _Bool overwrite);
 double scn_6_addSampleFromThresholdedTensor(void **m, THFloatTensor *features_,
                                             THFloatTensor *tensor_,
                                             THLongTensor *offset_,
@@ -104,6 +119,9 @@ void scn_6_generateRuleBooks2s2(void **m);
 void scn_6_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_6_setInputSpatialLocation(void **m, THFloatTensor *features,
                                    THLongTensor *location, THFloatTensor *vec,
+                                   _Bool overwrite);
+void scn_6_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
                                    _Bool overwrite);
 double scn_7_addSampleFromThresholdedTensor(void **m, THFloatTensor *features_,
                                             THFloatTensor *tensor_,
@@ -121,6 +139,9 @@ void scn_7_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_7_setInputSpatialLocation(void **m, THFloatTensor *features,
                                    THLongTensor *location, THFloatTensor *vec,
                                    _Bool overwrite);
+void scn_7_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
+                                   _Bool overwrite);
 double scn_8_addSampleFromThresholdedTensor(void **m, THFloatTensor *features_,
                                             THFloatTensor *tensor_,
                                             THLongTensor *offset_,
@@ -136,6 +157,9 @@ void scn_8_generateRuleBooks2s2(void **m);
 void scn_8_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_8_setInputSpatialLocation(void **m, THFloatTensor *features,
                                    THLongTensor *location, THFloatTensor *vec,
+                                  _Bool overwrite);
+void scn_8_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
                                    _Bool overwrite);
 double scn_9_addSampleFromThresholdedTensor(void **m, THFloatTensor *features_,
                                             THFloatTensor *tensor_,
@@ -153,6 +177,9 @@ void scn_9_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_9_setInputSpatialLocation(void **m, THFloatTensor *features,
                                    THLongTensor *location, THFloatTensor *vec,
                                    _Bool overwrite);
+void scn_9_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
+                                   _Bool overwrite);
 double scn_10_addSampleFromThresholdedTensor(void **m, THFloatTensor *features_,
                                              THFloatTensor *tensor_,
                                              THLongTensor *offset_,
@@ -169,6 +196,9 @@ void scn_10_setInputSpatialSize(void **m, THLongTensor *spatialSize);
 void scn_10_setInputSpatialLocation(void **m, THFloatTensor *features,
                                     THLongTensor *location, THFloatTensor *vec,
                                     _Bool overwrite);
+void scn_10_setInputSpatialLocations(void **m, THFloatTensor *features,
+                                   THLongTensor *locations, THFloatTensor *vecs,
+                                   _Bool overwrite);
 void scn_cpu_float_AffineReluTrivialConvolution_updateOutput(
     THFloatTensor *input_features, THFloatTensor *output_features,
     THFloatTensor *affineWeight, THFloatTensor *affineBias,

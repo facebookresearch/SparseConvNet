@@ -86,7 +86,7 @@ extern "C" void scn_D_(setInputSpatialLocations)(void **m,
   }
   if (locations->size[1] == Dimension + 1) {
     // add new samples to batch as necessary
-    auto SGs = *_m.inputSGs;
+    auto &SGs = *_m.inputSGs;
     for (uInt idx = 0; idx < locations->size[0]; ++idx) {
       for (int d = 0; d < Dimension; ++d)
         p[d] = *l++;

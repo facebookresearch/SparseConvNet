@@ -33,7 +33,8 @@ class InputBatch(SparseConvNetTensor):
             self.metadata.ffi, self.features, location, vector, overwrite)
 
     def setLocations(self, locations, vectors, overwrite=False):
-        assert locations.min() >= 0 and (self.spatial_size.expand_as(locations) - locations).min() > 0
+        l =locations.narrow(1,0,self.dimension)
+        assert l.min() >= 0 and (self.spatial_size.expand_as(l) - l).min() > 0
         dim_fn(self.dimension, 'setInputSpatialLocations')(
             self.metadata.ffi, self.features, locations, vectors, overwrite)
 

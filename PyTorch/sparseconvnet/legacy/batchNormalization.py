@@ -21,7 +21,6 @@ from . import SparseModule
 from ..utils import toLongTensor, typed_fn, optionalTensor, nullptr
 from .sparseConvNetTensor import SparseConvNetTensor
 
-
 class BatchNormalization(SparseModule):
     def __init__(
             self,
@@ -121,7 +120,6 @@ class BatchNormLeakyReLU(BatchNormalization):
         s = 'BatchNormReLU(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
             ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine) + ')'
         return s
-
 
 class BatchNormalizationInTensor(BatchNormalization):
     def __init__(

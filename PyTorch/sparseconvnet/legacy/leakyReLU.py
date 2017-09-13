@@ -42,28 +42,3 @@ class LeakyReLU(SparseModule):
         if t:
             self.output.type(t)
             self.gradInput = self.gradInput.type(t)
-
-
-class Tanh(SparseModule):
-    def __init__(self):
-        SparseModule.__init__(self)
-        self.output = SparseConvNetTensor(torch.Tensor())
-        #self.gradInput = None if ip else torch.Tensor()
-        self.gradInput = torch.Tensor()
-
-    def updateOutput(self, input):
-        self.output.metadata = input.metadata
-        self.output.spatial_size = input.spatial_size
-        self.output.features=torch.tanh(input.features)
-        return self.output
-
-    def updateGradInput(self, input, gradOutput):
-        self.gradInput.resize_as_(gradOutput).copy_(gradOutput)
-        self.gradInput.mul(1+self.output.features)
-        self.gradInput.mul(1-self.output.features)
-        return self.gradInput
-
-    def type(self, t, tensorCache=None):
-        if t:
-            self.output.type(t)
-            self.gradInput = self.gradInput.type(t)

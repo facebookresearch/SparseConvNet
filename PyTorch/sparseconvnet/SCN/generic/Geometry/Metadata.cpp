@@ -63,9 +63,7 @@ extern "C" void scn_D_(setInputSpatialLocations)(void **m,
   assert((locations->size[1] == Dimension or
           locations->size[1] == 1 + Dimension) and
          "locations.size(0) must be either Dimension or Dimension+1");
-
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
-
   Point<Dimension> p;
   auto &nActive = *_m.inputNActive;
   auto nPlanes = vecs->size[1];
@@ -73,7 +71,8 @@ extern "C" void scn_D_(setInputSpatialLocations)(void **m,
   auto v = THFloatTensor_data(vecs);
 
   if (locations->size[1] == Dimension) {
-    assert(_m.inputSG); // add points to current sample
+    // add points to current sample
+    assert(_m.inputSG);
     auto &mp = _m.inputSG->mp;
     for (uInt idx = 0; idx < locations->size[0]; ++idx) {
       for (int d = 0; d < Dimension; ++d)
@@ -101,9 +100,9 @@ extern "C" void scn_D_(setInputSpatialLocations)(void **m,
   }
 }
 
-extern "C" void scn_D_(getSpatialLocations)(void **m,
-                                            THLongTensor *spatialSize,
-                                            THLongTensor *locations) {
+extern "C" void scn_D_(getSpatialLocations)(void **m, THLongTensor *spatialSize,
+                                            THLongTensor *locations,
+                                            THLongTensor *batchIdxs) {
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   uInt nActive = _m.getNActive(spatialSize);
   auto &SGs = _m.getSparseGrid(spatialSize);
@@ -125,9 +124,9 @@ extern "C" void scn_D_(getSpatialLocations)(void **m,
   }
 }
 extern "C" void
-    scn_D_(createMetadataForDenseToSparse)(void **m, THLongTensor *spatialSize_,
-                                           THLongTensor *pad_,
-                                           THLongTensor *nz_, long batchSize) {
+scn_D_(createMetadataForDenseToSparse)(void **m, THLongTensor *spatialSize_,
+                                       THLongTensor *pad_, THLongTensor *nz_,
+                                       long batchSize) {
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   _m.setInputSpatialSize(spatialSize_);
   _m.inputSGs->resize(batchSize);

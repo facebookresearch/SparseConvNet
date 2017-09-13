@@ -33,7 +33,25 @@ class InputBatch(SparseConvNetTensor):
             self.metadata.ffi, self.features, location, vector, overwrite)
 
     def setLocations(self, locations, vectors, overwrite=False):
-        l =locations.narrow(1,0,self.dimension)
+        """
+        To set n locations in d dimensions, locations can be
+        - A size (n,d) LongTensor, giving d-dimensional coordinates -- points
+          are added to the current sample, or
+        - A size (n,d+1) LongTensor; the extra column specifies the sample
+          number (within the minibatch of samples).
+
+          Example with d=3 and n=2:
+          Set
+          locations = LongTensor([[1,2,3],
+                                  [4,5,6]])
+          to add points to the current sample at (1,2,3) and (4,5,6).
+          Set
+          locations = LongTensor([[1,2,3,7],
+                                  [4,5,6,9]])
+          to add point (1,2,3) to sample 7, and (4,5,6) to sample 9 (0-indexed).
+
+        """
+        l = locations.narrow(1,0,self.dimension)
         assert l.min() >= 0 and (self.spatial_size.expand_as(l) - l).min() > 0
         dim_fn(self.dimension, 'setInputSpatialLocations')(
             self.metadata.ffi, self.features, locations, vectors, overwrite)

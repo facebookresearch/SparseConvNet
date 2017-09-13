@@ -31,7 +31,6 @@ class BatchNormalization(SparseModule):
             affine=True,
             leakiness=1):
         SparseModule.__init__(self)
-        assert nPlanes % 4 == 0
         self.nPlanes = nPlanes
         self.eps = eps
         self.momentum = momentum
@@ -44,16 +43,16 @@ class BatchNormalization(SparseModule):
         if affine:
             self.weight = torch.Tensor(nPlanes).fill_(1)
             self.bias = torch.Tensor(nPlanes).fill_(0)
-            self.gradWeight = torch.Tensor(nPlanes)
-            self.gradBias = torch.Tensor(nPlanes)
+            self.gradWeight = torch.Tensor(nPlanes).fill_(0)
+            self.gradBias = torch.Tensor(nPlanes).fill_(0.333)
         self.output = SparseConvNetTensor(torch.Tensor())
         self.gradInput = torch.Tensor()
 
     def updateOutput(self, input):
-        assert input.features.size(1) == self.nPlanes
+        assert input.features.ndimension()==0 or input.features.size(1) == self.nPlanes
         self.output.metadata = input.metadata
         self.output.spatial_size = input.spatial_size
-        typed_fn(input, 'BatchNormalization_updateOutput')(
+        typed_fn(input.features, 'BatchNormalization_updateOutput')(
             input.features,
             self.output.features,
             self.saveMean,
@@ -71,7 +70,7 @@ class BatchNormalization(SparseModule):
     def backward(self, input, gradOutput, scale=1):
         assert scale == 1
         assert self.train
-        typed_fn(input, 'BatchNormalization_backward')(
+        typed_fn(input.features, 'BatchNormalization_backward')(
             input.features,
             self.gradInput,
             self.output.features,
@@ -114,6 +113,14 @@ class BatchNormReLU(BatchNormalization):
         s = 'BatchNormReLU(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
             ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine) + ')'
         return s
+class BatchNormLeakyReLU(BatchNormalization):
+    def __init__(self, nPlanes, eps=1e-4, momentum=0.9):
+        BatchNormalization.__init__(self, nPlanes, eps, momentum, True, 0.333)
+
+    def __repr__(self):
+        s = 'BatchNormReLU(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
+            ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine) + ')'
+        return s
 
 
 class BatchNormalizationInTensor(BatchNormalization):
@@ -131,7 +138,7 @@ class BatchNormalizationInTensor(BatchNormalization):
             1, self.output_column_offset, self.nPlanes)
         self.output.metadata = input.metadata
         self.output.spatial_size = input.spatial_size
-        typed_fn(input, 'BatchNormalizationInTensor_updateOutput')(
+        typed_fn(input.features, 'BatchNormalizationInTensor_updateOutput')(
             input.features,
             o,
             self.saveMean,
@@ -152,7 +159,7 @@ class BatchNormalizationInTensor(BatchNormalization):
         o = self.output.features.narrow(
             1, self.output_column_offset, self.nPlanes)
         d_o = gradOutput.narrow(1, self.output_column_offset, self.nPlanes)
-        typed_fn(input, 'BatchNormalization_backward')(
+        typed_fn(input.features, 'BatchNormalization_backward')(
             input.features,
             self.gradInput,
             o,

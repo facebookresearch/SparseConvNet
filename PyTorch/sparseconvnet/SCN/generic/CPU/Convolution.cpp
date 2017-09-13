@@ -23,17 +23,19 @@ extern "C" double scn_DR_(Convolution_updateOutput)(
   if (not bias)
     THTensor_(zero)(output_features);
 
-  auto iF = THTensor_(data)(input_features);
-  auto oF = THTensor_(data)(output_features);
-  auto ip = input_features->size[1];
-  auto op = output_features->size[1];
-  auto w = THTensor_(data)(weight);
-  auto b = THOptionalTensorData(bias);
-  Convolution_ForwardPass(iF, ip, ip, oF, op, op, w, b, _rules, nActive,
-                          THBlas_(gemm));
   double flops = 0;
-  for (auto &r : _rules)
-    flops += r.size() / 2 * ip * op;
+  if (nActive) {
+    auto iF = THTensor_(data)(input_features);
+    auto oF = THTensor_(data)(output_features);
+    auto ip = input_features->size[1];
+    auto op = output_features->size[1];
+    auto w = THTensor_(data)(weight);
+    auto b = THOptionalTensorData(bias);
+    Convolution_ForwardPass(iF, ip, ip, oF, op, op, w, b, _rules, nActive,
+                            THBlas_(gemm));
+    for (auto &r : _rules)
+      flops += r.size() / 2 * ip * op;
+  }
   return flops;
 }
 
@@ -51,17 +53,19 @@ extern "C" void scn_DR_(Convolution_backward)(
   THTensor_(resizeAs)(d_input_features, input_features);
   THTensor_(zero)(d_input_features);
 
-  auto iF = THTensor_(data)(input_features);
-  auto diF = THTensor_(data)(d_input_features);
-  auto doF = THTensor_(data)(d_output_features);
-  auto ip = input_features->size[1];
-  auto op = d_output_features->size[1];
-  auto w = THTensor_(data)(weight);
-  auto dw = THTensor_(data)(d_weight);
-  auto db = THOptionalTensorData(d_bias);
+  if (nActive) {
+    auto iF = THTensor_(data)(input_features);
+    auto diF = THTensor_(data)(d_input_features);
+    auto doF = THTensor_(data)(d_output_features);
+    auto ip = input_features->size[1];
+    auto op = d_output_features->size[1];
+    auto w = THTensor_(data)(weight);
+    auto dw = THTensor_(data)(d_weight);
+    auto db = THOptionalTensorData(d_bias);
 
-  Convolution_BackwardPass(iF, diF, ip, ip, doF, op, op, w, dw, db, _rules,
-                           nActive, THBlas_(gemm));
+    Convolution_BackwardPass(iF, diF, ip, ip, doF, op, op, w, dw, db, _rules,
+                             nActive, THBlas_(gemm));
+  }
 }
 
 extern "C" double scn_DR_(ValidConvolution_updateOutput)(
@@ -71,24 +75,25 @@ extern "C" double scn_DR_(ValidConvolution_updateOutput)(
 
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   auto _rules = _m.getValidRuleBook(inputSize, filterSize, true);
-  uInt nActive = input_features->size[0];
+  uInt nActive = _m.getNActive(inputSize);
   THTensor_(resize2d)(output_features, nActive, weight->size[1]);
   if (not bias)
     THTensor_(zero)(output_features);
 
-  auto iF = THTensor_(data)(input_features);
-  auto oF = THTensor_(data)(output_features);
-  auto ip = input_features->size[1];
-  auto op = output_features->size[1];
-  auto w = THTensor_(data)(weight);
-  auto b = THOptionalTensorData(bias);
-
-  Convolution_ForwardPass(iF, ip, ip, oF, op, op, w, b, _rules, nActive,
-                          THBlas_(gemm));
   double flops = 0;
-  for (auto &r : _rules)
-    flops += r.size() / 2 * ip * op;
+  if (nActive) {
+    auto iF = THTensor_(data)(input_features);
+    auto oF = THTensor_(data)(output_features);
+    auto ip = input_features->size[1];
+    auto op = output_features->size[1];
+    auto w = THTensor_(data)(weight);
+    auto b = THOptionalTensorData(bias);
 
+    Convolution_ForwardPass(iF, ip, ip, oF, op, op, w, b, _rules, nActive,
+                            THBlas_(gemm));
+    for (auto &r : _rules)
+      flops += r.size() / 2 * ip * op;
+  }
   return flops;
 }
 
@@ -100,21 +105,22 @@ extern "C" void scn_DR_(ValidConvolution_backward)(
 
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   auto _rules = _m.getValidRuleBook(inputSize, filterSize, true);
-  uInt nActive = input_features->size[0];
+  uInt nActive = _m.getNActive(inputSize);
   THTensor_(resizeAs)(d_input_features, input_features);
   THTensor_(zero)(d_input_features);
 
-  auto iF = THTensor_(data)(input_features);
-  auto diF = THTensor_(data)(d_input_features);
-  auto doF = THTensor_(data)(d_output_features);
-  auto ip = input_features->size[1];
-  auto op = d_output_features->size[1];
-  auto w = THTensor_(data)(weight);
-  auto dw = THTensor_(data)(d_weight);
-  auto db = THOptionalTensorData(d_bias);
+  if (nActive) {
+    auto iF = THTensor_(data)(input_features);
+    auto diF = THTensor_(data)(d_input_features);
+    auto doF = THTensor_(data)(d_output_features);
+    auto ip = input_features->size[1];
+    auto op = d_output_features->size[1];
+    auto w = THTensor_(data)(weight);
+    auto dw = THTensor_(data)(d_weight);
+    auto db = THOptionalTensorData(d_bias);
 
-  Convolution_BackwardPass(iF, diF, ip, ip, doF, op, op, w, dw, db, _rules,
-                           nActive, THBlas_(gemm));
+    Convolution_BackwardPass(iF, diF, ip, ip, doF, op, op, w, dw, db, _rules,
+                             nActive, THBlas_(gemm));
+  }
 }
-
 #endif

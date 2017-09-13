@@ -52,12 +52,16 @@ void scn_DIMENSION_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, bool overwrite);
 void scn_DIMENSION_getSpatialLocations(void **m, THLongTensor *spatialSize,
   THLongTensor *locations);
-  ]]
+
+]]
 
   for DIMENSION = 1,10 do
     local def = string.gsub(cdef, 'DIMENSION', DIMENSION)
-    if fc then fc:write(def) end
     ffi.cdef(def)
+    if fc then
+      def=string.gsub(def,'bool','_Bool')
+      fc:write(def)
+    end
   end
 
   --types CPU float, double;
@@ -128,21 +132,29 @@ void scn_ARCH_REAL_NetworkInNetwork_accGradParameters(
     def = string.gsub(def, 'THITensor', 'void')
     def = string.gsub(def, 'REAL', v[1])
     def = string.gsub(def, 'THTensor', v[2])
-    if fc then fc:write(def) end
     ffi.cdef(def)
+    if fc then
+      def=string.gsub(def,'bool','_Bool')
+      fc:write(def)
+    end
   end
   if sparseconvnet.cutorch then
     for k,v in ipairs({
         {'float', 'THCudaTensor'},
-        {'double', 'THCudaDoubleTensor'}}) do
+        --{'double', 'THCudaDoubleTensor'}
+                     })
+    do
       local def = cdef
       def = string.gsub(def, 'ARCH', 'gpu')
       def = string.gsub(def, 'THITensor', sparseconvnet.ruleBookBits==64 and
-        'THCudaLongTensor' or 'THCudaIntTensor')
+                          'THCudaLongTensor' or 'THCudaIntTensor')
       def = string.gsub(def, 'REAL', v[1])
       def = string.gsub(def, 'THTensor', v[2])
-      if fg then fg:write(def) end
       ffi.cdef(def)
+      if fg then
+        def=string.gsub(def,'bool','_Bool')
+        fg:write(def)
+      end
     end
   end
 
@@ -226,7 +238,7 @@ void scn_ARCH_REAL_DIMENSIONValidConvolution_backward(
   THTensor *d_bias, long filterVolume, THITensor *rulesBuffer);
   ]]
 
-  for _,v in ipairs({{'float', 'THFloatTensor'}, {'double','THDoubleTensor'}}) do
+  for _,v in ipairs({{'float', 'THFloatTensor'}, {'double', 'THDoubleTensor'}}) do
     for DIMENSION = 1,10 do
       local def = cdef
       def = string.gsub(def, 'ARCH', 'cpu')
@@ -234,24 +246,31 @@ void scn_ARCH_REAL_DIMENSIONValidConvolution_backward(
       def = string.gsub(def, 'THITensor', 'void')
       def = string.gsub(def, 'REAL', v[1])
       def = string.gsub(def, 'THTensor', v[2])
-      if fc then fc:write(def) end
       ffi.cdef(def)
+      if fc then
+        def=string.gsub(def,'bool','_Bool')
+        fc:write(def)
+      end
     end
   end
   if sparseconvnet.cutorch then
     for k,v in ipairs({
         {'float', 'THCudaTensor'},
-        {'double', 'THCudaDoubleTensor'}}) do
+        --{'double', 'THCudaDoubleTensor'}
+    }) do
       for DIMENSION = 1,10 do
         local def = cdef
         def = string.gsub(def, 'ARCH', 'gpu')
         def = string.gsub(def, '_DIMENSION', DIMENSION)
         def = string.gsub(def, 'THITensor', sparseconvnet.ruleBookBits==64 and
-          'THCudaLongTensor' or 'THCudaIntTensor')
+                            'THCudaLongTensor' or 'THCudaIntTensor')
         def = string.gsub(def, 'REAL', v[1])
         def = string.gsub(def, 'THTensor', v[2])
-        if fg then fg:write(def) end
         ffi.cdef(def)
+        if fg then
+          def=string.gsub(def,'bool','_Bool')
+          fg:write(def)
+        end
       end
     end
   end

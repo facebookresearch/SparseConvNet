@@ -24,16 +24,16 @@ ffi = cffi.FFI()
 
 class Metadata(object):
     def __init__(self, dimension, ptr=0):
-        #print('make meta',dimension, ptr)
         self.dimension = dimension
         self.ffi = ffi.new('void *[1]')
         scn_writePtr(ptr, self.ffi)
         self.ffigc = ffi.gc(self.ffi, dim_fn(self.dimension, 'freeMetadata'))
 
     def set_(self):
-        if hasattr(self, 'ffi'):
-            del self.ffigc
-            del self.ffi
+        dim_fn(self.dimension, 'freeMetadata')(self.ffi)
+        # if hasattr(self, 'ffi'):
+        #     del self.ffigc
+        #     del self.ffi
 
     def __reduce__(self):
         if hasattr(self, 'ffi'):

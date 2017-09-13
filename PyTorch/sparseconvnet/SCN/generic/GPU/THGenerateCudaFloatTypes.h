@@ -27,4 +27,22 @@
 #undef TH_REAL_IS_FLOAT
 #undef THBLAS_GEMM
 
+// double
+// #define real double
+// #define accreal double
+// #define Real Double
+// #define CReal CudaDouble
+// #define TH_REAL_IS_DOUBLE
+// #define THBLAS_GEMM THCudaBlas_Dgemm
+
+// #line 1 TH_GENERIC_FILE
+// #include TH_GENERIC_FILE
+
+// #undef accreal
+// #undef real
+// #undef Real
+// #undef CReal
+// #undef TH_REAL_IS_DOUBLE
+// #undef THBLAS_GEMM
+
 #undef TH_GENERIC_FILE

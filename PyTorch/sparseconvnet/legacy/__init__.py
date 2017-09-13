@@ -10,14 +10,15 @@ from .inputBatch import InputBatch
 from .sparseConvNetTensor import SparseConvNetTensor
 from .sparseModule import SparseModule
 from .averagePooling import AveragePooling
-from .batchNormalization import BatchNormalization
+from .batchNormalization import BatchNormReLU, BatchNormLeakyReLU, BatchNormalizationInTensor
 from .concatTable import ConcatTable
 from .convolution import Convolution
 from .cAddTable import CAddTable
 from .deconvolution import Deconvolution
+from .denseToSparse import DenseToSparse
 from .identity import Identity
 from .joinTable import JoinTable
-from .leakyReLU import LeakyReLU
+from .leakyReLU import LeakyReLU, Tanh
 from .maxPooling import MaxPooling
 from .networkInNetwork import NetworkInNetwork
 from .reLU import ReLU

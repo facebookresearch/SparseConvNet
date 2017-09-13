@@ -6,8 +6,6 @@
 
 #ifndef VALIDCONVOLUTIONRULES_H
 #define VALIDCONVOLUTIONRULES_H
-#include<iostream>
-
 
 // Full input region for an output point
 template <uInt dimension>
@@ -26,8 +24,8 @@ InputRegionCalculator_Valid(const Point<dimension> &output, long *size) {
 // rules is used to carry out the "lowering" whilst carrying out the convolution
 
 template <uInt dimension>
-double ValidConvolution_SgToRules(SparseGrid<dimension> &grid,
-                                    RuleBook &rules, long *size) {
+double ValidConvolution_SgToRules(SparseGrid<dimension> &grid, RuleBook &rules,
+                                  long *size) {
   uInt sd = volume<dimension>(size);
   double countActiveInputs = 0;
   for (auto const &outputIter : grid.mp) {
@@ -48,8 +46,8 @@ double ValidConvolution_SgToRules(SparseGrid<dimension> &grid,
 }
 
 template <uInt dimension>
-uInt ValidConvolution_SgsToRules(SparseGrids<dimension> &SGs,
-                                   RuleBook &rules, long *size) {
+uInt ValidConvolution_SgsToRules(SparseGrids<dimension> &SGs, RuleBook &rules,
+                                 long *size) {
   uInt sd = volume<dimension>(size);
   uInt countActiveInputs = 0;
   rules.clear();
@@ -61,7 +59,7 @@ uInt ValidConvolution_SgsToRules(SparseGrids<dimension> &SGs,
 }
 template <uInt dimension>
 uInt ValidConvolution_SgsToRules_OMP(SparseGrids<dimension> &SGs,
-                                       RuleBook &rules, long *size) {
+                                     RuleBook &rules, long *size) {
   std::vector<RuleBook> rbs(SGs.size());
   std::vector<double> countActiveInputs(SGs.size());
   rules.clear();

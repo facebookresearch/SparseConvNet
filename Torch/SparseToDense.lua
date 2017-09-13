@@ -5,14 +5,14 @@
 -- LICENSE file in the root directory of this source tree.
 
 --[[
-Function to convert a SparseConvNet hidden layer to a dense convolutional
-layer. Put a SparseToDense convolutional layer (or an ActivePooling layer) at
-the top of your sparse network. The output can then pass to a dense
-convolutional layers or (if the spatial dimensions have become trivial) a
-linear classifier.
+  Function to convert a SparseConvNet hidden layer to a dense convolutional
+  layer. Put a SparseToDense convolutional layer (or an ActivePooling layer) at
+  the top of your sparse network. The output can then pass to a dense
+  convolutional layers or (if the spatial dimensions have become trivial) a
+  linear classifier.
 
-Parameters:
-dimension : of the input field
+  Parameters:
+  dimension : of the input field
 ]]
 
 return function(sparseconvnet)
@@ -20,11 +20,12 @@ return function(sparseconvnet)
   local SparseToDense, parent = torch.class(
     'sparseconvnet.SparseToDense', 'nn.Module', sparseconvnet)
 
-  function SparseToDense:__init(dimension)
+  function SparseToDense:__init(dimension, nPlanes)
     parent.__init(self)
     self.dimension = dimension
     self.output=torch.Tensor()
     self.gradInput={features=torch.Tensor()}
+    self.nPlanes=nPlanes
   end
 
   function SparseToDense:updateOutput(input)
@@ -34,7 +35,8 @@ return function(sparseconvnet)
       input.metadata.ffi,
       input.features:cdata(),
       self.output:cdata(),
-      self.shared.rulesBuffer and self.shared.rulesBuffer:cdata())
+      self.shared.rulesBuffer and self.shared.rulesBuffer:cdata(),
+      self.nPlanes or input.features.size(2))
     return self.output
   end
 

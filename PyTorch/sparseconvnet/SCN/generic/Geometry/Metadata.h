@@ -11,7 +11,6 @@
 #include "ActivePoolingRules.h"
 #include "ConvolutionRules.h"
 #include "ValidConvolutionRules.h"
-#include <iostream>
 #include <tuple>
 #include <unordered_map>
 
@@ -40,6 +39,18 @@ public:
   uInt *inputNActive;
 
   Metadata() {}
+  void clear() {
+    nActive.clear();
+    grids.clear();
+    activePoolingRuleBooks.clear();
+    validRuleBooks.clear();
+    ruleBooks.clear();
+    sparseToDenseRuleBooks.clear();
+    inputSGs = nullptr;
+    inputSG = nullptr;
+    inputNActive = nullptr;
+  }
+
   void setInputSpatialSize(THLongTensor *spatialSize) {
     inputSpatialSize = LongTensorToPoint<dimension>(spatialSize);
     inputSGs = &grids[inputSpatialSize];

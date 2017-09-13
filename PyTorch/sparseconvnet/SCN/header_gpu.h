@@ -122,7 +122,8 @@ void scn_gpu_float1MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float1SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer,
+  long nPlanes);
 void scn_gpu_float1SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,
@@ -199,7 +200,7 @@ void scn_gpu_float2MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float2SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer, long nPlanes);
 void scn_gpu_float2SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,
@@ -276,7 +277,7 @@ void scn_gpu_float3MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float3SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer, long nPlanes);
 void scn_gpu_float3SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,
@@ -353,7 +354,7 @@ void scn_gpu_float4MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float4SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer, long nPlanes);
 void scn_gpu_float4SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,
@@ -430,7 +431,7 @@ void scn_gpu_float5MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float5SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer, long nPlanes);
 void scn_gpu_float5SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,
@@ -507,7 +508,7 @@ void scn_gpu_float6MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float6SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer, long nPlanes);
 void scn_gpu_float6SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,
@@ -584,7 +585,7 @@ void scn_gpu_float7MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float7SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer, long nPlanes);
 void scn_gpu_float7SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,
@@ -661,7 +662,7 @@ void scn_gpu_float8MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float8SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer, long nPlanes);
 void scn_gpu_float8SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,
@@ -738,7 +739,7 @@ void scn_gpu_float9MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float9SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer, long nPlanes);
 void scn_gpu_float9SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,
@@ -815,7 +816,7 @@ void scn_gpu_float10MaxPooling_updateGradInput(
 // SparseToDense
 void scn_gpu_float10SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
-  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer);
+  THCudaTensor *output_features, THCudaIntTensor *rulesBuffer, long nPlanes);
 void scn_gpu_float10SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THCudaTensor *input_features,
   THCudaTensor *d_input_features, THCudaTensor *d_output_features,

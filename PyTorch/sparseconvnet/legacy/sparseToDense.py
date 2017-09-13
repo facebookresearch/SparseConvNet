@@ -22,23 +22,27 @@ from .sparseConvNetTensor import SparseConvNetTensor
 
 
 class SparseToDense(SparseModule):
-    def __init__(self, dimension):
+    def __init__(self, dimension, nPlanes=None):
         SparseModule.__init__(self)
         self.dimension = dimension
         self.output = torch.Tensor()
         self.gradInput = torch.FloatTensor()
+        self.nPlanes=nPlanes
 
     def updateOutput(self, input):
-        dim_typed_fn(self.dimension, input, 'SparseToDense_updateOutput')(
+        if not self.nPlanes:
+            self.nPlanes=input.features.size(1)
+        dim_typed_fn(self.dimension, input.features, 'SparseToDense_updateOutput')(
             input.spatial_size,
             input.metadata.ffi,
             input.features,
             self.output,
-            torch.cuda.IntTensor() if input.features.is_cuda else nullptr)
+            torch.cuda.IntTensor() if input.features.is_cuda else nullptr,
+            self.nPlanes)
         return self.output
 
     def updateGradInput(self, input, gradOutput):
-        dim_typed_fn(self.dimension, input, 'SparseToDense_updateGradInput')(
+        dim_typed_fn(self.dimension, input.features, 'SparseToDense_updateGradInput')(
             input.spatial_size,
             input.metadata.ffi,
             input.features,

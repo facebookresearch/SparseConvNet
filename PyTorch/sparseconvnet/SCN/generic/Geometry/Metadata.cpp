@@ -23,6 +23,23 @@ extern "C" void scn_D_(batchAddSample)(void **m) {
   _m.inputSGs->resize(_m.inputSGs->size() + 1);
   _m.inputSG = &_m.inputSGs->back();
 }
+
+void scn_D_(addPointToSparseGridMapAndFeatures)(SparseGridMap<Dimension> &mp,
+                                                Point<Dimension> p,
+                                                uInt &nActive, long nPlanes,
+                                                THFloatTensor *features,
+                                                float *vec, bool overwrite) {
+  auto iter = mp.find(p);
+  if (iter == mp.end()) {
+    iter = mp.insert(std::make_pair(p, nActive++)).first;
+    THFloatTensor_resize2d(features, nActive, nPlanes);
+    std::memcpy(THFloatTensor_data(features) + (nActive - 1) * nPlanes, vec,
+                sizeof(float) * nPlanes);
+  } else if (overwrite) {
+    std::memcpy(THFloatTensor_data(features) + iter->second * nPlanes, vec,
+                sizeof(float) * nPlanes);
+  }
+}
 extern "C" void scn_D_(setInputSpatialLocation)(void **m,
                                                 THFloatTensor *features,
                                                 THLongTensor *location,
@@ -32,56 +49,55 @@ extern "C" void scn_D_(setInputSpatialLocation)(void **m,
   auto p = LongTensorToPoint<Dimension>(location);
   auto &mp = _m.inputSG->mp;
   auto &nActive = *_m.inputNActive;
-  auto iter = mp.find(p);
   auto nPlanes = vec->size[0];
-  if (iter == mp.end()) {
-    iter = mp.insert(std::make_pair(p, nActive++)).first;
-    THFloatTensor_resize2d(features, nActive, nPlanes);
-    std::memcpy(THFloatTensor_data(features) + (nActive - 1) * nPlanes,
-                THFloatTensor_data(vec), sizeof(float) * nPlanes);
-  } else if (overwrite) {
-    std::memcpy(THFloatTensor_data(features) + iter->second * nPlanes,
-                THFloatTensor_data(vec), sizeof(float) * nPlanes);
-  }
+  scn_D_(addPointToSparseGridMapAndFeatures)(
+      mp, p, nActive, nPlanes, features, THFloatTensor_data(vec), overwrite);
 }
 extern "C" void scn_D_(setInputSpatialLocations)(void **m,
-                                                THFloatTensor *features,
-                                                THLongTensor *locations,
-                                                THFloatTensor *vecs,
-                                                bool overwrite) {
-
-  assert(locations->size[0] == vecs->size[0] &&
-    "Location and vec length must be identical!");
+                                                 THFloatTensor *features,
+                                                 THLongTensor *locations,
+                                                 THFloatTensor *vecs,
+                                                 bool overwrite) {
+  assert(locations->size[0] == vecs->size[0] and
+         "Location.size(0) and vecs.size(0) must be equal!");
+  assert((locations->size[1] == Dimension or
+          locations->size[1] == 1 + Dimension) and
+         "locations.size(0) must be either Dimension or Dimension+1");
 
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
-  auto &mp = _m.inputSG->mp;
+
+  Point<Dimension> p;
   auto &nActive = *_m.inputNActive;
-  auto nSamples = locations->size[0];
-  auto isMpEmpty = mp.empty();
+  auto nPlanes = vecs->size[1];
+  auto l = THLongTensor_data(locations);
+  auto v = THFloatTensor_data(vecs);
 
-  if (isMpEmpty) {
-    auto nPlanes = vecs->size[1];
-
-    THFloatTensor_resize2d(features, nSamples, nPlanes);
-    std::memcpy(THFloatTensor_data(features),
-                THFloatTensor_data(vecs), sizeof(float) * nSamples * nPlanes);
-
-    mp.resize(nSamples);
-  }
-
-  for(unsigned int i = 0; i < nSamples; ++i) {
-    THLongTensor *location = THLongTensor_newSelect(locations, 0, i);
-    THFloatTensor *vec = THFloatTensor_newSelect(vecs, 0, i);
-
-    if (isMpEmpty) {
-      auto p = LongTensorToPoint<Dimension>(location);
-      mp.insert(std::make_pair(p, nActive++));
-    } else {
-      scn_D_(setInputSpatialLocation)(m, features, location, vec, overwrite);
+  if (locations->size[1] == Dimension) {
+    assert(_m.inputSG); // add points to current sample
+    auto &mp = _m.inputSG->mp;
+    for (uInt idx = 0; idx < locations->size[0]; ++idx) {
+      for (int d = 0; d < Dimension; ++d)
+        p[d] = *l++;
+      scn_D_(addPointToSparseGridMapAndFeatures)(mp, p, nActive, nPlanes,
+                                                 features, v, overwrite);
+      v += nPlanes;
     }
-
-    THLongTensor_free(location);
-    THFloatTensor_free(vec);
+  }
+  if (locations->size[1] == Dimension + 1) {
+    // add new samples to batch as necessary
+    auto &SGs = *_m.inputSGs;
+    for (uInt idx = 0; idx < locations->size[0]; ++idx) {
+      for (int d = 0; d < Dimension; ++d)
+        p[d] = *l++;
+      auto batch = *l++;
+      if (batch >= SGs.size()) {
+        SGs.resize(batch + 1);
+      }
+      auto &mp = SGs[batch].mp;
+      scn_D_(addPointToSparseGridMapAndFeatures)(mp, p, nActive, nPlanes,
+                                                 features, v, overwrite);
+      v += nPlanes;
+    }
   }
 }
 extern "C" void scn_D_(getSpatialLocations)(void **m,

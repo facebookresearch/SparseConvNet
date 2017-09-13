@@ -32,7 +32,7 @@
 
 template <uInt dimension>
 using SparseGridMap =
-    google::dense_hash_map<Point<dimension>, int, IntArrayHash<dimension>,
+    google::dense_hash_map<Point<dimension>, uInt, IntArrayHash<dimension>,
                            std::equal_to<Point<dimension>>>;
 
 template <uInt dimension> class SparseGrid {

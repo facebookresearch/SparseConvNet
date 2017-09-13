@@ -15,7 +15,7 @@ return function(sparseconvnet)
     self.spatialSize = type(spatialSize)=='number' and torch.LongTensor(
       dimension):fill(spatialSize) or spatialSize
     C.dimensionFn(self.dimension,'setInputSpatialSize')(self.metadata.ffi,
-      self.spatialSize:cdata())
+                                                        self.spatialSize:cdata())
   end
   function InputBatch:addSample()
     C.dimensionFn(self.dimension, 'batchAddSample')(self.metadata.ffi)
@@ -28,7 +28,7 @@ return function(sparseconvnet)
   end
   function InputBatch:setLocation(location, vector, overwrite)
     --[[location is a self.dimensional length set of coordinates:
-    torch.LongStorage or a table]]
+      torch.LongStorage or a table]]
     if type(location)=='table' then
       local l=torch.LongStorage(self.dimension)
       for i,x in ipairs(location) do
@@ -38,19 +38,20 @@ return function(sparseconvnet)
     end
     assert(location:min()>=0 and (self.spatialSize-location):min()>0)
     C.dimensionFn(self.dimension,'setInputSpatialLocation')(self.metadata.ffi,
-      self.features:cdata(), location:cdata(), vector:cdata(), overwrite)
+                                                            self.features:cdata(), location:cdata(), vector:cdata(), overwrite)
   end
   function InputBatch:setLocations(locations, vectors, overwrite)
     --[[locations is a n_locations x self.dimensional length set of coordinates:
-    torch.LongStorage or a 2-D table]]
+      torch.LongStorage or a 2-D table]]
     if type(locations)=='table' then
       locations = torch.LongStorage(locations)
     end
 
-    assert(locations:min()>=0 and (self.spatialSize:view(1, self.dimension):expandAs(locations)-locations):min()>0)
+    local l = locations:narrow(2,1,self.dimension)
+    assert(l:min()>=0 and (self.spatialSize:view(1, self.dimension):expandAs(l)-l):min()>0)
 
     C.dimensionFn(self.dimension,'setInputSpatialLocations')(self.metadata.ffi,
-      self.features:cdata(), locations:cdata(), vectors:cdata(), overwrite)
+                                                             self.features:cdata(), locations:cdata(), vectors:cdata(), overwrite)
   end
   function InputBatch:precomputeMetadata(stride)
     if stride==2 then

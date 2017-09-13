@@ -13,9 +13,9 @@ dtype = 'torch.cuda.FloatTensor' if torch.cuda.is_available() else 'torch.FloatT
 
 model = scn.Sequential().add(
     scn.SparseVggNet(2, 1,
-                     [['C', 8], ['C', 8], ['MP', 3, 2],
+                     [['C',  8], ['C',  8], ['MP', 3, 2],
                       ['C', 16], ['C', 16], ['MP', 3, 2],
-                         ['C', 24], ['C', 24], ['MP', 3, 2]])
+                      ['C', 24], ['C', 24], ['MP', 3, 2]])
 ).add(
     scn.ValidConvolution(2, 24, 32, 3, False)
 ).add(
@@ -34,20 +34,27 @@ msg = [
     " XXXXX  XX   X    X   X  X    X   X   X  X  X  XXX   X    X   X ",
     " X   X  X    X    X   X  X     X X X X   X  X  X  X  X    X  X  ",
     " X   X  XXX  XXX  XXX  XX       X   X     XX   X  X  XXX  XXX   "]
-input.addSample()
 
+#Add a sample using setLocation
+input.addSample()
+for y, line in enumerate(msg):
+    for x, c in enumerate(line):
+        if c == 'X':
+            location = torch.LongTensor([x, y])
+            featureVector = torch.FloatTensor([1])
+            input.setLocation(location, featureVector, 0)
+
+#Add a sample using setLocations
+input.addSample()
 locations = []
 features = []
-
 for y, line in enumerate(msg):
     for x, c in enumerate(line):
         if c == 'X':
             locations.append([x,y])
             features.append([1])
-
 locations = torch.LongTensor(locations)
 features = torch.FloatTensor(features)
-
 input.setLocations(locations, features, 0)
 
 # Optional: allow metadata preprocessing to be done in batch preparation threads
@@ -62,6 +69,6 @@ model.evaluate()
 input.type(dtype)
 output = model.forward(input)
 
-# Output is 1x32x10x10: our minibatch has 1 sample, the network has 32 output
+# Output is 2x32x10x10: our minibatch has 2 samples, the network has 32 output
 # feature planes, and 10x10 is the spatial size of the output.
 print(output.size(), output.type())

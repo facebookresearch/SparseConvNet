@@ -49,6 +49,8 @@ return function (sparseconvnet)
   void scn_DIMENSION_setInputSpatialLocation(void **m,
     THFloatTensor *features, THLongTensor *location, THFloatTensor *vec,
     bool overwrite);
+  void scn_5_getSpatialLocations(void **m,
+    THLongTensor *spatialSize, THLongTensor *locations);
   void scn_DIMENSION_setInputSpatialLocations(void **m,
     THFloatTensor *features, THLongTensor *locations, THFloatTensor *vecs,
     bool overwrite);

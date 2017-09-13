@@ -100,6 +100,7 @@ extern "C" void scn_D_(setInputSpatialLocations)(void **m,
     }
   }
 }
+
 extern "C" void scn_D_(getSpatialLocations)(void **m,
                                             THLongTensor *spatialSize,
                                             THLongTensor *locations) {
@@ -108,7 +109,7 @@ extern "C" void scn_D_(getSpatialLocations)(void **m,
   auto &SGs = _m.getSparseGrid(spatialSize);
   uInt batchSize = SGs.size();
 
-  THLongTensor_resize2d(locations, nActive, Dimension);
+  THLongTensor_resize2d(locations, nActive, Dimension + 1);
   THLongTensor_zero(locations);
 
   auto lD = THLongTensor_data(locations);
@@ -117,8 +118,9 @@ extern "C" void scn_D_(getSpatialLocations)(void **m,
     auto mp = SGs[i].mp;
     for (auto it = mp.begin(); it != mp.end(); ++it) {
       for (uInt d = 0; d < Dimension; ++d) {
-        lD[it->second * Dimension + d] = it->first[d];
+        lD[it->second * (Dimension + 1) + d] = it->first[d];
       }
+      lD[it->second * (Dimension + 1) + Dimension] = i;
     }
   }
 }

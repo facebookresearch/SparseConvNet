@@ -40,7 +40,6 @@ void scn_D_(addPointToSparseGridMapAndFeatures)(SparseGridMap<Dimension> &mp,
                 sizeof(float) * nPlanes);
   }
 }
-
 extern "C" void scn_D_(setInputSpatialLocation)(void **m,
                                                 THFloatTensor *features,
                                                 THLongTensor *location,
@@ -101,7 +100,28 @@ extern "C" void scn_D_(setInputSpatialLocations)(void **m,
     }
   }
 }
+extern "C" void scn_D_(getSpatialLocations)(void **m,
+                                            THLongTensor *spatialSize,
+                                            THLongTensor *locations) {
+  SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
+  uInt nActive = _m.getNActive(spatialSize);
+  auto &SGs = _m.getSparseGrid(spatialSize);
+  uInt batchSize = SGs.size();
 
+  THLongTensor_resize2d(locations, nActive, Dimension);
+  THLongTensor_zero(locations);
+
+  auto lD = THLongTensor_data(locations);
+
+  for (uInt i = 0; i < batchSize; i++) {
+    auto mp = SGs[i].mp;
+    for (auto it = mp.begin(); it != mp.end(); ++it) {
+      for (uInt d = 0; d < Dimension; ++d) {
+        lD[it->second * Dimension + d] = it->first[d];
+      }
+    }
+  }
+}
 extern "C" void
     scn_D_(createMetadataForDenseToSparse)(void **m, THLongTensor *spatialSize_,
                                            THLongTensor *pad_,

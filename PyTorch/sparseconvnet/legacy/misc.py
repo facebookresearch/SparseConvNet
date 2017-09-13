@@ -8,6 +8,7 @@ import torch.legacy.nn as nn
 from .sequential import Sequential
 from .sparseModule import SparseModule
 from .sparseConvNetTensor import SparseConvNetTensor
+from .batchNormalization import BatchNormalization
 
 class Tanh(SparseModule):
     def __init__(self):

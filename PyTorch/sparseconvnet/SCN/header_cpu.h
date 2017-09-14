@@ -190,12 +190,10 @@ void scn_cpu_float_AffineReluTrivialConvolution_backward(
 // BatchwiseMultiplicativeDropout
 void scn_cpu_float_BatchwiseMultiplicativeDropout_updateOutput(
   THFloatTensor *input_features, THFloatTensor *output_features,
-  THFloatTensor *noise, long nPlanes, long input_stride, long output_stride,
-  float alpha);
+  THFloatTensor *noise, float alpha);
 void scn_cpu_float_BatchwiseMultiplicativeDropout_updateGradInput(
   THFloatTensor *input_features, THFloatTensor *d_input_features,
-  THFloatTensor *d_output_features, THFloatTensor *noise, long nPlanes,
-  long input_stride, long output_stride, float alpha);
+  THFloatTensor *d_output_features, THFloatTensor *noise, float alpha);
 
 // BatchNormalization
 void scn_cpu_float_BatchNormalization_updateOutput(
@@ -246,12 +244,10 @@ void scn_cpu_double_AffineReluTrivialConvolution_backward(
 // BatchwiseMultiplicativeDropout
 void scn_cpu_double_BatchwiseMultiplicativeDropout_updateOutput(
   THDoubleTensor *input_features, THDoubleTensor *output_features,
-  THDoubleTensor *noise, long nPlanes, long input_stride, long output_stride,
-  float alpha);
+  THDoubleTensor *noise, float alpha);
 void scn_cpu_double_BatchwiseMultiplicativeDropout_updateGradInput(
   THDoubleTensor *input_features, THDoubleTensor *d_input_features,
-  THDoubleTensor *d_output_features, THDoubleTensor *noise, long nPlanes,
-  long input_stride, long output_stride, float alpha);
+  THDoubleTensor *d_output_features, THDoubleTensor *noise, float alpha);
 
 // BatchNormalization
 void scn_cpu_double_BatchNormalization_updateOutput(

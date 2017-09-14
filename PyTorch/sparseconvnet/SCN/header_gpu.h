@@ -16,12 +16,10 @@ void scn_gpu_float_AffineReluTrivialConvolution_backward(
 // BatchwiseMultiplicativeDropout
 void scn_gpu_float_BatchwiseMultiplicativeDropout_updateOutput(
   THCudaTensor *input_features, THCudaTensor *output_features,
-  THCudaTensor *noise, long nPlanes, long input_stride, long output_stride,
-  float alpha);
+  THCudaTensor *noise, float alpha);
 void scn_gpu_float_BatchwiseMultiplicativeDropout_updateGradInput(
   THCudaTensor *input_features, THCudaTensor *d_input_features,
-  THCudaTensor *d_output_features, THCudaTensor *noise, long nPlanes,
-  long input_stride, long output_stride, float alpha);
+  THCudaTensor *d_output_features, THCudaTensor *noise, float alpha);
 
 // BatchNormalization
 void scn_gpu_float_BatchNormalization_updateOutput(

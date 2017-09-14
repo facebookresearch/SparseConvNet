@@ -22,7 +22,7 @@ class LeakyReLU(SparseModule):
     def updateOutput(self, input):
         self.output.metadata = input.metadata
         self.output.spatial_size = input.spatial_size
-        typed_fn(input, 'LeakyReLU_updateOutput')(
+        typed_fn(input.features, 'LeakyReLU_updateOutput')(
             input.features,
             self.output.features,
             self.leakage)

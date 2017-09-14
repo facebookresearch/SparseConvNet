@@ -17,7 +17,6 @@ class AveragePooling(SparseModule):
         self.dimension = dimension
         self.pool_size = toLongTensor(dimension, pool_size)
         self.pool_stride = toLongTensor(dimension, pool_stride)
-        self.pool_volume = self.pool_size.prod()
         self.nFeaturesToDrop = nFeaturesToDrop
         self.output = SparseConvNetTensor(torch.Tensor())
         self.gradInput = torch.Tensor()
@@ -26,7 +25,7 @@ class AveragePooling(SparseModule):
         self.output.metadata = input.metadata
         self.output.spatial_size =\
             (input.spatial_size - self.pool_size) / self.pool_stride + 1
-        dim_typed_fn(self.dimension, input, 'AveragePooling_updateOutput')(
+        dim_typed_fn(self.dimension, input.features, 'AveragePooling_updateOutput')(
             input.spatial_size,
             self.output.spatial_size,
             self.pool_size,
@@ -40,7 +39,7 @@ class AveragePooling(SparseModule):
 
     def updateGradInput(self, input, gradOutput):
         dim_typed_fn(
-            self.dimension, input, 'AveragePooling_updateGradInput')(
+            self.dimension, input.features, 'AveragePooling_updateGradInput')(
             input.spatial_size,
             self.output.spatial_size,
             self.pool_size,

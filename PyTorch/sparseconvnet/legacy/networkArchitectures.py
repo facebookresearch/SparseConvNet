@@ -116,7 +116,7 @@ def SparseVggNet(dimension, nInputPlanes, layers):
                      .add(ValidConvolution(dimension, x[3], x[3], 3, False))
                      .add(BatchNormReLU(x[3]))
                      .add(Deconvolution(dimension, x[3], x[3], 3, 2, False))
-                     )).add(JoinTable({x[1], x[2], x[3]}))
+                     )).add(JoinTable([x[1], x[2], x[3]]))
             nPlanes = x[1] + x[2] + x[3]
             m.add(BatchNormReLU(nPlanes))
     return m

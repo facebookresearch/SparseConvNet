@@ -16,11 +16,12 @@ class NetworkInNetwork(SparseModule):
         SparseModule.__init__(self)
         self.nIn = nIn
         self.nOut = nOut
-        self.weight = torch.Tensor(nIn, nOut).normal_(0, (2.0 / self.nIn)**0.5)
-        self.gradWeight = torch.Tensor(nIn, nOut)
+        std = (2.0 / self.nIn)**0.5
+        self.weight = torch.Tensor(nIn, nOut).normal_(0, std)
+        self.gradWeight = torch.Tensor(nIn, nOut).fill_(std)
         if bias:
-            self.bias = torch.Tensor(nOut).fill_(0)
-            self.gradBias = torch.Tensor(nOut)
+            self.bias = torch.Tensor(nOut).zero_()
+            self.gradBias = torch.Tensor(nOut).zero_()
         self.output = SparseConvNetTensor(torch.Tensor())
         self.gradInput = torch.Tensor()
 
@@ -28,7 +29,7 @@ class NetworkInNetwork(SparseModule):
         self.output.metadata = input.metadata
         self.output.spatial_size = input.spatial_size
         s.forward_pass_multiplyAdd_count +=\
-            typed_fn(input, 'NetworkInNetwork_updateOutput')(
+            typed_fn(input.features, 'NetworkInNetwork_updateOutput')(
                 input.features,
                 self.output.features,
                 self.weight,
@@ -37,7 +38,7 @@ class NetworkInNetwork(SparseModule):
         return self.output
 
     def updateGradInput(self, input, gradOutput):
-        typed_fn(input, 'NetworkInNetwork_updateGradInput')(
+        typed_fn(input.features, 'NetworkInNetwork_updateGradInput')(
             self.gradInput,
             gradOutput,
             self.weight)
@@ -45,7 +46,7 @@ class NetworkInNetwork(SparseModule):
 
     def accGradParameters(self, input, gradOutput, scale=1):
         assert scale == 1
-        typed_fn(input, 'NetworkInNetwork_accGradParameters')(
+        typed_fn(input.features, 'NetworkInNetwork_accGradParameters')(
             input.features,
             gradOutput,
             self.gradWeight,

@@ -14,18 +14,20 @@ extern "C" void scn_R_(BatchNormalization_updateOutput)(
     THTensor *saveInvStd, THTensor *runningMean, THTensor *runningVar,
     THTensor *weight, THTensor *bias, real eps, real momentum, bool train,
     real leakiness) {
-
   THTensor_(resizeAs)(output_features, input_features);
-  auto nActive = input_features->size[0];
-  auto nPlanes = input_features->size[1];
-  auto input_stride = input_features->stride[0];
-  auto output_stride = output_features->stride[0];
-  BatchNormalization_ForwardPass<real>(
-      THTensor_(data)(input_features), THTensor_(data)(output_features),
-      nPlanes, input_stride, output_stride, nActive, THTensor_(data)(saveMean),
-      THTensor_(data)(saveInvStd), THTensor_(data)(runningMean),
-      THTensor_(data)(runningVar), THOptionalTensorData(weight),
-      THOptionalTensorData(bias), eps, momentum, train, leakiness);
+  if (input_features->nDimension == 2) {
+    auto nActive = input_features->size[0];
+    auto nPlanes = input_features->size[1];
+    auto input_stride = input_features->stride[0];
+    auto output_stride = output_features->stride[0];
+    BatchNormalization_ForwardPass<real>(
+        THTensor_(data)(input_features), THTensor_(data)(output_features),
+        nPlanes, input_stride, output_stride, nActive,
+        THTensor_(data)(saveMean), THTensor_(data)(saveInvStd),
+        THTensor_(data)(runningMean), THTensor_(data)(runningVar),
+        THOptionalTensorData(weight), THOptionalTensorData(bias), eps, momentum,
+        train, leakiness);
+  }
 }
 
 extern "C" void scn_R_(BatchNormalizationInTensor_updateOutput)(
@@ -34,17 +36,20 @@ extern "C" void scn_R_(BatchNormalizationInTensor_updateOutput)(
     THTensor *weight, THTensor *bias, real eps, real momentum, bool train,
     real leakiness) {
 
-  auto nActive = input_features->size[0];
-  auto nPlanes = input_features->size[1];
-  auto input_stride = input_features->stride[0];
-  auto output_stride = output_features->stride[0];
+  if (input_features->nDimension == 2) {
+    auto nActive = input_features->size[0];
+    auto nPlanes = input_features->size[1];
+    auto input_stride = input_features->stride[0];
+    auto output_stride = output_features->stride[0];
 
-  BatchNormalization_ForwardPass<real>(
-      THTensor_(data)(input_features), THTensor_(data)(output_features),
-      nPlanes, input_stride, output_stride, nActive, THTensor_(data)(saveMean),
-      THTensor_(data)(saveInvStd), THTensor_(data)(runningMean),
-      THTensor_(data)(runningVar), THOptionalTensorData(weight),
-      THOptionalTensorData(bias), eps, momentum, train, leakiness);
+    BatchNormalization_ForwardPass<real>(
+        THTensor_(data)(input_features), THTensor_(data)(output_features),
+        nPlanes, input_stride, output_stride, nActive,
+        THTensor_(data)(saveMean), THTensor_(data)(saveInvStd),
+        THTensor_(data)(runningMean), THTensor_(data)(runningVar),
+        THOptionalTensorData(weight), THOptionalTensorData(bias), eps, momentum,
+        train, leakiness);
+  }
 }
 
 extern "C" void scn_R_(BatchNormalization_backward)(
@@ -55,17 +60,20 @@ extern "C" void scn_R_(BatchNormalization_backward)(
     real leakiness) {
 
   THTensor_(resizeAs)(d_input_features, input_features);
-  auto nActive = input_features->size[0];
-  auto nPlanes = input_features->size[1];
-  auto input_stride = input_features->stride[0];
-  auto output_stride = output_features->stride[0];
-  BatchNormalization_BackwardPass<real>(
-      THTensor_(data)(input_features), THTensor_(data)(d_input_features),
-      THTensor_(data)(output_features), THTensor_(data)(d_output_features),
-      nPlanes, input_stride, output_stride, nActive, THTensor_(data)(saveMean),
-      THTensor_(data)(saveInvStd), THTensor_(data)(runningMean),
-      THTensor_(data)(runningVar), THOptionalTensorData(weight),
-      THOptionalTensorData(bias), THOptionalTensorData(d_weight),
-      THOptionalTensorData(d_bias), leakiness);
+  if (input_features->nDimension == 2) {
+    auto nActive = input_features->size[0];
+    auto nPlanes = input_features->size[1];
+    auto input_stride = input_features->stride[0];
+    auto output_stride = output_features->stride[0];
+    BatchNormalization_BackwardPass<real>(
+        THTensor_(data)(input_features), THTensor_(data)(d_input_features),
+        THTensor_(data)(output_features), THTensor_(data)(d_output_features),
+        nPlanes, input_stride, output_stride, nActive,
+        THTensor_(data)(saveMean), THTensor_(data)(saveInvStd),
+        THTensor_(data)(runningMean), THTensor_(data)(runningVar),
+        THOptionalTensorData(weight), THOptionalTensorData(bias),
+        THOptionalTensorData(d_weight), THOptionalTensorData(d_bias),
+        leakiness);
+  }
 }
 #endif

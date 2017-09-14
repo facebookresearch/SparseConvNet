@@ -30,17 +30,15 @@ def dim_fn(dimension, name):
 
 
 def typed_fn(t, name):
-    # print('typed_fn',dimension,name)
-    return getattr(scn, 'scn_' + typeTable[t.features.type()] + '_' + name)
-
+    # print('typed_fn',t.features.type(),name)
+    return getattr(scn, 'scn_' + typeTable[t.type()] + '_' + name)
 
 def dim_typed_fn(dimension, t, name):
-    # print('dim_typed_fn',dimension,t,name)
+    # print('dim_typed_fn',dimension,t.features.type(),name)
     return getattr(scn, 'scn_' +
-                   typeTable[t.features.type()] +
+                   typeTable[t.type()] +
                    str(dimension) +
                    name)
-
 
 ffi = FFI()
 nullptr = ffi.NULL

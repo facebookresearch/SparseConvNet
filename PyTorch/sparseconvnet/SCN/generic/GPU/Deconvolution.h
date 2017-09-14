@@ -153,7 +153,7 @@ dDeconvolution_KMxKN_forwardB(T *inFeatures, T *outFeatures, T *w, uInt *rules,
   }
 }
 
-#define FOO(K, V)                                                              \
+#define FOO(T, K, V)                                                           \
   {                                                                            \
     if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {                  \
       uInt o = (nHot / K) * K;                                                 \
@@ -177,10 +177,21 @@ void dDeconvolution_forward(T *inFeatures, T *outFeatures, T *w, uInt *rules,
                             uInt nHot, uInt input_nPlanes, uInt input_stride,
                             uInt output_nPlanes, uInt output_stride,
                             cudaStream_t stream) {
-  FOO(64, 16)
-  FOO(32, 8)
-  FOO(16, 4)
-  FOO(8, 2)
+  FOO(T, 64, 16)
+  FOO(T, 32, 8)
+  FOO(T, 16, 4)
+  FOO(T, 8, 2)
+  assert(false);
+}
+template <>
+void dDeconvolution_forward<double>(double *inFeatures, double *outFeatures,
+                                    double *w, uInt *rules, uInt nHot,
+                                    uInt input_nPlanes, uInt input_stride,
+                                    uInt output_nPlanes, uInt output_stride,
+                                    cudaStream_t stream) {
+  FOO(double, 32, 8)
+  FOO(double, 16, 4)
+  FOO(double, 8, 2)
   assert(false);
 }
 #undef FOO
@@ -345,7 +356,7 @@ __global__ void dDeconvolution_KMxKN_backward_dW_B(
   }
 }
 
-#define FOO(K, V)                                                              \
+#define FOO(T, K, V)                                                           \
   {                                                                            \
     if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {                  \
       uInt o = (nHot / K) * K;                                                 \
@@ -371,9 +382,9 @@ void dDeconvolution_backward_dW(T *inFeatures, T *dInFeatures, T *dOutFeatures,
                                 uInt input_nPlanes, uInt input_stride,
                                 uInt output_nPlanes, uInt output_stride,
                                 cudaStream_t stream) {
-  FOO(32, 8)
-  FOO(16, 4)
-  FOO(8, 2)
+  FOO(T, 32, 8)
+  FOO(T, 16, 4)
+  FOO(T, 8, 2)
   assert(false);
 }
 #undef FOO

@@ -10,7 +10,6 @@
 #include "AffineReluTrivialConvolution.h"
 
 #include <algorithm>
-#include <iostream>
 
 extern "C" void scn_R_(AffineReluTrivialConvolution_updateOutput)(
     THCTensor *input_features, THCTensor *output_features,

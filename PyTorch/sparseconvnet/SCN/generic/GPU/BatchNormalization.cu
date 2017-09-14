@@ -30,13 +30,14 @@ extern "C" void scn_R_(BatchNormalization_updateOutput)(
     real leakiness) {
 
   THCTensor_(resizeAs)(state, output_features, input_features);
-  auto nActive = input_features->size[0];
-  auto nPlanes = input_features->size[1];
-  auto input_stride = input_features->stride[0];
-  auto output_stride = output_features->stride[0];
-
-  BN_F_MACRO(16)
-  else BN_F_MACRO(12) else BN_F_MACRO(8) else BN_F_MACRO(4) else BN_F_MACRO(1)
+  if (input_features->nDimension == 2) {
+    auto nActive = input_features->size[0];
+    auto nPlanes = input_features->size[1];
+    auto input_stride = input_features->stride[0];
+    auto output_stride = output_features->stride[0];
+    BN_F_MACRO(16)
+    else BN_F_MACRO(12) else BN_F_MACRO(8) else BN_F_MACRO(4) else BN_F_MACRO(1)
+  }
 }
 
 extern "C" void scn_R_(BatchNormalizationInTensor_updateOutput)(
@@ -44,14 +45,14 @@ extern "C" void scn_R_(BatchNormalizationInTensor_updateOutput)(
     THCTensor *saveInvStd, THCTensor *runningMean, THCTensor *runningVar,
     THCTensor *weight, THCTensor *bias, real eps, real momentum, bool train,
     real leakiness) {
-
-  auto nActive = input_features->size[0];
-  auto nPlanes = input_features->size[1];
-  auto input_stride = input_features->stride[0];
-  auto output_stride = output_features->stride[0];
-
-  BN_F_MACRO(16)
-  else BN_F_MACRO(12) else BN_F_MACRO(8) else BN_F_MACRO(4) else BN_F_MACRO(1)
+  if (input_features->nDimension == 2) {
+    auto nActive = input_features->size[0];
+    auto nPlanes = input_features->size[1];
+    auto input_stride = input_features->stride[0];
+    auto output_stride = output_features->stride[0];
+    BN_F_MACRO(16)
+    else BN_F_MACRO(12) else BN_F_MACRO(8) else BN_F_MACRO(4) else BN_F_MACRO(1)
+  }
 }
 
 #undef BN_F_MACRO
@@ -81,12 +82,13 @@ extern "C" void scn_R_(BatchNormalization_backward)(
     THCTensor *d_weight, THCTensor *d_bias, real leakiness) {
 
   THCTensor_(resizeAs)(state, d_input_features, d_output_features);
-  auto nActive = input_features->size[0];
-  auto nPlanes = input_features->size[1];
-  auto input_stride = input_features->stride[0];
-  auto output_stride = output_features->stride[0];
-
-  BN_B_MACRO(16)
-  else BN_B_MACRO(12) else BN_B_MACRO(8) else BN_B_MACRO(4) else BN_B_MACRO(1)
+  if (input_features->nDimension == 2) {
+    auto nActive = input_features->size[0];
+    auto nPlanes = input_features->size[1];
+    auto input_stride = input_features->stride[0];
+    auto output_stride = output_features->stride[0];
+    BN_B_MACRO(16)
+    else BN_B_MACRO(12) else BN_B_MACRO(8) else BN_B_MACRO(4) else BN_B_MACRO(1)
+  }
 }
 #endif

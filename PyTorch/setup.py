@@ -35,6 +35,7 @@ if torch.cuda.is_available():
             'sparseconvnet/SCN/header_cpu.h',
             'sparseconvnet/SCN/header_gpu.h'],
         sources=[],
+        include_dirs=[os.path.expandvars('$CUDA_HOME') + '/include'],
         extra_objects=[
             this_dir +
             '/sparseconvnet/SCN/init.cu.o'],

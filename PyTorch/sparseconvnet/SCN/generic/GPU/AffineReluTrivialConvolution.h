@@ -155,6 +155,27 @@ __global__ void dAffineReluTrivialConvolution_forwardB(
   }
 }
 
+#define FOO(T, K, V)                                                           \
+  {                                                                            \
+    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {                  \
+      uInt o = (nActive / K) * K;                                              \
+      if (o > 0)                                                               \
+        dAffineReluTrivialConvolution_forwardA<T, K, V> << <                   \
+            dim3(std::min(o / K, (uInt)512), output_nPlanes / K),              \
+            dim3(K, K / V), 0, THCState_getCurrentStream(state)>>>             \
+            (inFeatures, outFeatures, affineWeight, affineBias, convWeight,    \
+             input_nPlanes, input_stride, output_nPlanes, output_stride, o);   \
+      if (nActive > o)                                                         \
+        dAffineReluTrivialConvolution_forwardB<T, K, V> << <                   \
+            dim3(1, output_nPlanes / K), dim3(K, K / V), 0,                    \
+            THCState_getCurrentStream(state)>>>                                \
+            (inFeatures + o * input_stride, outFeatures + o * output_stride,   \
+             affineWeight, affineBias, convWeight, input_nPlanes,              \
+             input_stride, output_nPlanes, output_stride, nActive - o);        \
+      return;                                                                  \
+    }                                                                          \
+  }
+
 template <typename T>
 void dAffineReluTrivialConvolution_forward(T *inFeatures, T *outFeatures,
                                            T *affineWeight, T *affineBias,
@@ -162,92 +183,25 @@ void dAffineReluTrivialConvolution_forward(T *inFeatures, T *outFeatures,
                                            uInt input_stride,
                                            uInt output_nPlanes,
                                            uInt output_stride, uInt nActive) {
-  {
-    const uInt K = 64;
-    const uInt V = 16;
-    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {
-      uInt o = (nActive / K) * K;
-      if (o > 0)
-        dAffineReluTrivialConvolution_forwardA<
-            T, K, V><<<dim3(std::min(o / K, (uInt)512), output_nPlanes / K),
-                       dim3(K, K / V), 0, THCState_getCurrentStream(state)>>>(
-            inFeatures, outFeatures, affineWeight, affineBias, convWeight,
-            input_nPlanes, input_stride, output_nPlanes, output_stride, o);
-      if (nActive > o)
-        dAffineReluTrivialConvolution_forwardB<
-            T, K, V><<<dim3(1, output_nPlanes / K), dim3(K, K / V), 0,
-                       THCState_getCurrentStream(state)>>>(
-            inFeatures + o * input_stride, outFeatures + o * output_stride,
-            affineWeight, affineBias, convWeight, input_nPlanes, input_stride,
-            output_nPlanes, output_stride, nActive - o);
-      return;
-    }
-  }
-  {
-    const uInt K = 32;
-    const uInt V = 4;
-    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {
-      uInt o = (nActive / K) * K;
-      if (o > 0)
-        dAffineReluTrivialConvolution_forwardA<
-            T, K, V><<<dim3(std::min(o / K, (uInt)512), output_nPlanes / K),
-                       dim3(K, K / V), 0, THCState_getCurrentStream(state)>>>(
-            inFeatures, outFeatures, affineWeight, affineBias, convWeight,
-            input_nPlanes, input_stride, output_nPlanes, output_stride, o);
-      if (nActive > o)
-        dAffineReluTrivialConvolution_forwardB<
-            T, K, V><<<dim3(1, output_nPlanes / K), dim3(K, K / V), 0,
-                       THCState_getCurrentStream(state)>>>(
-            inFeatures + o * input_stride, outFeatures + o * output_stride,
-            affineWeight, affineBias, convWeight, input_nPlanes, input_stride,
-            output_nPlanes, output_stride, nActive - o);
-      return;
-    }
-  }
-  {
-    const uInt K = 16;
-    const uInt V = 4;
-    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {
-      uInt o = (nActive / K) * K;
-      if (o > 0)
-        dAffineReluTrivialConvolution_forwardA<
-            T, K, V><<<dim3(std::min(o / K, (uInt)512), output_nPlanes / K),
-                       dim3(K, K / V), 0, THCState_getCurrentStream(state)>>>(
-            inFeatures, outFeatures, affineWeight, affineBias, convWeight,
-            input_nPlanes, input_stride, output_nPlanes, output_stride, o);
-      if (nActive > o)
-        dAffineReluTrivialConvolution_forwardB<
-            T, K, V><<<dim3(1, output_nPlanes / K), dim3(K, K / V), 0,
-                       THCState_getCurrentStream(state)>>>(
-            inFeatures + o * input_stride, outFeatures + o * output_stride,
-            affineWeight, affineBias, convWeight, input_nPlanes, input_stride,
-            output_nPlanes, output_stride, nActive - o);
-      return;
-    }
-  }
-  {
-    const uInt K = 8;
-    const uInt V = 2;
-    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {
-      uInt o = (nActive / K) * K;
-      if (o > 0)
-        dAffineReluTrivialConvolution_forwardA<
-            T, K, V><<<dim3(std::min(o / K, (uInt)512), output_nPlanes / K),
-                       dim3(K, K / V), 0, THCState_getCurrentStream(state)>>>(
-            inFeatures, outFeatures, affineWeight, affineBias, convWeight,
-            input_nPlanes, input_stride, output_nPlanes, output_stride, o);
-      if (nActive > o)
-        dAffineReluTrivialConvolution_forwardB<
-            T, K, V><<<dim3(1, output_nPlanes / K), dim3(K, K / V), 0,
-                       THCState_getCurrentStream(state)>>>(
-            inFeatures + o * input_stride, outFeatures + o * output_stride,
-            affineWeight, affineBias, convWeight, input_nPlanes, input_stride,
-            output_nPlanes, output_stride, nActive - o);
-      return;
-    }
-  }
+
+  FOO(T, 64, 16)
+  FOO(T, 32, 8)
+  FOO(T, 16, 4)
+  FOO(T, 8, 2)
   assert(false);
 }
+template <>
+void dAffineReluTrivialConvolution_forward<double>(
+    double *inFeatures, double *outFeatures, double *affineWeight,
+    double *affineBias, double *convWeight, uInt input_nPlanes,
+    uInt input_stride, uInt output_nPlanes, uInt output_stride, uInt nActive) {
+
+  FOO(double, 32, 8)
+  FOO(double, 16, 4)
+  FOO(double, 8, 2)
+  assert(false);
+}
+#undef FOO
 
 // dOutput x W^T -> dInput and
 // Input^T x dOutput -> dW
@@ -449,84 +403,41 @@ __global__ void dAffineReluTrivialConvolution_backward_dW_B(
   atomicAdd(&dAffineBias[tx], dAB);
 }
 
+#define FOO(T, K, V)                                                           \
+  {                                                                            \
+    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {                  \
+      uInt o = (nActive / K) * K;                                              \
+      if (o > 0)                                                               \
+        dAffineReluTrivialConvolution_backward_dW_A<T, K, V> << <              \
+            dim3(std::min(o / K, (uInt)512), input_nPlanes / K),               \
+            dim3(K, K / V), 0, THCState_getCurrentStream(state)>>>             \
+            (inFeatures, dInFeatures, dOutFeatures, affineWeight,              \
+             dAffineWeight, affineBias, dAffineBias, convWeight, dConvWeight,  \
+             input_nPlanes, input_stride, output_nPlanes, output_stride, o,    \
+             additiveGrad);                                                    \
+      if (nActive > o)                                                         \
+        dAffineReluTrivialConvolution_backward_dW_B<T, K, V> << <              \
+            dim3(1, input_nPlanes / K), dim3(K, K / V), 0,                     \
+            THCState_getCurrentStream(state)>>>                                \
+            (inFeatures + o * input_stride, dInFeatures + o * input_stride,    \
+             dOutFeatures + o * output_stride, affineWeight, dAffineWeight,    \
+             affineBias, dAffineBias, convWeight, dConvWeight, input_nPlanes,  \
+             input_stride, output_nPlanes, output_stride, nActive - o,         \
+             additiveGrad);                                                    \
+      return;                                                                  \
+    }                                                                          \
+  }
+
 template <typename T>
 void dAffineReluTrivialConvolution_backward_dW(
     T *inFeatures, T *dInFeatures, T *dOutFeatures, T *affineWeight,
     T *dAffineWeight, T *affineBias, T *dAffineBias, T *convWeight,
     T *dConvWeight, uInt input_nPlanes, uInt input_stride, uInt output_nPlanes,
     uInt output_stride, uInt nActive, bool additiveGrad) {
-  {
-    const uInt K = 32;
-    const uInt V = 8;
-    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {
-      uInt o = (nActive / K) * K;
-      if (o > 0)
-        dAffineReluTrivialConvolution_backward_dW_A<
-            T, K, V><<<dim3(std::min(o / K, (uInt)512), input_nPlanes / K),
-                       dim3(K, K / V), 0, THCState_getCurrentStream(state)>>>(
-            inFeatures, dInFeatures, dOutFeatures, affineWeight, dAffineWeight,
-            affineBias, dAffineBias, convWeight, dConvWeight, input_nPlanes,
-            input_stride, output_nPlanes, output_stride, o, additiveGrad);
-      if (nActive > o)
-        dAffineReluTrivialConvolution_backward_dW_B<
-            T, K, V><<<dim3(1, input_nPlanes / K), dim3(K, K / V), 0,
-                       THCState_getCurrentStream(state)>>>(
-            inFeatures + o * input_stride, dInFeatures + o * input_stride,
-            dOutFeatures + o * output_stride, affineWeight, dAffineWeight,
-            affineBias, dAffineBias, convWeight, dConvWeight, input_nPlanes,
-            input_stride, output_nPlanes, output_stride, nActive - o,
-            additiveGrad);
-      return;
-    }
-  }
-  {
-    const uInt K = 16;
-    const uInt V = 4;
-    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {
-      uInt o = (nActive / K) * K;
-      if (o > 0)
-        dAffineReluTrivialConvolution_backward_dW_A<
-            T, K, V><<<dim3(std::min(o / K, (uInt)512), input_nPlanes / K),
-                       dim3(K, K / V), 0, THCState_getCurrentStream(state)>>>(
-            inFeatures, dInFeatures, dOutFeatures, affineWeight, dAffineWeight,
-            affineBias, dAffineBias, convWeight, dConvWeight, input_nPlanes,
-            input_stride, output_nPlanes, output_stride, o, additiveGrad);
-      if (nActive > o)
-        dAffineReluTrivialConvolution_backward_dW_B<
-            T, K, V><<<dim3(1, input_nPlanes / K), dim3(K, K / V), 0,
-                       THCState_getCurrentStream(state)>>>(
-            inFeatures + o * input_stride, dInFeatures + o * input_stride,
-            dOutFeatures + o * output_stride, affineWeight, dAffineWeight,
-            affineBias, dAffineBias, convWeight, dConvWeight, input_nPlanes,
-            input_stride, output_nPlanes, output_stride, nActive - o,
-            additiveGrad);
-      return;
-    }
-  }
-  {
-    const uInt K = 8;
-    const uInt V = 2;
-    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {
-      uInt o = (nActive / K) * K;
-      if (o > 0)
-        dAffineReluTrivialConvolution_backward_dW_A<
-            T, K, V><<<dim3(std::min(o / K, (uInt)512), input_nPlanes / K),
-                       dim3(K, K / V), 0, THCState_getCurrentStream(state)>>>(
-            inFeatures, dInFeatures, dOutFeatures, affineWeight, dAffineWeight,
-            affineBias, dAffineBias, convWeight, dConvWeight, input_nPlanes,
-            input_stride, output_nPlanes, output_stride, o, additiveGrad);
-      if (nActive > o)
-        dAffineReluTrivialConvolution_backward_dW_B<
-            T, K, V><<<dim3(1, input_nPlanes / K), dim3(K, K / V), 0,
-                       THCState_getCurrentStream(state)>>>(
-            inFeatures + o * input_stride, dInFeatures + o * input_stride,
-            dOutFeatures + o * output_stride, affineWeight, dAffineWeight,
-            affineBias, dAffineBias, convWeight, dConvWeight, input_nPlanes,
-            input_stride, output_nPlanes, output_stride, nActive - o,
-            additiveGrad);
-      return;
-    }
-  }
+  FOO(T, 32, 8)
+  FOO(T, 16, 4)
+  FOO(T, 8, 2)
 }
+#undef FOO
 
 #endif

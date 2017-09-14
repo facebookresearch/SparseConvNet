@@ -8,13 +8,12 @@ long scn_readPtr(void **ptr);
 void scn_writePtr(long p, void **ptr);
 double scn_ruleBookBits(void);
 void scn_2_drawCurve(void **m, THFloatTensor *features, THFloatTensor *stroke);
-  double scn_1_addSampleFromThresholdedTensor(
+double scn_1_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_1_batchAddSample(void **m);
 void scn_1_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_1_freeMetadata(void **metadata);
 void scn_1_generateRuleBooks3s2(void **m);
 void scn_1_generateRuleBooks2s2(void **m);
@@ -24,14 +23,14 @@ void scn_1_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_1_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_1_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  double scn_2_addSampleFromThresholdedTensor(
+    THLongTensor *locations);
+
+double scn_2_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_2_batchAddSample(void **m);
 void scn_2_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_2_freeMetadata(void **metadata);
 void scn_2_generateRuleBooks3s2(void **m);
 void scn_2_generateRuleBooks2s2(void **m);
@@ -41,14 +40,14 @@ void scn_2_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_2_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_2_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  double scn_3_addSampleFromThresholdedTensor(
+    THLongTensor *locations);
+
+double scn_3_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_3_batchAddSample(void **m);
 void scn_3_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_3_freeMetadata(void **metadata);
 void scn_3_generateRuleBooks3s2(void **m);
 void scn_3_generateRuleBooks2s2(void **m);
@@ -58,14 +57,14 @@ void scn_3_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_3_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_3_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  double scn_4_addSampleFromThresholdedTensor(
+    THLongTensor *locations);
+
+double scn_4_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_4_batchAddSample(void **m);
 void scn_4_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_4_freeMetadata(void **metadata);
 void scn_4_generateRuleBooks3s2(void **m);
 void scn_4_generateRuleBooks2s2(void **m);
@@ -75,14 +74,14 @@ void scn_4_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_4_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_4_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  double scn_5_addSampleFromThresholdedTensor(
+    THLongTensor *locations);
+
+double scn_5_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_5_batchAddSample(void **m);
 void scn_5_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_5_freeMetadata(void **metadata);
 void scn_5_generateRuleBooks3s2(void **m);
 void scn_5_generateRuleBooks2s2(void **m);
@@ -92,14 +91,14 @@ void scn_5_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_5_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_5_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  double scn_6_addSampleFromThresholdedTensor(
+    THLongTensor *locations);
+
+double scn_6_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_6_batchAddSample(void **m);
 void scn_6_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_6_freeMetadata(void **metadata);
 void scn_6_generateRuleBooks3s2(void **m);
 void scn_6_generateRuleBooks2s2(void **m);
@@ -109,14 +108,14 @@ void scn_6_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_6_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_6_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  double scn_7_addSampleFromThresholdedTensor(
+    THLongTensor *locations);
+
+double scn_7_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_7_batchAddSample(void **m);
 void scn_7_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_7_freeMetadata(void **metadata);
 void scn_7_generateRuleBooks3s2(void **m);
 void scn_7_generateRuleBooks2s2(void **m);
@@ -126,14 +125,14 @@ void scn_7_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_7_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_7_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  double scn_8_addSampleFromThresholdedTensor(
+    THLongTensor *locations);
+
+double scn_8_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_8_batchAddSample(void **m);
 void scn_8_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_8_freeMetadata(void **metadata);
 void scn_8_generateRuleBooks3s2(void **m);
 void scn_8_generateRuleBooks2s2(void **m);
@@ -143,14 +142,14 @@ void scn_8_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_8_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_8_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  double scn_9_addSampleFromThresholdedTensor(
+    THLongTensor *locations);
+
+double scn_9_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_9_batchAddSample(void **m);
 void scn_9_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_9_freeMetadata(void **metadata);
 void scn_9_generateRuleBooks3s2(void **m);
 void scn_9_generateRuleBooks2s2(void **m);
@@ -160,14 +159,14 @@ void scn_9_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_9_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_9_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  double scn_10_addSampleFromThresholdedTensor(
+    THLongTensor *locations);
+
+double scn_10_addSampleFromThresholdedTensor(
   void **m, THFloatTensor *features_, THFloatTensor *tensor_,
   THLongTensor *offset_, THLongTensor *spatialSize_, float threshold);
 void scn_10_batchAddSample(void **m);
 void scn_10_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize);
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize);
 void scn_10_freeMetadata(void **metadata);
 void scn_10_generateRuleBooks3s2(void **m);
 void scn_10_generateRuleBooks2s2(void **m);
@@ -177,8 +176,9 @@ void scn_10_setInputSpatialLocation(void **m, THFloatTensor *features,
 void scn_10_setInputSpatialLocations(void **m, THFloatTensor *features,
   THLongTensor *locations, THFloatTensor *vecs, _Bool overwrite);
 void scn_10_getSpatialLocations(void **m, THLongTensor *spatialSize,
-  THLongTensor *locations);
-  void scn_cpu_float_AffineReluTrivialConvolution_updateOutput(
+    THLongTensor *locations);
+
+void scn_cpu_float_AffineReluTrivialConvolution_updateOutput(
   THFloatTensor *input_features, THFloatTensor *output_features,
   THFloatTensor *affineWeight, THFloatTensor *affineBias, THFloatTensor *convWeight);
 void scn_cpu_float_AffineReluTrivialConvolution_backward(
@@ -348,7 +348,7 @@ void scn_cpu_float1MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float1SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_float1SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -425,7 +425,7 @@ void scn_cpu_float2MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float2SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_float2SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -502,7 +502,7 @@ void scn_cpu_float3MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float3SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_float3SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -579,7 +579,7 @@ void scn_cpu_float4MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float4SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_float4SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -656,7 +656,7 @@ void scn_cpu_float5MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float5SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_float5SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -733,7 +733,7 @@ void scn_cpu_float6MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float6SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_float6SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -810,7 +810,7 @@ void scn_cpu_float7MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float7SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_float7SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -887,7 +887,7 @@ void scn_cpu_float8MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float8SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_float8SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -964,7 +964,7 @@ void scn_cpu_float9MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float9SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_float9SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -1041,7 +1041,8 @@ void scn_cpu_float10MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_float10SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
-  THFloatTensor *output_features, void *rulesBuffer);
+  THFloatTensor *output_features, void *rulesBuffer, long nPlanes);
+
 void scn_cpu_float10SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THFloatTensor *input_features,
   THFloatTensor *d_input_features, THFloatTensor *d_output_features,
@@ -1118,7 +1119,7 @@ void scn_cpu_double1MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double1SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double1SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,
@@ -1195,7 +1196,7 @@ void scn_cpu_double2MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double2SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double2SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,
@@ -1272,7 +1273,7 @@ void scn_cpu_double3MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double3SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double3SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,
@@ -1349,7 +1350,7 @@ void scn_cpu_double4MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double4SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double4SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,
@@ -1426,7 +1427,7 @@ void scn_cpu_double5MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double5SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double5SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,
@@ -1503,7 +1504,7 @@ void scn_cpu_double6MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double6SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double6SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,
@@ -1580,7 +1581,7 @@ void scn_cpu_double7MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double7SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double7SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,
@@ -1657,7 +1658,7 @@ void scn_cpu_double8MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double8SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double8SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,
@@ -1734,7 +1735,7 @@ void scn_cpu_double9MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double9SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double9SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,
@@ -1811,7 +1812,7 @@ void scn_cpu_double10MaxPooling_updateGradInput(
 // SparseToDense
 void scn_cpu_double10SparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
-  THDoubleTensor *output_features, void *rulesBuffer);
+  THDoubleTensor *output_features, void *rulesBuffer, long nPlanes);
 void scn_cpu_double10SparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THDoubleTensor *input_features,
   THDoubleTensor *d_input_features, THDoubleTensor *d_output_features,

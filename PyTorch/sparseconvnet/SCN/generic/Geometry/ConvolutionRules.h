@@ -103,20 +103,26 @@ uInt Convolution_InputSgsToRulesAndOutputSgs_OMP(
   return output_nActive;
 }
 
-// for each site in filterVolume, list of (inputFeatureNumber,batchIdx) pairs
+// for each active site, list of (inputFeatureNumber,batchIdx, spatialOffset)
+// triples
 template <uInt dimension>
 void SparseToDense_InputSgsToRulesAndOutputSgs(
     SparseGrids<dimension> &input_SGs, RuleBook &rules, long *spatialSize) {
   uInt batchSize = input_SGs.size();
-  SparseGrids<dimension> output_SGs(batchSize);
-  std::vector<long> ones(dimension, 1);
   rules.clear();
-  for (uInt i = 0; i < batchSize; i++) {
-    auto &iSG = input_SGs[i];
-    auto &oSG = output_SGs[i];
-    oSG.ctr = i; // batchIdx
-    Convolution_InputSgToRulesAndOutputSg<dimension>(
-        iSG, oSG, rules, spatialSize, &ones[0], spatialSize, &ones[0]);
+  rules.resize(batchSize);
+  Point<dimension> lb, ub;
+  for (int i = 0; i < dimension; ++i) {
+    lb[i] = 0;
+    ub[i] = spatialSize[i] - 1;
+  }
+  auto region = RectangularRegion<dimension>(lb, ub);
+  for (uInt batchIdx = 0; batchIdx < batchSize; batchIdx++) {
+    auto &iSG = input_SGs[batchIdx];
+    for (auto const &inIter : iSG.mp) {
+      rules[batchIdx].push_back(inIter.second + iSG.ctr);
+      rules[batchIdx].push_back(region.offset(inIter.first));
+    }
   }
 }
 
@@ -124,33 +130,21 @@ template <uInt dimension>
 void SparseToDense_InputSgsToRulesAndOutputSgs_OMP(
     SparseGrids<dimension> &input_SGs, RuleBook &rules, long *spatialSize) {
   uInt batchSize = input_SGs.size();
-  SparseGrids<dimension> output_SGs(batchSize);
-  std::vector<long> ones(dimension, 1);
   rules.clear();
-  rules.resize(volume<dimension>(spatialSize));
-  std::vector<RuleBook> rbs(batchSize);
-  {
-    uInt i;
-#pragma omp parallel for private(i)
-    for (i = 0; i < batchSize; i++) {
-      output_SGs[i].ctr = i; // batchIdx
-      Convolution_InputSgToRulesAndOutputSg<dimension>(
-          input_SGs[i], output_SGs[i], rbs[i], spatialSize, &ones[0],
-          spatialSize, &ones[0]);
-    }
+  rules.resize(batchSize);
+  Point<dimension> lb, ub;
+  for (int i = 0; i < dimension; ++i) {
+    lb[i] = 0;
+    ub[i] = spatialSize[i] - 1;
   }
-  {
-    uInt i;
-#pragma omp parallel for private(i)
-    for (i = 0; i < rules.size(); i++) {
-      auto &R = rules[i];
-      for (uInt j = 0; j < batchSize; j++) {
-        auto &r = rbs[j][i];
-        for (uInt k = 0; k < r.size();) {
-          R.push_back(r[k++]);
-          R.push_back(r[k++]);
-        }
-      }
+  auto region = RectangularRegion<dimension>(lb, ub);
+  uInt batchIdx;
+#pragma omp parallel for private(batchIdx)
+  for (batchIdx = 0; batchIdx < batchSize; batchIdx++) {
+    auto &iSG = input_SGs[batchIdx];
+    for (auto const &inIter : iSG.mp) {
+      rules[batchIdx].push_back(inIter.second + iSG.ctr);
+      rules[batchIdx].push_back(region.offset(inIter.first));
     }
   }
 }

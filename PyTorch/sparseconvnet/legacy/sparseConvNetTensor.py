@@ -29,7 +29,7 @@ class SparseConvNetTensor(object):
 
     def set_(self):
         self.features.set_(self.features.storage_type()())
-        self.metadata = None
+        self.metadata.set_()
         self.spatialSize = None
 
     def __repr__(self):

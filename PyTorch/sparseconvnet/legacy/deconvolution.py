@@ -22,24 +22,26 @@ class Deconvolution(SparseModule):
         self.filter_size = toLongTensor(dimension, filter_size)
         self.filter_stride = toLongTensor(dimension, filter_stride)
         self.filter_volume = self.filter_size.prod()
+        std = (2.0 / nIn / self.filter_volume)**0.5
         self.weight = torch.Tensor(
             nIn * self.filter_volume, nOut
-        ).normal_(0, (2.0 / nIn / self.filter_volume)**0.5)
-        self.gradWeight = torch.Tensor(nIn * self.filter_volume, nOut)
+        ).normal_(0, std)
+        self.gradWeight = torch.Tensor(
+            nIn * self.filter_volume, nOut).fill_(std)
         if bias:
             self.bias = torch.Tensor(nOut).zero_()
-            self.gradBias = torch.Tensor(nOut)
+            self.gradBias = torch.Tensor(nOut).zero_()
         self.output = SparseConvNetTensor(torch.Tensor())
         self.gradInput = torch.Tensor()
 
     def updateOutput(self, input):
-        assert input.features.size(1) == self.nIn
+        assert input.features.ndimension()==0 or input.features.size(1) == self.nIn
         self.output.metadata = input.metadata
         self.output.spatial_size =\
             (input.spatial_size - 1) * self.filter_stride + self.filter_size
         s.forward_pass_multiplyAdd_count +=\
             dim_typed_fn(
-                self.dimension, input, 'Deconvolution_updateOutput')(
+                self.dimension, input.features, 'Deconvolution_updateOutput')(
                 input.spatial_size,
                 self.output.spatial_size,
                 self.filter_size,
@@ -57,7 +59,7 @@ class Deconvolution(SparseModule):
     def backward(self, input, gradOutput, scale=1):
         assert scale == 1
         dim_typed_fn(
-            self.dimension, input, 'Deconvolution_backward')(
+            self.dimension, input.features, 'Deconvolution_backward')(
             input.spatial_size,
             self.output.spatial_size,
             self.filter_size,

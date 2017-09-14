@@ -28,13 +28,11 @@ class AffineReLUTrivialConvolution(SparseModule):
         self.nOut = nOut
         self.affineWeight = torch.Tensor(nIn).fill_(1)
         self.affineBias = torch.Tensor(nIn).zero_()
-        self.convWeight = torch.Tensor(
-            nIn, nOut).normal_(
-            0, math.sqrt(
-                2.0 / nIn))
+        std = math.sqrt(2.0 / nIn)
+        self.convWeight = torch.Tensor(nIn, nOut).normal_(0, std)
         self.gradAffineWeight = torch.Tensor(nIn).fill_(0)
-        self.gradAffineBias = torch.Tensor(nIn).zero_()
-        self.gradConvWeight = torch.Tensor(nIn, nOut).zero_()
+        self.gradAffineBias = torch.Tensor(nIn).zero_(0.333)
+        self.gradConvWeight = torch.Tensor(nIn, nOut).fill_(std)
         self.additiveGrad = additiveGrad
         self.output = SparseConvNetTensor(torch.Tensor())
         self.gradInput = torch.Tensor()
@@ -46,7 +44,7 @@ class AffineReLUTrivialConvolution(SparseModule):
     def updateOutput(self, input):
         self.output.metadata = input.metadata
         self.output.spatial_size = input.spatial_size
-        typed_fn(input, 'AffineReluTrivialConvolution_updateOutput')(
+        typed_fn(input.features, 'AffineReluTrivialConvolution_updateOutput')(
             input.features,
             self.output.features,
             self.affineWeight,
@@ -59,7 +57,7 @@ class AffineReLUTrivialConvolution(SparseModule):
 
     def backward(self, input, gradOutput, scale=1):
         assert scale == 1
-        typed_fn(input, 'AffineReluTrivialConvolution_backward')(
+        typed_fn(input.features, 'AffineReluTrivialConvolution_backward')(
             input.features,
             self.gradInput,
             gradOutput,

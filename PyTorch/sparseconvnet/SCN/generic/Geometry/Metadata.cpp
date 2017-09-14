@@ -125,16 +125,15 @@ extern "C" void scn_D_(getSpatialLocations)(void **m, THLongTensor *spatialSize,
 }
 extern "C" void
 scn_D_(createMetadataForDenseToSparse)(void **m, THLongTensor *spatialSize_,
-                                       THLongTensor *pad_, THLongTensor *nz_,
-                                       long batchSize) {
+                                       THLongTensor *nz_, long batchSize) {
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
+  _m.clear();
   _m.setInputSpatialSize(spatialSize_);
   _m.inputSGs->resize(batchSize);
   auto &nActive = *_m.inputNActive;
   nActive = nz_->size[0];
 
   auto nz = THLongTensor_data(nz_);
-  auto pad = THLongTensor_data(pad_);
   auto spatialSize = THLongTensor_data(spatialSize_);
 
   std::vector<uInt> br(batchSize + 1);
@@ -157,8 +156,7 @@ scn_D_(createMetadataForDenseToSparse)(void **m, THLongTensor *spatialSize_,
     for (uInt i = br[b]; i < br[b + 1]; i++) {
       Point<Dimension> x;
       for (uInt j = 0; j < Dimension; j++) {
-        x[j] = nz[i * (Dimension + 1) + j + 1] +
-               pad[b * Dimension + j]; // 0-indexed
+        x[j] = nz[i * (Dimension + 1) + j + 1]; // 0-indexed
       }
       sg.mp[x] = i;
     }
@@ -281,6 +279,7 @@ extern "C" void scn_D_(generateRuleBooks2s2)(void **m) {
       p2[i] = p3[i] = inS[i] = outS[i];
   }
 }
+
 extern "C" void scn_D_(freeMetadata)(void **m) {
   SCN_DELETE(Metadata<Dimension>, m)
 }

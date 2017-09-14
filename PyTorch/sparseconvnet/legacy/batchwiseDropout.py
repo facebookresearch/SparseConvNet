@@ -48,7 +48,7 @@ class BatchwiseDropout(SparseModule):
             self.output.metadata = input.metadata
             self.output.spatialSize = input.spatialSize
 
-        typed_fn(input, 'BatchwiseMultiplicativeDropout_updateOutput')(
+        typed_fn(input.features, 'BatchwiseMultiplicativeDropout_updateOutput')(
             input.features,
             self.output.features,
             self.noise,
@@ -61,7 +61,7 @@ class BatchwiseDropout(SparseModule):
         if self.inplace:
             self.gradInput = gradOutput
 
-        typed_fn(input, 'BatchwiseMultiplicativeDropout_updateGradInput')(
+        typed_fn(input.features, 'BatchwiseMultiplicativeDropout_updateGradInput')(
             input.features,
             self.gradInput,
             gradOutput,

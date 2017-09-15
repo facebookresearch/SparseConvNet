@@ -11,6 +11,7 @@ from .sparseConvNetTensor import SparseConvNetTensor
 from .sparseModule import SparseModule
 from .averagePooling import AveragePooling
 from .batchNormalization import BatchNormalization, BatchNormReLU, BatchNormLeakyReLU, BatchNormalizationInTensor
+from .batchwiseDropout import BatchwiseDropout
 from .concatTable import ConcatTable
 from .convolution import Convolution
 from .cAddTable import CAddTable

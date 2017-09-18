@@ -54,7 +54,6 @@ class BatchwiseDropout(SparseModule):
             self.noise,
             self.leakiness
             )
-
         return self.output
 
     def updateGradInput(self, input, gradOutput):
@@ -68,6 +67,7 @@ class BatchwiseDropout(SparseModule):
             self.noise,
             self.leakiness
             )
+        return self.gradInput
 
     def type(self, t, tensorCache=None):
         self.noise.type(t)

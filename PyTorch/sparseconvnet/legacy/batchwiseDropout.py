@@ -33,6 +33,7 @@ class BatchwiseDropout(SparseModule):
         self.p = p
         self.leakiness = leaky
         self.noise = torch.Tensor(nPlanes)
+        self.nPlanes = nPlanes
         self.output = None if ip else SparseConvNetTensor(torch.Tensor())
         self.gradInput = None if ip else torch.Tensor()
 
@@ -74,7 +75,7 @@ class BatchwiseDropout(SparseModule):
 
         if not self.inplace:
             self.output.features.type(t)
-            self.gradInput.features.type(t)
+            self.gradInput.type(t)
 
         SparseModule.type(self, t, tensorCache)
 
@@ -88,6 +89,58 @@ class BatchwiseDropout(SparseModule):
     def __repr__(self):
         s = 'BatchwiseDropout(' + str(self.nPlanes) + ',p=' + str(self.p) + \
             ',ip=' + str(self.inplace)
+        if self.leakiness > 0:
+            s = s + ',leakiness=' + str(self.leakiness)
+        s = s + ')'
+        return s
+
+class BatchwiseDropoutInTensor(BatchwiseDropout):
+    def __init__(
+            self,
+            nPlanes,
+            p,
+            output_column_offset=0,
+            leaky=1):
+        BatchwiseDropout.__init__(self, nPlanes, p, False, leaky)
+        self.output_column_offset = output_column_offset
+
+    def updateOutput(self, input):
+        if self.train:
+            self.noise.bernoulli_(1-self.p)
+        else:
+            self.noise.fill_(1-self.p)
+
+        self.output.metadata = input.metadata
+        self.output.spatial_size = input.spatial_size
+
+        o = self.output.features.narrow(
+            1, self.output_column_offset, self.nPlanes)
+
+        typed_fn(input.features, 'BatchwiseMultiplicativeDropout_updateOutput')(
+            input.features,
+            o,
+            self.noise,
+            self.leakiness
+            )
+        return self.output
+
+    def updateGradInput(self, input, gradOutput):
+        assert self.train
+
+        d_o = gradOutput.narrow(1, self.output_column_offset, self.nPlanes)
+
+        typed_fn(input.features, 'BatchwiseMultiplicativeDropout_updateGradInput')(
+            input.features,
+            self.gradInput,
+            d_o,
+            self.noise,
+            self.leakiness
+            )
+        return self.gradInput
+
+    def __repr__(self):
+        s = 'BatchwiseDropoutInTensor(' + str(self.nPlanes) + ',p=' + str(self.p) + \
+            ',column_offset=' + str(self.output_column_offset)
         if self.leakiness > 0:
             s = s + ',leakiness=' + str(self.leakiness)
         s = s + ')'

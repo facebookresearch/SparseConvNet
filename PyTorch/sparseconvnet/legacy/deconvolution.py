@@ -103,4 +103,4 @@ class Deconvolution(SparseModule):
         return s
 
     def suggestInputSize(self, out_size):
-        (out_size - self.filter_size) / self.filter_stride + 1
+        return (out_size - self.filter_size) / self.filter_stride + 1

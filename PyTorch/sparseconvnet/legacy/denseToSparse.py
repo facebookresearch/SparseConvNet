@@ -15,8 +15,8 @@ dimension : of the input field
 import torch
 from . import SparseModule
 from ..utils import dim_fn, nullptr
-from .sparseConvNetTensor import SparseConvNetTensor
-from .metadata import Metadata
+from ..sparseConvNetTensor import SparseConvNetTensor
+from ..metadata import Metadata
 
 class DenseToSparse(SparseModule):
     def __init__(self, dimension):

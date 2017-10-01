@@ -8,7 +8,7 @@ import torch
 import sparseconvnet
 from torch.legacy.nn import ConcatTable as C
 from ..utils import toLongTensor, dim_typed_fn, optionalTensor, nullptr, set
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..sparseConvNetTensor import SparseConvNetTensor
 
 
 class ConcatTable(C):

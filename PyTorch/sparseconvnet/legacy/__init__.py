@@ -5,9 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 from ..utils import *
-from .metadata import Metadata
-from .inputBatch import InputBatch
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..metadata import Metadata
+from ..inputBatch import InputBatch
+from ..sparseConvNetTensor import SparseConvNetTensor
 from .sparseModule import SparseModule
 from .averagePooling import AveragePooling
 from .batchNormalization import BatchNormalization, BatchNormReLU, BatchNormLeakyReLU, BatchNormalizationInTensor

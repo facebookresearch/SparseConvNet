@@ -15,7 +15,7 @@ import torch
 import sparseconvnet
 from . import SparseModule
 from ..utils import toLongTensor, dim_typed_fn, optionalTensor, nullptr, set
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..sparseConvNetTensor import SparseConvNetTensor
 
 
 class CAddTable(SparseModule):

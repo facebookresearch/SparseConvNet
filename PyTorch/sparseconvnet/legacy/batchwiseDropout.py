@@ -19,7 +19,7 @@ import torch
 import sparseconvnet
 from . import SparseModule
 from ..utils import toLongTensor, typed_fn
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..sparseConvNetTensor import SparseConvNetTensor
 
 class BatchwiseDropout(SparseModule):
     def __init__(

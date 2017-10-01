@@ -8,7 +8,7 @@ import torch
 import sparseconvnet as s
 from torch.legacy.nn import Container
 from ..utils import toLongTensor, typed_fn, optionalTensor, nullptr, set
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..sparseConvNetTensor import SparseConvNetTensor
 from .batchNormalization import *
 from .affineReLUTrivialConvolution import AffineReLUTrivialConvolution
 from .validConvolution import ValidConvolution

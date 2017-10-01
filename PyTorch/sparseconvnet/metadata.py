@@ -16,8 +16,8 @@ object must be de-serialized exactly once.
 """
 
 import cffi
-from ..utils import dim_fn
-from ..SCN import scn_readPtr, scn_writePtr, scn_3_setInputSpatialSize
+from .utils import dim_fn
+from .SCN import scn_readPtr, scn_writePtr, scn_3_setInputSpatialSize
 
 ffi = cffi.FFI()
 

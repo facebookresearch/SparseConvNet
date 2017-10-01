@@ -19,7 +19,7 @@ import torch
 import sparseconvnet
 from . import SparseModule
 from ..utils import toLongTensor, typed_fn, optionalTensor, nullptr
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..sparseConvNetTensor import SparseConvNetTensor
 
 class BatchNormalization(SparseModule):
     def __init__(

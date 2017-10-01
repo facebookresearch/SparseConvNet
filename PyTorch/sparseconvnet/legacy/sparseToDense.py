@@ -18,7 +18,7 @@ dimension : of the input field,
 import torch
 from . import SparseModule
 from ..utils import dim_typed_fn, nullptr
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..sparseConvNetTensor import SparseConvNetTensor
 
 
 class SparseToDense(SparseModule):

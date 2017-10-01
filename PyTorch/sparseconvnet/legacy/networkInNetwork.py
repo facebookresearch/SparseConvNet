@@ -8,7 +8,7 @@ import torch
 from . import SparseModule
 import sparseconvnet as s
 from ..utils import toLongTensor, typed_fn, optionalTensor, nullptr
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..sparseConvNetTensor import SparseConvNetTensor
 
 
 class NetworkInNetwork(SparseModule):

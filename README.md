@@ -44,29 +44,31 @@ In theory, the library supports up to 10 dimensions. In practice, ConvNets with 
 
 
 ## Hello World - PyTorch
-The PyTorch interface is similar to the PyTorch's torch.nn.legacy interface
+SparseConvNets can be built either by [defining a function that inherits from torch.nn.Module](examples/Assamese_handwriting/VGGplus.py) or by stacking modules in a [sparseconvnet.Sequential](PyTorch/sparseconvnet/sequential.py):
 ```
 import torch
-import sparseconvnet.legacy as scn
+import sparseconvnet as scn
 
 # Use the GPU if there is one, otherwise CPU
-tensorType = 'torch.cuda.FloatTensor' if torch.cuda.is_available() else 'torch.FloatTensor'
+use_gpu = torch.cuda.is_available()
 
 model = scn.Sequential().add(
     scn.SparseVggNet(2, 1,
-       [['C',  8], ['C',  8], ['MP', 3, 2],
-        ['C', 16], ['C', 16], ['MP', 3, 2],
-        ['C', 24], ['C', 24], ['MP', 3, 2]])
+                     [['C',  8], ['C',  8], ['MP', 3, 2],
+                      ['C', 16], ['C', 16], ['MP', 3, 2],
+                      ['C', 24], ['C', 24], ['MP', 3, 2]])
 ).add(
     scn.ValidConvolution(2, 24, 32, 3, False)
 ).add(
     scn.BatchNormReLU(32)
 ).add(
-    scn.SparseToDense(2)
-).type(tensorType)
+    scn.SparseToDense(2,32)
+)
+if use_gpu:
+    model.cuda()
 
 # output will be 10x10
-inputSpatialSize = model.suggestInputSize(torch.LongTensor([10, 10]))
+inputSpatialSize = model.input_spatial_size(torch.LongTensor([10, 10]))
 input = scn.InputBatch(2, inputSpatialSize)
 
 msg = [
@@ -75,6 +77,8 @@ msg = [
     " XXXXX  XX   X    X   X  X    X   X   X  X  X  XXX   X    X   X ",
     " X   X  X    X    X   X  X     X X X X   X  X  X  X  X    X  X  ",
     " X   X  XXX  XXX  XXX  XX       X   X     XX   X  X  XXX  XXX   "]
+
+#Add a sample using setLocation
 input.addSample()
 for y, line in enumerate(msg):
     for x, c in enumerate(line):
@@ -82,6 +86,19 @@ for y, line in enumerate(msg):
             location = torch.LongTensor([x, y])
             featureVector = torch.FloatTensor([1])
             input.setLocation(location, featureVector, 0)
+
+#Add a sample using setLocations
+input.addSample()
+locations = []
+features = []
+for y, line in enumerate(msg):
+    for x, c in enumerate(line):
+        if c == 'X':
+            locations.append([x,y])
+            features.append([1])
+locations = torch.LongTensor(locations)
+features = torch.FloatTensor(features)
+input.setLocations(locations, features, 0)
 
 # Optional: allow metadata preprocessing to be done in batch preparation threads
 # to improve GPU utilization.
@@ -91,13 +108,14 @@ for y, line in enumerate(msg):
 #    2 if using MP2 pooling for downsizing.
 input.precomputeMetadata(3)
 
-model.evaluate()
-input.type(tensorType)
+model.train()
+if use_gpu:
+    input.cuda()
 output = model.forward(input)
 
-# Output is 1x32x10x10: our minibatch has 1 sample, the network has 32 output
+# Output is 2x32x10x10: our minibatch has 2 samples, the network has 32 output
 # feature planes, and 10x10 is the spatial size of the output.
-print(output.size())
+print(output.size(), output.data.type())
 ```
 
 ## Hello World - (Lua)Torch

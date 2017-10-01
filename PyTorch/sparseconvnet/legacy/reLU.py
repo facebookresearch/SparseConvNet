@@ -16,7 +16,7 @@ import sparseconvnet
 from torch.legacy.nn import Module
 from .leakyReLU import LeakyReLU
 from ..utils import toLongTensor, dim_typed_fn, optionalTensor, nullptr
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..sparseConvNetTensor import SparseConvNetTensor
 
 
 class ReLU(LeakyReLU):

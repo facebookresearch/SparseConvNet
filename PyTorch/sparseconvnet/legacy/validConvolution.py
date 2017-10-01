@@ -8,7 +8,7 @@ import torch
 import sparseconvnet as s
 from . import SparseModule
 from ..utils import toLongTensor, dim_typed_fn, optionalTensor, nullptr
-from .sparseConvNetTensor import SparseConvNetTensor
+from ..sparseConvNetTensor import SparseConvNetTensor
 
 
 class ValidConvolution(SparseModule):

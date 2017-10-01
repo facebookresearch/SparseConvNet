@@ -6,7 +6,8 @@
 
 import torch
 
-from ..utils import dim_fn
+from .utils import dim_fn
+from torch.autograd import Variable
 
 class SparseConvNetTensor(object):
     def __init__(self, features=None, metadata=None, spatial_size=None):
@@ -15,6 +16,7 @@ class SparseConvNetTensor(object):
         self.spatial_size = spatial_size
 
     def getSpatialLocations(self, spatial_size=None):
+        "Coordinates and batch index for the active spatial locations"
         if spatial_size is None:
             spatial_size = self.spatial_size
 
@@ -25,6 +27,15 @@ class SparseConvNetTensor(object):
     def type(self, t=None):
         if t:
             self.features = self.features.type(t)
+            return self
+        return self.features.type()
+
+    def cuda(self):
+        self.features = self.features.cuda()
+        return self
+
+    def cpu(self):
+        self.features = self.features.cpu()
         return self
 
     def set_(self):
@@ -35,3 +46,8 @@ class SparseConvNetTensor(object):
     def __repr__(self):
         return 'SparseConvNetTensor<<' + \
             repr(self.features) + repr(self.metadata) + repr(self.spatial_size) + '>>'
+
+    def to_variable(self, requires_grad = False, volatile=False):
+        "Convert self.features to a variable for use with modern PyTorch interface."
+        self.features=Variable(self.features, requires_grad=requires_grad, volatile=volatile)
+        return self

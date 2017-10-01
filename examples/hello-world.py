@@ -5,11 +5,10 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-import torch.legacy.nn as nn
-import sparseconvnet.legacy as scn
+import sparseconvnet as scn
 
 # Use the GPU if there is one, otherwise CPU
-dtype = 'torch.cuda.FloatTensor' if torch.cuda.is_available() else 'torch.FloatTensor'
+use_gpu = torch.cuda.is_available()
 
 model = scn.Sequential().add(
     scn.SparseVggNet(2, 1,
@@ -21,11 +20,13 @@ model = scn.Sequential().add(
 ).add(
     scn.BatchNormReLU(32)
 ).add(
-    scn.SparseToDense(2)
-).type(dtype)
+    scn.SparseToDense(2,32)
+)
+if use_gpu:
+    model.cuda()
 
 # output will be 10x10
-inputSpatialSize = model.suggestInputSize(torch.LongTensor([10, 10]))
+inputSpatialSize = model.input_spatial_size(torch.LongTensor([10, 10]))
 input = scn.InputBatch(2, inputSpatialSize)
 
 msg = [
@@ -65,10 +66,11 @@ input.setLocations(locations, features, 0)
 #    2 if using MP2 pooling for downsizing.
 input.precomputeMetadata(3)
 
-model.evaluate()
-input.type(dtype)
+model.train()
+if use_gpu:
+    input.cuda()
 output = model.forward(input)
 
 # Output is 2x32x10x10: our minibatch has 2 samples, the network has 32 output
 # feature planes, and 10x10 is the spatial size of the output.
-print(output.size(), output.type())
+print(output.size(), output.data.type())

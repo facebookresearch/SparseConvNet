@@ -10,7 +10,6 @@ from . import SparseModule
 from ..utils import toLongTensor, dim_typed_fn, optionalTensor, nullptr
 from ..sparseConvNetTensor import SparseConvNetTensor
 
-
 class ValidConvolution(SparseModule):
     def __init__(self, dimension, nIn, nOut, filter_size, bias):
         SparseModule.__init__(self)
@@ -51,6 +50,7 @@ class ValidConvolution(SparseModule):
 
     def backward(self, input, gradOutput, scale=1):
         assert scale == 1
+
         dim_typed_fn(self.dimension, input.features, 'ValidConvolution_backward')(
             input.spatial_size,
             self.filter_size,

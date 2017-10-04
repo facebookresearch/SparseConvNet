@@ -216,11 +216,11 @@ void scn_cpu_float_BatchNormalizationInTensor_updateOutput(
 
 // LeakyReLU
 void scn_cpu_float_LeakyReLU_updateOutput(
-  THFloatTensor *input_features, THFloatTensor *output_features, long n,
+  THFloatTensor *input_features, THFloatTensor *output_features,
   float alpha);
 void scn_cpu_float_LeakyReLU_updateGradInput(
   THFloatTensor *input_features, THFloatTensor *d_input_features,
-  THFloatTensor *d_output_features, long n, float alpha);
+  THFloatTensor *d_output_features, float alpha);
 
 // NetworkInNetwork
 double scn_cpu_float_NetworkInNetwork_updateOutput(

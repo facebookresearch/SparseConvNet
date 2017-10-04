@@ -42,11 +42,11 @@ void scn_gpu_float_BatchNormalizationInTensor_updateOutput(
 
 // LeakyReLU
 void scn_gpu_float_LeakyReLU_updateOutput(
-  THCudaTensor *input_features, THCudaTensor *output_features, long n,
+  THCudaTensor *input_features, THCudaTensor *output_features,
   float alpha);
 void scn_gpu_float_LeakyReLU_updateGradInput(
   THCudaTensor *input_features, THCudaTensor *d_input_features,
-  THCudaTensor *d_output_features, long n, float alpha);
+  THCudaTensor *d_output_features, float alpha);
 
 // NetworkInNetwork
 double scn_gpu_float_NetworkInNetwork_updateOutput(

@@ -108,11 +108,11 @@ void scn_ARCH_REAL_BatchNormalizationInTensor_updateOutput(
 
 // LeakyReLU
 void scn_ARCH_REAL_LeakyReLU_updateOutput(
-  THTensor *input_features, THTensor *output_features, long n,
+  THTensor *input_features, THTensor *output_features,
   float alpha);
 void scn_ARCH_REAL_LeakyReLU_updateGradInput(
   THTensor *input_features, THTensor *d_input_features,
-  THTensor *d_output_features, long n, float alpha);
+  THTensor *d_output_features, float alpha);
 
 // NetworkInNetwork
 double scn_ARCH_REAL_NetworkInNetwork_updateOutput(

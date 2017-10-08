@@ -32,7 +32,7 @@ class NetworkInNetworkFunction(Function):
     @staticmethod
     def backward(ctx, grad_output):
         grad_input=Variable(grad_output.data.new())
-        grad_weight=Variable(grad_output.data.new().resize_as_(ctx.weight).zero())
+        grad_weight=Variable(grad_output.data.new().resize_as_(ctx.weight).zero_())
         if ctx.bias is None:
             grad_bias=None
         else:
@@ -59,7 +59,8 @@ class NetworkInNetwork(Module):
             0,
             std))
         if bias:
-            self.bias = Parameter(torch.Tensor(nOut).zero_())
+            self.bias = Parameter(torch.Tensor(nOut).
+                                  _())
         else:
             self.bias=None
     def forward(self, input):

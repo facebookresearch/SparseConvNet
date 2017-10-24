@@ -1,27 +1,34 @@
 # Submanifold Sparse Convolutional Networks
 
-This is the Torch/PyTorch library for training Submanifold Sparse Convolutional Networks; see the paper
+This is the Torch/PyTorch library for training Submanifold Sparse Convolutional Networks. If you find this code useful in your research then please cite:
 
 **[Submanifold Sparse Convolutional Networks, https://arxiv.org/abs/1706.01307](https://arxiv.org/abs/1706.01307)** <br />
 [Benjamin Graham](https://research.fb.com/people/graham-benjamin/), <br />
 [Laurens van der Maaten](https://lvdmaaten.github.io/), <br />
-arXiv 2017
 
+```
+@article{SubmanifoldSparseConvNet,
+  title={Submanifold Sparse Convolutional Networks},
+  author={Graham, Benjamin and van der Maaten, Laurens},
+  journal={arXiv preprint arXiv:1706.01307},
+  year={2017}
+}
+```
 
 ## Spatial sparsity
 
-This library brings [Spatially-sparse convolutional networks](https://github.com/btgraham/SparseConvNet) to Torch/PyTorch. Moreover, it introduces **Valid Sparse Convolutions**, that can be used to build computationally efficient sparse VGG/ResNet/DenseNet-style networks.
+This library brings [Spatially-sparse convolutional networks](https://github.com/btgraham/SparseConvNet) to Torch/PyTorch. Moreover, it introduces **Submanifold Sparse Convolutions**, that can be used to build computationally efficient sparse VGG/ResNet/DenseNet-style networks.
 
 With regular 3x3 convolutions, the set of active (non-zero) sites grows rapidly:<br />
 ![submanifold](img/i.gif) <br />
-With **Valid Sparse Convolutions**, the set of active sites is unchanged. Active sites look at their active neighbors (green); non-active sites (red) have no computational overhead: <br />
+With **Submanifold Sparse Convolutions**, the set of active sites is unchanged. Active sites look at their active neighbors (green); non-active sites (red) have no computational overhead: <br />
 ![submanifold](img/img.gif) <br />
-Stacking Sparse Valid Convolutions to build VGG and ResNet type ConvNets, information can flow along lines or surfaces of active points.<br />
+Stacking Submanifold Sparse Convolutions to build VGG and ResNet type ConvNets, information can flow along lines or surfaces of active points.<br />
 
-Disconnected components don't communicate at first, although they will merge due to the effect of strided operations, either pooling or convolutions. Additionally, adding ConvolutionWithStride2-ValidConvolution-DeconvolutionWithStride2 paths to the network allows disjoint active sites to communicate; see the 'VGG+' networks in the paper.<br />
+Disconnected components don't communicate at first, although they will merge due to the effect of strided operations, either pooling or convolutions. Additionally, adding ConvolutionWithStride2-SubmanifoldConvolution-DeconvolutionWithStride2 paths to the network allows disjoint active sites to communicate; see the 'VGG+' networks in the paper.<br />
 ![Strided Convolution, convolution, deconvolution](img/img_stridedConv_conv_deconv.gif) <br />
 ![Strided Convolution, convolution, deconvolution](img/img_stridedConv_conv_deconv.png) <br />
-From left: **(i)** an active point is highlighted; a convolution with stride 2 sees the green active sites **(ii)** and produces output **(iii)**, 'children' of hightlighted active point from (i) are highlighted; a sparse valid convolution sees the green active sites **(iv)** and produces output **(v)**; a deconvolution operation sees the green active sites **(vi)**  and produces output **(vii)**.
+From left: **(i)** an active point is highlighted; a convolution with stride 2 sees the green active sites **(ii)** and produces output **(iii)**, 'children' of hightlighted active point from (i) are highlighted; a submanifold sparse convolution sees the green active sites **(iv)** and produces output **(v)**; a deconvolution operation sees the green active sites **(vi)**  and produces output **(vii)**.
 
 ## Dimensionality and 'submanifolds'
 
@@ -58,7 +65,7 @@ model = scn.Sequential().add(
                       ['C', 16], ['C', 16], ['MP', 3, 2],
                       ['C', 24], ['C', 24], ['MP', 3, 2]])
 ).add(
-    scn.ValidConvolution(2, 24, 32, 3, False)
+    scn.SubmanifoldConvolution(2, 24, 32, 3, False)
 ).add(
     scn.BatchNormReLU(32)
 ).add(
@@ -241,15 +248,12 @@ or
 pip install git+https://github.com/pytorch/tnt.git@master
 ```
 
-## Bibtex
-
-If you find this code useful in your research then please cite:
-
-```
-@article{SubmanifoldSparseConvNet,
-  title={Submanifold Sparse Convolutional Networks},
-  author={Graham, Benjamin and van der Maaten, Laurens},
-  journal={arXiv preprint arXiv:1706.01307},
-  year={2017}
-}
-```
+### Links
+1. [ICDAR 2013 Chinese Handwriting Recognition Competition 2013](http://www.nlpr.ia.ac.cn/events/CHRcompetition2013/competition/Home.html) First place in task 3, with test error of 2.61%. Human performance on the test set was 4.81%. [Report](http://www.nlpr.ia.ac.cn/events/CHRcompetition2013/competition/ICDAR%202013%20CHR%20competition.pdf)
+2. [Spatially-sparse convolutional neural networks, 2014](http://arxiv.org/abs/1409.6070) SparseConvNets for Chinese handwriting recognition
+3. [Fractional max-pooling, 2014](http://arxiv.org/abs/1412.6071) A SparseConvNet with fractional max-pooling achieves an error rate of 3.47% for CIFAR-10.
+4. [Sparse 3D convolutional neural networks, BMVC 2015](http://arxiv.org/abs/1505.02890) SparseConvNets for 3D object recognition and (2+1)D video action recognition.
+5. [Kaggle plankton recognition competition, 2015](https://www.kaggle.com/c/datasciencebowl) Third place. The competition solution is being adapted for research purposes.
+6. [Kaggle Diabetic Retinopathy Detection, 2015](https://www.kaggle.com/c/diabetic-retinopathy-detection/) First place in the Kaggle Diabetic Retinopathy Detection competition.
+7. [Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1706.01307) Introduces deep 'submanifold' SparseConvNets.
+8. [Workshop on Learning to See from 3D Data, 2017](https://shapenet.cs.stanford.edu/iccv17workshop/) First place in the [semantic segmentation](https://shapenet.cs.stanford.edu/iccv17/) competition. [Report](https://arxiv.org/pdf/1710.06104)

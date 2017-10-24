@@ -85,7 +85,7 @@ def train(spatial_size, Scale, precomputeStride):
     tdi = scn.threadDatasetIterator(bd)
 
     def iter():
-        randperm = torch.randperm(len(d))
+        randperm.copy_(torch.randperm(len(d)))
         return tdi()
     return iter
 
@@ -120,7 +120,7 @@ def val(spatial_size, Scale, precomputeStride):
     tdi = scn.threadDatasetIterator(bd)
 
     def iter():
-        randperm = torch.randperm(len(d))
+        randperm.copy_(torch.randperm(len(d)))
         return tdi()
     return iter
 

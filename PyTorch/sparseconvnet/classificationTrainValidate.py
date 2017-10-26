@@ -21,7 +21,7 @@ def updateStats(stats, output, target, loss):
     stats['nll'] = stats['nll'] + loss * batchSize
     _, predictions = output.float().sort(1, True)
     correct = predictions.eq(
-        target.long().view(batchSize, 1).expand_as(output))
+        target.long()[:,None].expand_as(output))
     # Top-1 score
     stats['top1'] += correct.narrow(1, 0, 1).sum()
     # Top-5 score
@@ -132,20 +132,21 @@ def ClassificationTrainValidate(model, dataset, p):
                         batch['target'] = batch['target'].cuda()
                         batch['idx'] = batch['idx'].cuda()
                     batch['input'].to_variable()
-                    pr.append( model(batch['input']).data )
+                    output = model(batch['input'])
+                    pr.append( output.data )
                     ta.append( batch['target'] )
                     idxs.append( batch['idx'] )
                 pr=torch.cat(pr,0)
                 ta=torch.cat(ta,0)
                 idxs=torch.cat(idxs,0)
                 if rep==1:
-                    target=pr.index_select(0,idxs)
-                    ta=ta.index_select(0,idxs)
+                    predictions=pr.new().resize_as_(pr).zero_().index_add_(0,idxs,pr)
+                    targets=ta.new().resize_as_(ta).zero_().index_add_(0,idxs,ta)
                 else:
-                    target.index_add_(0,idxs,pr)
-                loss = criterion(pr, ta)
+                    predictions.index_add_(0,idxs,pr)
+                loss = criterion(predictions/rep, targets)
                 stats = {'top1': 0, 'top5': 0, 'n': 0, 'nll': 0}
-                updateStats(stats, pr, ta, loss.data[0])
+                updateStats(stats, predictions, targets, loss.data[0])
                 print(epoch, 'test rep ', rep,
                     ': top1=%.2f%% top5=%.2f%% nll:%.2f time:%.1fs' %(
                     100 * (1 - 1.0 * stats['top1'] / stats['n']),

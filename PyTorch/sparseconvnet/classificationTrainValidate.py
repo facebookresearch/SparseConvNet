@@ -14,7 +14,7 @@ import time
 import os
 import math
 import numpy as np
-import PIL
+from PIL import Image
 
 def updateStats(stats, output, target, loss):
     batchSize = output.size(0)
@@ -105,7 +105,7 @@ def ClassificationTrainValidate(model, dataset, p):
         cm=stats['confusion matrix'].cpu().numpy()
         np.savetxt('train confusion matrix.csv',cm,delimiter=',')
         cm*=255/(cm.sum(1,keepdims=True)+1e-9)
-        PIL.Image.fromarray(cm.astype('uint8'),mode='L').save('train confusion matrix.png')
+        Image.fromarray(cm.astype('uint8'),mode='L').save('train confusion matrix.png')
         if p['check_point']:
             torch.save(epoch, 'epoch.pth')
             torch.save(model.state_dict(),'model.pth')
@@ -171,4 +171,4 @@ def ClassificationTrainValidate(model, dataset, p):
         cm=stats['confusion matrix'].cpu().numpy()
         np.savetxt('test confusion matrix.csv',cm,delimiter=',')
         cm*=255/(cm.sum(1,keepdims=True)+1e-9)
-        PIL.Image.fromarray(cm.astype('uint8'),mode='L').save('test confusion matrix.png')
+        Image.fromarray(cm.astype('uint8'),mode='L').save('test confusion matrix.png')

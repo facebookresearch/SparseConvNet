@@ -6,6 +6,7 @@
 
 forward_pass_multiplyAdd_count = 0
 forward_pass_hidden_states = 0
+from .activations import Tanh, Sigmoid, ReLU, ELU
 from .averagePooling import AveragePooling
 from .batchNormalization import BatchNormalization, BatchNormReLU, BatchNormLeakyReLU
 from .classificationTrainValidate import ClassificationTrainValidate

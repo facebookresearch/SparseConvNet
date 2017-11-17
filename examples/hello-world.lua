@@ -11,15 +11,15 @@ tensorType = scn.cutorch and 'torch.CudaTensor' or 'torch.FloatTensor'
 
 model = scn.Sequential()
   :add(scn.SparseVggNet(2,1,{ --dimension 2, 1 input plane
-                          {'C', 8}, -- 3x3 VSC convolution, 8 output planes, batchnorm, ReLU
-                          {'C', 8}, -- and another
-                          {'MP', 3, 2}, --max pooling, size 3, stride 2
-                          {'C', 16}, -- etc
-                          {'C', 16},
-                          {'MP', 3, 2},
-                          {'C', 24},
-                          {'C', 24},
-                          {'MP', 3, 2}}))
+			  {'C', 8}, -- 3x3 VSC convolution, 8 output planes, batchnorm, ReLU
+			  {'C', 8}, -- and another
+			  {'MP', 3, 2}, --max pooling, size 3, stride 2
+			  {'C', 16}, -- etc
+			  {'C', 16},
+			  {'MP', 3, 2},
+			  {'C', 24},
+			  {'C', 24},
+			  {'MP', 3, 2}}))
   :add(scn.Convolution(2,24,32,3,1,false)) --an SC convolution on top
   :add(scn.BatchNormReLU(32))
   :add(scn.SparseToDense(2))
@@ -47,7 +47,7 @@ input:addSample()
 for y,line in ipairs(msg) do
   for x = 1,string.len(line) do
     if string.sub(line,x,x) == 'O' then
-      local location = torch.LongTensor{x,y}
+      local location = torch.LongTensor{y, x}
       local featureVector = torch.FloatTensor{1}
       input:setLocation(location,featureVector,0)
     end
@@ -61,7 +61,7 @@ local featureVectors = {}
 for y,line in ipairs(msg) do
   for x = 1,string.len(line) do
     if string.sub(line,x,x) == 'O' then
-      table.insert(locations, {x,y})
+      table.insert(locations, {y, x})
       table.insert(featureVectors, {1})
     end
   end

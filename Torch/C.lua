@@ -221,7 +221,7 @@ void scn_ARCH_REAL_DIMENSIONMaxPooling_updateGradInput(
 // SparseToDense
 void scn_ARCH_REAL_DIMENSIONSparseToDense_updateOutput(
   THLongTensor *inputSize, void **m, THTensor *input_features,
-  THTensor *output_features, THITensor *rulesBuffer);
+  THTensor *output_features, THITensor *rulesBuffer, long nPlanes);
 void scn_ARCH_REAL_DIMENSIONSparseToDense_updateGradInput(
   THLongTensor *inputSize, void **m, THTensor *input_features,
   THTensor *d_input_features, THTensor *d_output_features,

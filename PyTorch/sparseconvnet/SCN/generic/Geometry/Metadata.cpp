@@ -115,11 +115,12 @@ extern "C" void scn_D_(getSpatialLocations)(void **m, THLongTensor *spatialSize,
 
   for (uInt i = 0; i < batchSize; i++) {
     auto mp = SGs[i].mp;
+    auto offset = SGs[i].ctr;
     for (auto it = mp.begin(); it != mp.end(); ++it) {
       for (uInt d = 0; d < Dimension; ++d) {
-        lD[it->second * (Dimension + 1) + d] = it->first[d];
+        lD[(it->second + offset) * (Dimension + 1) + d] = it->first[d];
       }
-      lD[it->second * (Dimension + 1) + Dimension] = i;
+      lD[(it->second + offset) * (Dimension + 1) + Dimension] = i;
     }
   }
 }

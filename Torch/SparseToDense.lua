@@ -36,7 +36,7 @@ return function(sparseconvnet)
       input.features:cdata(),
       self.output:cdata(),
       self.shared.rulesBuffer and self.shared.rulesBuffer:cdata(),
-      self.nPlanes or input.features.size(2))
+      self.nPlanes or input.features:size(2))
     return self.output
   end
 

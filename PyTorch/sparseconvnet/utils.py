@@ -12,8 +12,6 @@ from cffi import FFI
 def toLongTensor(dimension, x):
     if type(x).__name__ == 'LongTensor':
         return x
-    if type(x).__name__ == 'LongTensor':
-        return x
     else:
         return torch.LongTensor(dimension).fill_(x)
 

@@ -12,9 +12,9 @@ use_gpu = torch.cuda.is_available()
 
 model = scn.Sequential().add(
     scn.SparseVggNet(2, 1,
-		     [['C',  8], ['C',  8], ['MP', 3, 2],
-		      ['C', 16], ['C', 16], ['MP', 3, 2],
-		      ['C', 24], ['C', 24], ['MP', 3, 2]])
+                     [['C',  8], ['C',  8], ['MP', 3, 2],
+                      ['C', 16], ['C', 16], ['MP', 3, 2],
+                      ['C', 24], ['C', 24], ['MP', 3, 2]])
 ).add(
     scn.ValidConvolution(2, 24, 32, 3, False)
 ).add(
@@ -40,10 +40,10 @@ msg = [
 input.addSample()
 for y, line in enumerate(msg):
     for x, c in enumerate(line):
-	if c == 'X':
-	    location = torch.LongTensor([y, x])
-	    featureVector = torch.FloatTensor([1])
-	    input.setLocation(location, featureVector, 0)
+        if c == 'X':
+            location = torch.LongTensor([y, x])
+            featureVector = torch.FloatTensor([1])
+            input.setLocation(location, featureVector, 0)
 
 #Add a sample using setLocations
 input.addSample()
@@ -51,9 +51,9 @@ locations = []
 features = []
 for y, line in enumerate(msg):
     for x, c in enumerate(line):
-	if c == 'X':
-	    locations.append([y, x])
-	    features.append([1])
+        if c == 'X':
+            locations.append([y, x])
+            features.append([1])
 locations = torch.LongTensor(locations)
 features = torch.FloatTensor(features)
 input.setLocations(locations, features, 0)

@@ -35,7 +35,7 @@ def updateStats(stats, output, target, loss):
     # Top-5 score
     l = min(5, correct.size(1))
     stats['top5'] += correct.narrow(1, 0, l).sum()
-    stats['confusion matrix'].index_add_(0,target,F.softmax(output).data)
+    stats['confusion matrix'].index_add_(0,target,F.softmax(Variable(output),1).data)
 
 
 def ClassificationTrainValidate(model, dataset, p):

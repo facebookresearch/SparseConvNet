@@ -127,4 +127,6 @@ class Deconvolution(Module):
         return s
 
     def input_spatial_size(self, out_size):
-        return (out_size - 1) * self.filter_stride + self.filter_size
+        in_size = (out_size - self.filter_size) / self.filter_stride + 1
+        assert ((in_size - 1) * self.filter_stride + self.filter_size == out_size).all()
+        return in_size

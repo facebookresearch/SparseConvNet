@@ -57,10 +57,6 @@ class ConvolutionFunction(Function):
         if ctx.bias is None:
             grad_bias=None
         else:
-            grad_bias = Variable(grad_output.data.new().resize_as_(bias).zero_())
-        if ctx.bias is None:
-            grad_bias=None
-        else:
             grad_bias = Variable(grad_output.data.new().resize_as_(ctx.bias).zero_())
         dim_typed_fn(
             ctx.dimension, ctx.input_features, 'Convolution_backward')(

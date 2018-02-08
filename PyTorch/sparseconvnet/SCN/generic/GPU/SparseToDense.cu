@@ -29,13 +29,13 @@ extern "C" void scn_DR_(SparseToDense_updateOutput)(
   }
   if (input_features->nDimension == 2) {
     auto _rules = _m.getSparseToDenseRuleBook(inputSize, true);
-    uInt nPlanes = input_features->size[1];
+    uInt _nPlanes = input_features->size[1];
     auto iF = THCTensor_(data)(state, input_features);
     auto oF = THCTensor_(data)(state, output_features);
     RULEBOOKITERATOR(
         SparseToDense_ForwardPass<real>(THCState_getCurrentStream(state), iF,
-                                        oF, nPlanes, spatialVolume, rbB, nHotB);
-        , oF += nPlanes * spatialVolume;)
+                                        oF, _nPlanes, spatialVolume, rbB, nHotB);
+        , oF += _nPlanes * spatialVolume;)
   }
 }
 extern "C" void scn_DR_(SparseToDense_updateGradInput)(
@@ -50,13 +50,13 @@ extern "C" void scn_DR_(SparseToDense_updateGradInput)(
   if (input_features->nDimension == 2) {
     auto _rules = _m.getSparseToDenseRuleBook(inputSize, true);
     long spatialVolume = THLongTensor_prodall(inputSize);
-    uInt nPlanes = d_input_features->size[1];
+    uInt _nPlanes = d_input_features->size[1];
     auto diF = THCTensor_(data)(state, d_input_features);
     auto doF = THCTensor_(data)(state, d_output_features);
     RULEBOOKITERATOR(SparseToDense_BackwardPass<real>(
-                         THCState_getCurrentStream(state), diF, doF, nPlanes,
+                         THCState_getCurrentStream(state), diF, doF, _nPlanes,
                          spatialVolume, rbB, nHotB);
-                     , doF += nPlanes * spatialVolume;)
+                     , doF += _nPlanes * spatialVolume;)
   }
 }
 #endif

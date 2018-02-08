@@ -25,15 +25,15 @@ extern "C" void scn_DR_(SparseToDense_updateOutput)(
   }
   if (input_features->nDimension == 2) {
     auto _rules = _m.getSparseToDenseRuleBook(inputSize, true);
-    uInt nPlanes = input_features->size[1];
+    uInt _nPlanes = input_features->size[1];
     auto iF = THTensor_(data)(input_features);
     auto oF = THTensor_(data)(output_features);
     long spatialVolume = THLongTensor_prodall(inputSize);
     for (auto &r : _rules) {
       uInt nHot = r.size() / 2;
-      SparseToDense_ForwardPass<real>(iF, oF, nPlanes, spatialVolume, &r[0],
+      SparseToDense_ForwardPass<real>(iF, oF, _nPlanes, spatialVolume, &r[0],
                                       nHot);
-      oF += nPlanes * spatialVolume;
+      oF += _nPlanes * spatialVolume;
     }
   }
 }
@@ -48,15 +48,15 @@ extern "C" void scn_DR_(SparseToDense_updateGradInput)(
   auto _rules = _m.getSparseToDenseRuleBook(inputSize, true);
   if (input_features->nDimension == 2) {
     long spatialVolume = THLongTensor_prodall(inputSize);
-    uInt nPlanes = d_input_features->size[1];
+    uInt _nPlanes = d_input_features->size[1];
     auto diF = THTensor_(data)(d_input_features);
     auto doF = THTensor_(data)(d_output_features);
 
     for (auto &r : _rules) {
       uInt nHot = r.size() / 2;
-      SparseToDense_BackwardPass<real>(diF, doF, nPlanes, spatialVolume, &r[0],
+      SparseToDense_BackwardPass<real>(diF, doF, _nPlanes, spatialVolume, &r[0],
                                        nHot);
-      doF += nPlanes * spatialVolume;
+      doF += _nPlanes * spatialVolume;
     }
   }
 }

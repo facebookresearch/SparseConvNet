@@ -58,6 +58,9 @@ extern "C" void scn_D_(setInputSpatialLocations)(void **m,
                                                  THLongTensor *locations,
                                                  THFloatTensor *vecs,
                                                  bool overwrite) {
+  assert(features->nDimension == 2 and "features must be 2 dimensional!");
+  assert(locations->nDimension == 2 and "locations must be 2 dimensional!");
+  assert(vecs->nDimension == 2 and "vecs must be 2 dimensional!");
   assert(locations->size[0] == vecs->size[0] and
          "Location.size(0) and vecs.size(0) must be equal!");
   assert((locations->size[1] == Dimension or
@@ -125,8 +128,8 @@ extern "C" void scn_D_(getSpatialLocations)(void **m, THLongTensor *spatialSize,
   }
 }
 extern "C" void
-scn_D_(createMetadataForDenseToSparse)(void **m, THLongTensor *spatialSize_,
-                                       THLongTensor *nz_, long batchSize) {
+    scn_D_(createMetadataForDenseToSparse)(void **m, THLongTensor *spatialSize_,
+                                           THLongTensor *nz_, long batchSize) {
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   _m.clear();
   _m.setInputSpatialSize(spatialSize_);

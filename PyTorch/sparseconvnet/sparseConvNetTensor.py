@@ -9,6 +9,7 @@ import torch
 from .utils import dim_fn
 from torch.autograd import Variable
 
+
 class SparseConvNetTensor(object):
     def __init__(self, features=None, metadata=None, spatial_size=None):
         self.features = features
@@ -30,8 +31,8 @@ class SparseConvNetTensor(object):
             return self
         return self.features.type()
 
-    def cuda(self):
-        self.features = self.features.cuda()
+    def cuda(self, async=False):
+        self.features = self.features.cuda(async=async)
         return self
 
     def cpu(self):
@@ -47,7 +48,7 @@ class SparseConvNetTensor(object):
         return 'SparseConvNetTensor<<' + \
             repr(self.features) + repr(self.metadata) + repr(self.spatial_size) + '>>'
 
-    def to_variable(self, requires_grad = False, volatile=False):
+    def to_variable(self, requires_grad=False, volatile=False):
         "Convert self.features to a variable for use with modern PyTorch interface."
-        self.features=Variable(self.features, requires_grad=requires_grad, volatile=volatile)
+        self.features = Variable(self.features, requires_grad=requires_grad, volatile=volatile)
         return self

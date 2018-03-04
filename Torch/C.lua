@@ -227,11 +227,11 @@ void scn_ARCH_REAL_DIMENSIONSparseToDense_updateGradInput(
   THTensor *d_input_features, THTensor *d_output_features,
   THITensor *rulesBuffer);
 
-double scn_ARCH_REAL_DIMENSIONValidConvolution_updateOutput(
+double scn_ARCH_REAL_DIMENSIONSubmanifoldConvolution_updateOutput(
   THLongTensor *inputSize, THLongTensor *filterSize, void **m,
   THTensor *input_features, THTensor *output_features, THTensor *weight,
   THTensor *bias, long filterVolume, THITensor *rulesBuffer);
-void scn_ARCH_REAL_DIMENSIONValidConvolution_backward(
+void scn_ARCH_REAL_DIMENSIONSubmanifoldConvolution_backward(
   THLongTensor *inputSize, THLongTensor *filterSize, void **m,
   THTensor *input_features, THTensor *d_input_features,
   THTensor *d_output_features, THTensor *weight, THTensor *d_weight,

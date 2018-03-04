@@ -37,7 +37,7 @@ return function(sparseconvnet)
       --Module 4*i-1
       self:add(sparseconvnet.BatchNormalization(nFeaturesB,nil,nil,true,0))
       --Module 4*i
-      self:add(sparseconvnet.ValidConvolution(dimension, nFeaturesB, growthRate,
+      self:add(sparseconvnet.SubmanifoldConvolution(dimension, nFeaturesB, growthRate,
           3, false))
       --Module 4*i+1
       self:add(sparseconvnet.BatchNormalizationInTensor(growthRate,nil,nil,

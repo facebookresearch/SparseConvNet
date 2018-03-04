@@ -24,7 +24,7 @@ local denseModel = nn.Sequential()
 local model = nn.Sequential():add(sparseModel):add(denseModel)
 
 sparseModel
-:add(sparseconvnet.ValidConvolution(2,3,16,3,false))
+:add(sparseconvnet.SubmanifoldConvolution(2,3,16,3,false))
 :add(sparseconvnet.MaxPooling(2,2,2))
 :add(sparseconvnet.SparseResNet(
     2,16,{

@@ -22,7 +22,12 @@ class SparseConvNetTensor(object):
             spatial_size = self.spatial_size
 
         t = torch.LongTensor()
-        dim_fn(self.metadata.dimension, 'getSpatialLocations')(self.metadata.ffi, spatial_size, t)
+        dim_fn(
+            self.metadata.dimension,
+            'getSpatialLocations')(
+            self.metadata.ffi,
+            spatial_size,
+            t)
         return t
 
     def type(self, t=None):
@@ -50,5 +55,8 @@ class SparseConvNetTensor(object):
 
     def to_variable(self, requires_grad=False, volatile=False):
         "Convert self.features to a variable for use with modern PyTorch interface."
-        self.features = Variable(self.features, requires_grad=requires_grad, volatile=volatile)
+        self.features = Variable(
+            self.features,
+            requires_grad=requires_grad,
+            volatile=volatile)
         return self

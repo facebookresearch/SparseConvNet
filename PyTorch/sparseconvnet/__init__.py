@@ -16,6 +16,7 @@ from .denseToSparse import DenseToSparse
 from .dropout import Dropout, BatchwiseDropout
 from .identity import Identity
 from .inputBatch import InputBatch
+from .inputLayer import InputLayer, BLInputLayer, BLOutputLayer
 from .maxPooling import MaxPooling
 from .metadata import Metadata
 from .networkArchitectures import *
@@ -26,16 +27,18 @@ from .sparseToDense import SparseToDense
 from .submanifoldConvolution import SubmanifoldConvolution, ValidConvolution
 from .tables import *
 
+
 def concatenate_feature_planes(input):
     output = SparseConvNetTensor()
     output.metadata = input[0].metadata
     output.spatial_size = input[0].metadata
-    output.features=torch.cat([i.features for i in input],1)
+    output.features = torch.cat([i.features for i in input], 1)
     return output
+
 
 def add_feature_planes(input):
     output = SparseConvNetTensor()
     output.metadata = input[0].metadata
     output.spatial_size = input[0].metadata
-    output.features=sum([i.features for i in input])
+    output.features = sum([i.features for i in input])
     return output

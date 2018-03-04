@@ -6,7 +6,7 @@
 
 """
 Store Metadata relating to which spatial locations are active at each scale.
-Convolutions, valid convolutions and 'convolution reversing' deconvolutions
+Convolutions, submanifold convolutions and 'convolution reversing' deconvolutions
 all coexist within the same MetaData object as long as each spatial size
 only occurs once.
 

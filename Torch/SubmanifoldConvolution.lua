@@ -8,7 +8,7 @@ return function(sparseconvnet)
   local C = sparseconvnet.C
 
   local Convolution, parent = torch.class(
-    'sparseconvnet.ValidConvolution', 'nn.Module', sparseconvnet)
+    'sparseconvnet.SubmanifoldConvolution', 'nn.Module', sparseconvnet)
 
   function Convolution:__init(dimension, nInputPlanes, nOutputPlanes,
       filterSize, bias)
@@ -52,7 +52,7 @@ return function(sparseconvnet)
     self.output.spatialSize = input.spatialSize
     self.shared.forwardPassMultiplyAddCount=
     self.shared.forwardPassMultiplyAddCount+
-    C.dimTypedFn(self.dimension, self._type, 'ValidConvolution_updateOutput')(
+    C.dimTypedFn(self.dimension, self._type, 'SubmanifoldConvolution_updateOutput')(
       input.spatialSize:cdata(),
       self.filterSize:cdata(),
       input.metadata.ffi,
@@ -68,7 +68,7 @@ return function(sparseconvnet)
   end
 
   function Convolution:backward(input, gradOutput)
-    C.dimTypedFn(self.dimension, self._type, 'ValidConvolution_backward')(
+    C.dimTypedFn(self.dimension, self._type, 'SubmanifoldConvolution_backward')(
       input.spatialSize:cdata(),
       self.filterSize:cdata(),
       input.metadata.ffi,
@@ -100,7 +100,7 @@ return function(sparseconvnet)
   end
 
   function Convolution:__tostring()
-    local s = 'ValidConvolution ' .. self.nInputPlanes .. '->' .. self.nOutputPlanes..' C'
+    local s = 'SubmanifoldConvolution ' .. self.nInputPlanes .. '->' .. self.nOutputPlanes..' C'
     if self.filterSize:max()==self.filterSize:min() and
     self.filterStride:max()==self.filterStride:min() then
       s=s..self.filterSize[1] ..(self.filterStride[1]==1 and

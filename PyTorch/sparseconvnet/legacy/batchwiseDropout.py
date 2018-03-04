@@ -21,6 +21,7 @@ from . import SparseModule
 from ..utils import toLongTensor, typed_fn
 from ..sparseConvNetTensor import SparseConvNetTensor
 
+
 class BatchwiseDropout(SparseModule):
     def __init__(
             self,
@@ -39,9 +40,9 @@ class BatchwiseDropout(SparseModule):
 
     def updateOutput(self, input):
         if self.train:
-            self.noise.bernoulli_(1-self.p)
+            self.noise.bernoulli_(1 - self.p)
         else:
-            self.noise.fill_(1-self.p)
+            self.noise.fill_(1 - self.p)
 
         if self.inplace:
             self.output = input
@@ -50,11 +51,7 @@ class BatchwiseDropout(SparseModule):
             self.output.spatialSize = input.spatialSize
 
         typed_fn(input.features, 'BatchwiseMultiplicativeDropout_updateOutput')(
-            input.features,
-            self.output.features,
-            self.noise,
-            self.leakiness
-            )
+            input.features, self.output.features, self.noise, self.leakiness)
         return self.output
 
     def updateGradInput(self, input, gradOutput):
@@ -67,7 +64,7 @@ class BatchwiseDropout(SparseModule):
             gradOutput,
             self.noise,
             self.leakiness
-            )
+        )
         return self.gradInput
 
     def type(self, t, tensorCache=None):
@@ -94,6 +91,7 @@ class BatchwiseDropout(SparseModule):
         s = s + ')'
         return s
 
+
 class BatchwiseDropoutInTensor(BatchwiseDropout):
     def __init__(
             self,
@@ -106,9 +104,9 @@ class BatchwiseDropoutInTensor(BatchwiseDropout):
 
     def updateOutput(self, input):
         if self.train:
-            self.noise.bernoulli_(1-self.p)
+            self.noise.bernoulli_(1 - self.p)
         else:
-            self.noise.fill_(1-self.p)
+            self.noise.fill_(1 - self.p)
 
         self.output.metadata = input.metadata
         self.output.spatial_size = input.spatial_size
@@ -116,12 +114,13 @@ class BatchwiseDropoutInTensor(BatchwiseDropout):
         o = self.output.features.narrow(
             1, self.output_column_offset, self.nPlanes)
 
-        typed_fn(input.features, 'BatchwiseMultiplicativeDropout_updateOutput')(
+        typed_fn(
+            input.features,
+            'BatchwiseMultiplicativeDropout_updateOutput')(
             input.features,
             o,
             self.noise,
-            self.leakiness
-            )
+            self.leakiness)
         return self.output
 
     def updateGradInput(self, input, gradOutput):
@@ -130,17 +129,12 @@ class BatchwiseDropoutInTensor(BatchwiseDropout):
         d_o = gradOutput.narrow(1, self.output_column_offset, self.nPlanes)
 
         typed_fn(input.features, 'BatchwiseMultiplicativeDropout_updateGradInput')(
-            input.features,
-            self.gradInput,
-            d_o,
-            self.noise,
-            self.leakiness
-            )
+            input.features, self.gradInput, d_o, self.noise, self.leakiness)
         return self.gradInput
 
     def __repr__(self):
-        s = 'BatchwiseDropoutInTensor(' + str(self.nPlanes) + ',p=' + str(self.p) + \
-            ',column_offset=' + str(self.output_column_offset)
+        s = 'BatchwiseDropoutInTensor(' + str(self.nPlanes) + ',p=' + str(
+            self.p) + ',column_offset=' + str(self.output_column_offset)
         if self.leakiness > 0:
             s = s + ',leakiness=' + str(self.leakiness)
         s = s + ')'

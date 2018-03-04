@@ -35,7 +35,7 @@ for _,module in ipairs({
     'sparseconvnet.ReLU',
     'sparseconvnet.Sequential',
     'sparseconvnet.SparseToDense',
-    'sparseconvnet.ValidConvolution',
+    'sparseconvnet.SubmanifoldConvolution',
   }) do
   require(module)(sparseconvnet)
 end

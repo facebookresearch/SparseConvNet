@@ -21,7 +21,7 @@ from .tables import *
 def SparseVggNet(dimension, nInputPlanes, layers):
     """
     VGG style nets
-    Use valid convolutions
+    Use submanifold convolutions
     Also implements 'Plus'-augmented nets
     """
     nPlanes = nInputPlanes
@@ -216,7 +216,7 @@ def ResNetUNet(dimension, nPlanes, reps, depth=4):
         def __init__(self):
             nn.Module.__init__(self)
             self.sparseModel = scn.Sequential().add(
-               scn.ValidConvolution(3, nInputFeatures, 64, 3, False)).add(
+               scn.SubmanifoldConvolution(3, nInputFeatures, 64, 3, False)).add(
                scn.ResNetUNet(3, 64, 2, 4))
             self.linear = nn.Linear(64, nClasses)
         def forward(self,x):

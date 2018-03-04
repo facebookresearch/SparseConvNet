@@ -36,7 +36,7 @@ class Convolution(SparseModule):
         self.gradInput = torch.Tensor()
 
     def updateOutput(self, input):
-        assert input.features.ndimension()==0 or input.features.size(1) == self.nIn
+        assert input.features.ndimension() == 0 or input.features.size(1) == self.nIn
         self.output.metadata = input.metadata
         self.output.spatial_size =\
             (input.spatial_size - self.filter_size) / self.filter_stride + 1

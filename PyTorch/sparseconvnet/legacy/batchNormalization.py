@@ -21,6 +21,7 @@ from . import SparseModule
 from ..utils import toLongTensor, typed_fn, optionalTensor, nullptr
 from ..sparseConvNetTensor import SparseConvNetTensor
 
+
 class BatchNormalization(SparseModule):
     def __init__(
             self,
@@ -48,7 +49,7 @@ class BatchNormalization(SparseModule):
         self.gradInput = torch.Tensor()
 
     def updateOutput(self, input):
-        assert input.features.ndimension()==0 or input.features.size(1) == self.nPlanes
+        assert input.features.ndimension() == 0 or input.features.size(1) == self.nPlanes
         self.output.metadata = input.metadata
         self.output.spatial_size = input.spatial_size
         typed_fn(input.features, 'BatchNormalization_updateOutput')(
@@ -112,6 +113,8 @@ class BatchNormReLU(BatchNormalization):
         s = 'BatchNormReLU(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
             ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine) + ')'
         return s
+
+
 class BatchNormLeakyReLU(BatchNormalization):
     def __init__(self, nPlanes, eps=1e-4, momentum=0.9):
         BatchNormalization.__init__(self, nPlanes, eps, momentum, True, 0.333)
@@ -120,6 +123,7 @@ class BatchNormLeakyReLU(BatchNormalization):
         s = 'BatchNormReLU(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
             ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine) + ')'
         return s
+
 
 class BatchNormalizationInTensor(BatchNormalization):
     def __init__(

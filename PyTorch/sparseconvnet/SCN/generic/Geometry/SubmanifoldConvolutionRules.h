@@ -24,7 +24,7 @@ InputRegionCalculator_Valid(const Point<dimension> &output, long *size) {
 // rules is used to carry out the "lowering" whilst carrying out the convolution
 
 template <uInt dimension>
-double ValidConvolution_SgToRules(SparseGrid<dimension> &grid, RuleBook &rules,
+double SubmanifoldConvolution_SgToRules(SparseGrid<dimension> &grid, RuleBook &rules,
                                   long *size) {
   uInt sd = volume<dimension>(size);
   double countActiveInputs = 0;
@@ -46,7 +46,7 @@ double ValidConvolution_SgToRules(SparseGrid<dimension> &grid, RuleBook &rules,
 }
 
 template <uInt dimension>
-uInt ValidConvolution_SgsToRules(SparseGrids<dimension> &SGs, RuleBook &rules,
+uInt SubmanifoldConvolution_SgsToRules(SparseGrids<dimension> &SGs, RuleBook &rules,
                                  long *size) {
   uInt sd = volume<dimension>(size);
   uInt countActiveInputs = 0;
@@ -54,11 +54,11 @@ uInt ValidConvolution_SgsToRules(SparseGrids<dimension> &SGs, RuleBook &rules,
   rules.resize(sd);
   for (uInt i = 0; i < SGs.size(); i++)
     countActiveInputs +=
-        ValidConvolution_SgToRules<dimension>(SGs[i], rules, size);
+        SubmanifoldConvolution_SgToRules<dimension>(SGs[i], rules, size);
   return countActiveInputs;
 }
 template <uInt dimension>
-uInt ValidConvolution_SgsToRules_OMP(SparseGrids<dimension> &SGs,
+uInt SubmanifoldConvolution_SgsToRules_OMP(SparseGrids<dimension> &SGs,
                                      RuleBook &rules, long *size) {
   std::vector<RuleBook> rbs(SGs.size());
   std::vector<double> countActiveInputs(SGs.size());
@@ -71,7 +71,7 @@ uInt ValidConvolution_SgsToRules_OMP(SparseGrids<dimension> &SGs,
     for (i = 0; i < SGs.size(); i++) {
       rbs[i].resize(sd);
       countActiveInputs[i] =
-          ValidConvolution_SgToRules<dimension>(SGs[i], rbs[i], size);
+          SubmanifoldConvolution_SgToRules<dimension>(SGs[i], rbs[i], size);
     }
   }
   {

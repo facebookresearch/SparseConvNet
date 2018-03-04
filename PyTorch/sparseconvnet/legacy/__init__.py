@@ -25,7 +25,7 @@ from .networkInNetwork import NetworkInNetwork
 from .reLU import ReLU
 from .sequential import Sequential
 from .sparseToDense import SparseToDense
-from .validConvolution import ValidConvolution
+from .submanifoldConvolution import SubmanifoldConvolution
 from .networkArchitectures import *
 from .classificationTrainValidate import ClassificationTrainValidate
 from .misc import *

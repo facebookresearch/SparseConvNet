@@ -10,8 +10,11 @@ from cffi import FFI
 
 
 def toLongTensor(dimension, x):
-    if type(x).__name__ == 'LongTensor':
+    if hasattr(x, 'type') and x.type() == 'torch.LongTensor':
         return x
+    elif isinstance(x, (list, tuple)):
+        assert len(x) == dimension
+        return torch.LongTensor(x)
     else:
         return torch.LongTensor(dimension).fill_(x)
 
@@ -28,15 +31,17 @@ def dim_fn(dimension, name):
 
 
 def typed_fn(t, name):
-    # print('typed_fn',t.features.type(),name)
+    # print('typed_fn',t.type(),name)
     return getattr(scn, 'scn_' + typeTable[t.type()] + '_' + name)
 
+
 def dim_typed_fn(dimension, t, name):
-    # print('dim_typed_fn',dimension,t.features.type(),name)
+    # print('dim_typed_fn',dimension,t.type(),name)
     return getattr(scn, 'scn_' +
                    typeTable[t.type()] +
                    str(dimension) +
                    name)
+
 
 ffi = FFI()
 nullptr = ffi.NULL
@@ -67,6 +72,14 @@ def threadDatasetIterator(d):
             q.task_done()
         q.join()
     return iterator
+
+
+# def threadDatasetIterator(d):
+#     print('not threads!!!')
+#     def iterator():
+#         for x in d:
+#             yield x
+#     return iterator
 
 
 def set(obj):

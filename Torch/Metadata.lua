@@ -8,7 +8,7 @@
 Store Metadata relating to which spatial locations are active at each scale.
 Convolutions and 'convolution reversing' deconvolutions
 all coexist within the same MetaData object as long as each spatial size
-only occurs once. Valid convolutions do not change the spatial structure.
+only occurs once. Submanifold convolutions do not change the spatial structure.
 
 Serialization is emulated by storing the pointer as an integer.
 This is sufficient for mutithreaded batch preparation: each 'serialized'

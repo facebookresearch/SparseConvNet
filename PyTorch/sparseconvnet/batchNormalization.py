@@ -15,10 +15,11 @@ leakiness : Apply activation def inplace: 0<=leakiness<=1.
 0 for ReLU, values in (0,1) for LeakyReLU, 1 for no activation def.
 """
 
-from torch.autograd import Function, Variable
+from torch.autograd import Function
 from torch.nn import Module, Parameter
 from .utils import *
 from .sparseConvNetTensor import SparseConvNetTensor
+
 
 class BatchNormalizationFunction(Function):
     @staticmethod
@@ -33,59 +34,71 @@ class BatchNormalizationFunction(Function):
             momentum,
             train,
             leakiness):
-        ctx.nPlanes=runningMean.shape[0]
-        ctx.input_features=input_features
-        ctx.weight=weight
-        ctx.bias=bias
-        ctx.runningMean=runningMean
-        ctx.runningVar=runningVar
-        ctx.train=train
-        ctx.leakiness=leakiness
-        ctx.output_features = input_features.new()
-        ctx.saveMean = input_features.new().resize_(ctx.nPlanes)
-        ctx.saveInvStd = runningMean.clone().resize_(ctx.nPlanes)
+        ctx.nPlanes = runningMean.shape[0]
+        ctx.train = train
+        ctx.leakiness = leakiness
+        output_features = input_features.new()
+        saveMean = input_features.new().resize_(ctx.nPlanes)
+        saveInvStd = runningMean.clone().resize_(ctx.nPlanes)
         typed_fn(input_features, 'BatchNormalization_updateOutput')(
             input_features,
-            ctx.output_features,
-            ctx.saveMean,
-            ctx.saveInvStd,
-            ctx.runningMean,
-            ctx.runningVar,
-            ctx.weight if ctx.weight is not None else nullptr,
-            ctx.bias if ctx.bias is not None else nullptr,
+            output_features,
+            saveMean,
+            saveInvStd,
+            runningMean,
+            runningVar,
+            weight if weight is not None else nullptr,
+            bias if bias is not None else nullptr,
             eps,
             momentum,
             ctx.train,
             ctx.leakiness)
-        return ctx.output_features
+        ctx.save_for_backward(input_features,
+                              output_features,
+                              weight,
+                              bias,
+                              runningMean,
+                              runningVar,
+                              saveMean,
+                              saveInvStd)
+        return output_features
 
     @staticmethod
     def backward(ctx, grad_output):
+        input_features,\
+            output_features,\
+            weight,\
+            bias,\
+            runningMean,\
+            runningVar,\
+            saveMean,\
+            saveInvStd = ctx.saved_tensors
         assert ctx.train
-        grad_input=Variable(grad_output.data.new())
-        if ctx.weight is None:
-            grad_weight=None
+        grad_input = grad_output.new()
+        if weight is None:
+            grad_weight = None
         else:
-            grad_weight=Variable(ctx.input_features.new().resize_(ctx.nPlanes).zero_())
-        if ctx.bias is None:
-            grad_bias=None
+            grad_weight = input_features.new().resize_(ctx.nPlanes).zero_()
+        if bias is None:
+            grad_bias = None
         else:
-            grad_bias=Variable(ctx.input_features.new().resize_(ctx.nPlanes).zero_())
-        typed_fn(ctx.input_features, 'BatchNormalization_backward')(
-            ctx.input_features,
-            grad_input.data,
-            ctx.output_features,
-            grad_output.data.contiguous(),
-            ctx.saveMean,
-            ctx.saveInvStd,
-            ctx.runningMean,
-            ctx.runningVar,
-            ctx.weight if ctx.weight is not None else nullptr,
-            ctx.bias if ctx.bias is not None else nullptr,
+            grad_bias = input_features.new().resize_(ctx.nPlanes).zero_()
+        typed_fn(input_features, 'BatchNormalization_backward')(
+            input_features,
+            grad_input,
+            output_features,
+            grad_output.contiguous(),
+            saveMean,
+            saveInvStd,
+            runningMean,
+            runningVar,
+            weight if weight is not None else nullptr,
+            bias if bias is not None else nullptr,
             grad_weight.data if grad_weight is not None else nullptr,
             grad_bias.data if grad_bias is not None else nullptr,
             ctx.leakiness)
         return grad_input, grad_weight, grad_bias, None, None, None, None, None, None
+
 
 class BatchNormalization(Module):
     def __init__(
@@ -109,12 +122,13 @@ class BatchNormalization(Module):
         else:
             self.weight = None
             self.bias = None
+
     def forward(self, input):
-        assert input.features.ndimension()==0 or input.features.size(1) == self.nPlanes
+        assert input.features.ndimension() == 0 or input.features.size(1) == self.nPlanes
         output = SparseConvNetTensor()
         output.metadata = input.metadata
         output.spatial_size = input.spatial_size
-        output.features = BatchNormalizationFunction().apply(
+        output.features = BatchNormalizationFunction.apply(
             input.features,
             self.weight,
             self.bias,
@@ -125,8 +139,10 @@ class BatchNormalization(Module):
             self.training,
             self.leakiness)
         return output
+
     def input_spatial_size(self, out_size):
         return out_size
+
     def __repr__(self):
         s = 'BatchNorm(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
             ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine)
@@ -135,17 +151,21 @@ class BatchNormalization(Module):
         s = s + ')'
         return s
 
+
 class BatchNormReLU(BatchNormalization):
     def __init__(self, nPlanes, eps=1e-4, momentum=0.9):
         BatchNormalization.__init__(self, nPlanes, eps, momentum, True, 0)
+
     def __repr__(self):
         s = 'BatchNormReLU(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
             ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine) + ')'
         return s
 
+
 class BatchNormLeakyReLU(BatchNormalization):
     def __init__(self, nPlanes, eps=1e-4, momentum=0.9):
         BatchNormalization.__init__(self, nPlanes, eps, momentum, True, 0.333)
+
     def __repr__(self):
         s = 'BatchNormReLU(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
             ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine) + ')'

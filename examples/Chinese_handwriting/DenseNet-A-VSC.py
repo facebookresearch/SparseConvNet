@@ -17,7 +17,7 @@ model = nn.Sequential()
 sparseModel = scn.Sequential()
 denseModel = nn.Sequential()
 model.add(sparseModel).add(denseModel)
-sparseModel.add(scn.ValidConvolution(2, 3, 16, 3, False))\
+sparseModel.add(scn.SubmanifoldConvolution(2, 3, 16, 3, False))\
     .add(scn.SparseDenseNet(2, 16, [
         {'pool': 'MP', 'compression': 0},
         {'nExtraLayers': 2, 'growthRate': 16},

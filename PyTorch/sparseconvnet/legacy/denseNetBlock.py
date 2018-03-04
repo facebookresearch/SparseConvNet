@@ -11,7 +11,7 @@ from ..utils import toLongTensor, typed_fn, optionalTensor, nullptr, set
 from ..sparseConvNetTensor import SparseConvNetTensor
 from .batchNormalization import *
 from .affineReLUTrivialConvolution import AffineReLUTrivialConvolution
-from .validConvolution import ValidConvolution
+from .submanifoldConvolution import SubmanifoldConvolution
 import math
 
 
@@ -43,7 +43,7 @@ class DenseNetBlock(Container):
             self.add(BatchNormalization(nFeaturesB))
             # Module 4*i+3
             self.add(
-                ValidConvolution(
+                SubmanifoldConvolution(
                     dimension,
                     nFeaturesB,
                     growthRate,

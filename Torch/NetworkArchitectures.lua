@@ -45,7 +45,7 @@ return function(sparseconvnet)
   function sparseconvnet.SparseVggNet(dimension,nInputPlanes,layers,opts)
     --[[
     VGG style nets
-    Use valid convolutions
+    Use submanifold convolutions
     Also implements 'Plus'-augmented nets
     ]]
     local nPlanes=nInputPlanes
@@ -57,20 +57,20 @@ return function(sparseconvnet)
       elseif x[1] == 'MP' then
         m:add(sparseconvnet.MaxPooling(dimension,x[2],x[3]))
       elseif x[1]=='C' and #x==2 then
-        m:add(sparseconvnet.ValidConvolution(dimension,nPlanes,x[2],3,false))
+        m:add(sparseconvnet.SubmanifoldConvolution(dimension,nPlanes,x[2],3,false))
         nPlanes=x[2]
         m:add(sparseconvnet.BatchNormReLU(nPlanes))
       elseif x[1]=='C' and #x==3 then
         m:add(sparseconvnet.ConcatTable()
           :add(
             sparseconvnet.Sequential()
-            :add(sparseconvnet.ValidConvolution(dimension,nPlanes,x[2],3,false))
+            :add(sparseconvnet.SubmanifoldConvolution(dimension,nPlanes,x[2],3,false))
           )
           :add(
             sparseconvnet.Sequential()
             :add(sparseconvnet.Convolution(dimension,nPlanes,x[3],3,2,false))
             :add(sparseconvnet.BatchNormReLU(x[3]))
-            :add(sparseconvnet.ValidConvolution(dimension,x[3],x[3],3,false))
+            :add(sparseconvnet.SubmanifoldConvolution(dimension,x[3],x[3],3,false))
             :add(sparseconvnet.BatchNormReLU(x[3]))
             :add(sparseconvnet.Deconvolution(dimension,x[3],x[3],3,2,false))
         ))
@@ -81,28 +81,28 @@ return function(sparseconvnet)
         m:add(sparseconvnet.ConcatTable()
           :add(
             sparseconvnet.Sequential()
-            :add(sparseconvnet.ValidConvolution(dimension,nPlanes,x[2],3,false))
+            :add(sparseconvnet.SubmanifoldConvolution(dimension,nPlanes,x[2],3,false))
           )
           :add(
             sparseconvnet.Sequential()
             :add(sparseconvnet.Convolution(dimension,nPlanes,x[3],3,2,false))
             :add(sparseconvnet.BatchNormReLU(x[3]))
-            :add(sparseconvnet.ValidConvolution(dimension,x[3],x[3],3,false))
+            :add(sparseconvnet.SubmanifoldConvolution(dimension,x[3],x[3],3,false))
             :add(sparseconvnet.BatchNormReLU(x[3]))
             :add(sparseconvnet.Deconvolution(dimension,x[3],x[3],3,2,false))
           )
           :add(sparseconvnet.Sequential()
             :add(sparseconvnet.Convolution(dimension,nPlanes,x[4],3,2,false))
             :add(sparseconvnet.BatchNormReLU(x[4]))
-            :add(sparseconvnet.ValidConvolution(dimension,x[4],x[4],3,false))
+            :add(sparseconvnet.SubmanifoldConvolution(dimension,x[4],x[4],3,false))
             :add(sparseconvnet.BatchNormReLU(x[4]))
             :add(sparseconvnet.Convolution(dimension,x[4],x[4],3,2,false))
             :add(sparseconvnet.BatchNormReLU(x[4]))
-            :add(sparseconvnet.ValidConvolution(dimension,x[4],x[4],3,false))
+            :add(sparseconvnet.SubmanifoldConvolution(dimension,x[4],x[4],3,false))
             :add(sparseconvnet.BatchNormReLU(x[4]))
             :add(sparseconvnet.Deconvolution(dimension,x[4],x[4],3,2,false))
             :add(sparseconvnet.BatchNormReLU(x[4]))
-            :add(sparseconvnet.ValidConvolution(dimension,x[4],x[4],3,false))
+            :add(sparseconvnet.SubmanifoldConvolution(dimension,x[4],x[4],3,false))
             :add(sparseconvnet.BatchNormReLU(x[4]))
             :add(sparseconvnet.Deconvolution(dimension,x[4],x[4],3,2,false))
         ))
@@ -138,10 +138,10 @@ return function(sparseconvnet)
               :add( --convolutional connection
                 sparseconvnet.Sequential()
                 :add(stride==1 and
-                  sparseconvnet.ValidConvolution(dimension,nPlanes,n,3,false) or
+                  sparseconvnet.SubmanifoldConvolution(dimension,nPlanes,n,3,false) or
                   sparseconvnet.Convolution(dimension,nPlanes,n,3,stride,false))
                 :add(sparseconvnet.BatchNormReLU(n))
-                :add(sparseconvnet.ValidConvolution(
+                :add(sparseconvnet.SubmanifoldConvolution(
                     dimension,n,n,3,false)))
               :add(residual(nPlanes,n,stride))
             )
@@ -150,10 +150,10 @@ return function(sparseconvnet)
               :add( --convolutional connection
                 sparseconvnet.Sequential()
                 :add(sparseconvnet.BatchNormReLU(n))
-                :add(sparseconvnet.ValidConvolution(
+                :add(sparseconvnet.SubmanifoldConvolution(
                     dimension,nPlanes,n,3,false))
                 :add(sparseconvnet.BatchNormReLU(n))
-                :add(sparseconvnet.ValidConvolution(
+                :add(sparseconvnet.SubmanifoldConvolution(
                     dimension,n,n,3,false))
               )
               :add(sparseconvnet.Identity())
@@ -169,7 +169,7 @@ return function(sparseconvnet)
   end
   function sparseconvnet.SparseDenseNet(dimension,nInputPlanes,layers)
     --[[
-    SparseConvNet meets DenseNets using valid convolutions
+    SparseConvNet meets DenseNets using submanifold convolutions
     Could do with a less confusing name
     ]]
     local nPlanes=nInputPlanes

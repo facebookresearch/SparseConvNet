@@ -27,12 +27,15 @@ class SparseToDense(SparseModule):
         self.dimension = dimension
         self.output = torch.Tensor()
         self.gradInput = torch.FloatTensor()
-        self.nPlanes=nPlanes
+        self.nPlanes = nPlanes
 
     def updateOutput(self, input):
         if not self.nPlanes:
-            self.nPlanes=input.features.size(1)
-        dim_typed_fn(self.dimension, input.features, 'SparseToDense_updateOutput')(
+            self.nPlanes = input.features.size(1)
+        dim_typed_fn(
+            self.dimension,
+            input.features,
+            'SparseToDense_updateOutput')(
             input.spatial_size,
             input.metadata.ffi,
             input.features,
@@ -42,7 +45,10 @@ class SparseToDense(SparseModule):
         return self.output
 
     def updateGradInput(self, input, gradOutput):
-        dim_typed_fn(self.dimension, input.features, 'SparseToDense_updateGradInput')(
+        dim_typed_fn(
+            self.dimension,
+            input.features,
+            'SparseToDense_updateGradInput')(
             input.spatial_size,
             input.metadata.ffi,
             input.features,

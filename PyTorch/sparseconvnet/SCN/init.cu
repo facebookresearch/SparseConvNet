@@ -37,6 +37,9 @@ extern THCState *state;
 #include "generic/GPU/Deconvolution.cu"
 #include "generic/GPU/THGenerateDimCudaFloatTypes.h"
 
+#include "generic/GPU/InputLayer.cu"
+#include "generic/GPU/THGenerateDimCudaFloatTypes.h"
+
 #include "generic/GPU/LeakyReLU.cu"
 #include "generic/GPU/THGenerateCudaFloatTypes.h"
 

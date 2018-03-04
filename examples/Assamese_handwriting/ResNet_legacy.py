@@ -17,7 +17,7 @@ model = nn.Sequential()
 sparseModel = scn.Sequential()
 denseModel = nn.Sequential()
 model.add(sparseModel).add(denseModel)
-sparseModel.add(scn.ValidConvolution(2, 3, 8, 3, False))
+sparseModel.add(scn.SubmanifoldConvolution(2, 3, 8, 3, False))
 sparseModel.add(scn.MaxPooling(2, 3, 2))
 sparseModel.add(scn.SparseResNet(2, 8, [
     ['b', 8, 2, 1],

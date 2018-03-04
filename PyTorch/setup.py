@@ -15,7 +15,7 @@ if torch.cuda.is_available():
     r = os.system(
         'cd sparseconvnet/SCN; nvcc init.cu -c -o init.cu.o -ccbin /usr/bin/cc'
         + ' -m64 --std c++11 -Xcompiler '
-        + ',\"-fopenmp\",\"-fPIC\",\"-O3\",\"-DNDEBUG\" '
+        + ',\"-fopenmp\",\"-fPIC\",\"-O3\" '
         + '-gencode arch=compute_62,code=sm_62 '
         + '-gencode arch=compute_61,code=sm_61 '
         + '-gencode arch=compute_60,code=sm_60 '
@@ -40,10 +40,11 @@ if torch.cuda.is_available():
             this_dir +
             '/sparseconvnet/SCN/init.cu.o'],
         relative_to=__file__,
+        extra_compile_args=["-std=c99"],
         with_cuda=True)
 else:
     r = os.system(
-        'cd sparseconvnet/SCN; g++ -std=c++11 -fPIC -c init.cpp -o init.cpp.o -I' +
+        'cd sparseconvnet/SCN; g++ -std=c++11 -DENABLE_OPENMP -fPIC -c init.cpp -o init.cpp.o -I' +
         torch_dir +
         '/lib/include -I' +
         torch_dir +
@@ -57,6 +58,7 @@ else:
             this_dir +
             '/sparseconvnet/SCN/init.cpp.o'],
         relative_to=__file__,
+        extra_compile_args=["-std=c99"],
         with_cuda=False)
 
 ffi.build()

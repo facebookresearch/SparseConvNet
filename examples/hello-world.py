@@ -12,15 +12,15 @@ use_gpu = torch.cuda.is_available()
 
 model = scn.Sequential().add(
     scn.SparseVggNet(2, 1,
-                     [['C',  8], ['C',  8], ['MP', 3, 2],
+                     [['C', 8], ['C', 8], ['MP', 3, 2],
                       ['C', 16], ['C', 16], ['MP', 3, 2],
                       ['C', 24], ['C', 24], ['MP', 3, 2]])
 ).add(
-    scn.ValidConvolution(2, 24, 32, 3, False)
+    scn.SubmanifoldConvolution(2, 24, 32, 3, False)
 ).add(
     scn.BatchNormReLU(32)
 ).add(
-    scn.SparseToDense(2,32)
+    scn.SparseToDense(2, 32)
 )
 if use_gpu:
     model.cuda()
@@ -36,7 +36,7 @@ msg = [
     " X   X  X    X    X   X  X     X X X X   X  X  X  X  X    X  X  ",
     " X   X  XXX  XXX  XXX  XX       X   X     XX   X  X  XXX  XXX   "]
 
-#Add a sample using setLocation
+# Add a sample using setLocation
 input.addSample()
 for y, line in enumerate(msg):
     for x, c in enumerate(line):
@@ -45,7 +45,7 @@ for y, line in enumerate(msg):
             featureVector = torch.FloatTensor([1])
             input.setLocation(location, featureVector, 0)
 
-#Add a sample using setLocations
+# Add a sample using setLocations
 input.addSample()
 locations = []
 features = []
@@ -73,4 +73,4 @@ output = model.forward(input)
 
 # Output is 2x32x10x10: our minibatch has 2 samples, the network has 32 output
 # feature planes, and 10x10 is the spatial size of the output.
-print(output.size(), output.data.type())
+print(output.shape, output.type())

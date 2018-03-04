@@ -15,10 +15,11 @@ Parameters:
 dimension : of the input field,
 """
 
-from torch.autograd import Function, Variable
+from torch.autograd import Function
 from torch.nn import Module
 from .utils import *
 from .sparseConvNetTensor import SparseConvNetTensor
+
 
 class SparseToDenseFunction(Function):
     @staticmethod
@@ -29,12 +30,14 @@ class SparseToDenseFunction(Function):
             spatial_size,
             dimension,
             nPlanes):
-        ctx.input_metadata=input_metadata
-        ctx.spatial_size=spatial_size
-        ctx.dimension=dimension
-        ctx.input_features=input_features
+        ctx.input_metadata = input_metadata
+        ctx.dimension = dimension
+        ctx.save_for_backward(input_features, spatial_size)
         output = input_features.new()
-        dim_typed_fn(ctx.dimension, input_features, 'SparseToDense_updateOutput')(
+        dim_typed_fn(
+            ctx.dimension,
+            input_features,
+            'SparseToDense_updateOutput')(
             spatial_size,
             input_metadata.ffi,
             input_features,
@@ -42,28 +45,41 @@ class SparseToDenseFunction(Function):
             torch.cuda.IntTensor() if input_features.is_cuda else nullptr,
             nPlanes)
         return output
+
     @staticmethod
     def backward(ctx, grad_output):
-        grad_input=Variable(grad_output.data.new())
-        dim_typed_fn(ctx.dimension, ctx.input_features, 'SparseToDense_updateGradInput')(
-            ctx.spatial_size,
+        grad_input = grad_output.new()
+        input_features, spatial_size = ctx.saved_tensors
+        dim_typed_fn(
+            ctx.dimension,
+            input_features,
+            'SparseToDense_updateGradInput')(
+            spatial_size,
             ctx.input_metadata.ffi,
-            ctx.input_features,
-            grad_input.data,
-            grad_output.data,
-            torch.cuda.IntTensor() if ctx.input_features.is_cuda else nullptr)
+            input_features,
+            grad_input,
+            grad_output,
+            torch.cuda.IntTensor() if input_features.is_cuda else nullptr)
         return grad_input, None, None, None, None
+
+
 class SparseToDense(Module):
     def __init__(self, dimension, nPlanes):
         Module.__init__(self)
         self.dimension = dimension
-        self.nPlanes=nPlanes
+        self.nPlanes = nPlanes
 
     def forward(self, input):
-        return SparseToDenseFunction().apply(input.features,input.metadata,input.spatial_size,self.dimension,self.nPlanes)
+        return SparseToDenseFunction.apply(
+            input.features,
+            input.metadata,
+            input.spatial_size,
+            self.dimension,
+            self.nPlanes)
 
     def input_spatial_size(self, out_size):
         return out_size
 
     def __repr__(self):
-        return 'SparseToDense(' + str(self.dimension) + ','+ str(self.nPlanes)+ ')'
+        return 'SparseToDense(' + str(self.dimension) + \
+            ',' + str(self.nPlanes) + ')'

@@ -12,11 +12,12 @@ Parameters:
 dimension : of the input field
 """
 
-from torch.autograd import Function, Variable
+from torch.autograd import Function
 from torch.nn import Module
 from .utils import *
 from .metadata import Metadata
 from .sparseConvNetTensor import SparseConvNetTensor
+
 
 class DenseToSparseFunction(Function):
     @staticmethod
@@ -26,30 +27,34 @@ class DenseToSparseFunction(Function):
             output_metadata,
             output_spatial_size,
             dimension):
-        ctx.dimension=dimension
-        a=input
-        aa=a.permute(*([0,]+list(range(2,2+dimension))+[1,])).clone()
-        ctx.aas=aa.size()
-        nz=aa.abs().sum(dimension+1).view(aa.size()[0:-1])
-        s=torch.LongTensor(nz.stride()).view(1,dimension+1)
-        nz=nz.nonzero()
-        s=s.type_as(nz)
-        aa=aa.view(-1,a.size(1))
-        ctx.aas2=aa.size()
-        ctx.r=(nz*s.expand_as(nz)).sum(1).view(-1)
-        ctx.output_features=aa.index_select(0,ctx.r)
+        ctx.dimension = dimension
+        aa = input.permute(
+            *([0, ] + list(range(2, 2 + dimension)) + [1, ])).clone()
+        aas = aa.size()
+        nz = aa.abs().sum(dimension + 1).view(aa.size()[0:-1])
+        s = torch.LongTensor(nz.stride()).view(1, dimension + 1)
+        nz = nz.nonzero()
+        s = s.type_as(nz)
+        aa = aa.view(-1, input.size(1))
+        aas2 = aa.size()
+        r = (nz * s.expand_as(nz)).sum(1).view(-1)
+        output_features = aa.index_select(0, ctx.r)
         dim_fn(dimension, 'createMetadataForDenseToSparse')(
             output_metadata.ffi,
             output_spatial_size,
             nz.cpu(),
             input.size(0))
-        return ctx.output_features
+        ctx.save_for_backwards(output_features, aas, aas2, r)
+        return output_features
+
     @staticmethod
     def backward(ctx, grad_output):
-        grad_input=Variable(grad_output.data.new().resize_(ctx.aas2).zero_().index_copy_(0,ctx.r,grad_output.data))
-        grad_input=grad_input.view(ctx.aas).permute(*([0,ctx.dimension+1]+list(range(1,ctx.dimension+1))))
+        output_features, aas, aas2, r = ctx.saved_tensors
+        grad_input = grad_output.new().resize_(
+            aas2).zero_().index_copy_(0, r, grad_output.data)
+        grad_input = grad_input.view(aas).permute(
+            *([0, ctx.dimension + 1] + list(range(1, ctx.dimension + 1))))
         return grad_input, None, None, None
-
 
 
 class DenseToSparse(Module):
@@ -60,8 +65,8 @@ class DenseToSparse(Module):
     def forward(self, input):
         output = SparseConvNetTensor()
         output.metadata = Metadata(self.dimension)
-        output.spatial_size=torch.LongTensor(list(input.size()[2:]))
-        output.features=DenseToSparseFunction().apply(
+        output.spatial_size = torch.LongTensor(list(input.size()[2:]))
+        output.features = DenseToSparseFunction.apply(
             input,
             output.metadata,
             output.spatial_size,

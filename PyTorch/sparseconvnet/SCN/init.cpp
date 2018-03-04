@@ -36,6 +36,9 @@
 #include "generic/CPU/Deconvolution.cpp"
 #include "generic/CPU/THGenerateDimFloatTypes.h"
 
+#include "generic/CPU/InputLayer.cpp"
+#include "generic/CPU/THGenerateDimFloatTypes.h"
+
 #include "generic/CPU/LeakyReLU.cpp"
 #include "generic/CPU/THGenerateFloatTypes.h"
 
@@ -50,7 +53,7 @@
 
 extern "C" long scn_readPtr(void **ptr) { return (long)(ptr[0]); }
 extern "C" void scn_writePtr(long p, void **ptr) { ptr[0] = (void *)p; }
-extern "C" double scn_ruleBookBits() { return 8 * sizeof(uInt); }
+extern "C" double scn_ruleBookBits(void) { return 8 * sizeof(uInt); }
 
 #undef scn_D_
 #undef scn_DR_

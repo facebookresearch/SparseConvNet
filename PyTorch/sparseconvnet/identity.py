@@ -6,8 +6,10 @@
 
 from torch.nn import Module
 
+
 class Identity(Module):
     def forward(self, input):
         return input
+
     def input_spatial_size(self, out_size):
         return out_size

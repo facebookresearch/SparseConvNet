@@ -26,7 +26,10 @@ class MaxPooling(SparseModule):
         self.output.metadata = input.metadata
         self.output.spatial_size =\
             (input.spatial_size - self.pool_size) / self.pool_stride + 1
-        dim_typed_fn(self.dimension, input.features, 'MaxPooling_updateOutput')(
+        dim_typed_fn(
+            self.dimension,
+            input.features,
+            'MaxPooling_updateOutput')(
             input.spatial_size,
             self.output.spatial_size,
             self.pool_size,
@@ -39,7 +42,10 @@ class MaxPooling(SparseModule):
         return self.output
 
     def updateGradInput(self, input, gradOutput):
-        dim_typed_fn(self.dimension, input.features, 'MaxPooling_updateGradInput')(
+        dim_typed_fn(
+            self.dimension,
+            input.features,
+            'MaxPooling_updateGradInput')(
             input.spatial_size,
             self.output.spatial_size,
             self.pool_size,

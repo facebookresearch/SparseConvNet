@@ -7,7 +7,7 @@
 """
 Assume all the inputs have identical SparseGrids and input[i].nActive
 Assume input[0].nPlanes >= input[i].nPlanes for all i=1,#input
-output.validRules is taken from input[0].validRules (could do set union?)
+output.submanifoldRules is taken from input[0].submanifoldRules (could do set union?)
 (for resnets, make sure the residual link is input[1])
 """
 

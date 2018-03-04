@@ -20,7 +20,7 @@ from .cAddTable import CAddTable
 from .convolution import Convolution
 from .deconvolution import Deconvolution
 from .denseNetBlock import DenseNetBlock
-from .validConvolution import ValidConvolution
+from .submanifoldConvolution import SubmanifoldConvolution
 from .networkInNetwork import NetworkInNetwork
 from .batchNormalization import BatchNormReLU, BatchNormalizationInTensor
 from .maxPooling import MaxPooling
@@ -60,7 +60,7 @@ def DeepCNet(dimension, nInputPlanes, nPlanes, bn=True):
 def SparseVggNet(dimension, nInputPlanes, layers):
     """
     VGG style nets
-    Use valid convolutions
+    Use submanifold convolutions
     Also implements 'Plus'-augmented nets
     """
     nPlanes = nInputPlanes
@@ -71,19 +71,19 @@ def SparseVggNet(dimension, nInputPlanes, layers):
         elif x[0] == 'MP':
             m.add(MaxPooling(dimension, x[1], x[2]))
         elif x[0] == 'C' and len(x) == 2:
-            m.add(ValidConvolution(dimension, nPlanes, x[1], 3, False))
+            m.add(SubmanifoldConvolution(dimension, nPlanes, x[1], 3, False))
             nPlanes = x[1]
             m.add(BatchNormReLU(nPlanes))
         elif x[0] == 'C' and len(x) == 3:
             m.add(ConcatTable()
                   .add(
-                ValidConvolution(dimension, nPlanes, x[1], 3, False)
+                SubmanifoldConvolution(dimension, nPlanes, x[1], 3, False)
             )
                 .add(
                 Sequential()
                 .add(Convolution(dimension, nPlanes, x[2], 3, 2, False))
                 .add(BatchNormReLU(x[2]))
-                .add(ValidConvolution(dimension, x[2], x[2], 3, False))
+                .add(SubmanifoldConvolution(dimension, x[2], x[2], 3, False))
                 .add(BatchNormReLU(x[2]))
                 .add(Deconvolution(dimension, x[2], x[2], 3, 2, False))
             )).add(JoinTable([x[1], x[2]]))
@@ -92,28 +92,28 @@ def SparseVggNet(dimension, nInputPlanes, layers):
         elif x[0] == 'C' and len(x) == 4:
             m.add(ConcatTable()
                   .add(
-                ValidConvolution(dimension, nPlanes, x[1], 3, False)
+                SubmanifoldConvolution(dimension, nPlanes, x[1], 3, False)
             )
                 .add(
                 Sequential()
                 .add(Convolution(dimension, nPlanes, x[2], 3, 2, False))
                 .add(BatchNormReLU(x[2]))
-                .add(ValidConvolution(dimension, x[2], x[2], 3, False))
+                .add(SubmanifoldConvolution(dimension, x[2], x[2], 3, False))
                 .add(BatchNormReLU(x[2]))
                 .add(Deconvolution(dimension, x[2], x[2], 3, 2, False))
             )
                 .add(Sequential()
                      .add(Convolution(dimension, nPlanes, x[3], 3, 2, False))
                      .add(BatchNormReLU(x[3]))
-                     .add(ValidConvolution(dimension, x[3], x[3], 3, False))
+                     .add(SubmanifoldConvolution(dimension, x[3], x[3], 3, False))
                      .add(BatchNormReLU(x[3]))
                      .add(Convolution(dimension, x[3], x[3], 3, 2, False))
                      .add(BatchNormReLU(x[3]))
-                     .add(ValidConvolution(dimension, x[3], x[3], 3, False))
+                     .add(SubmanifoldConvolution(dimension, x[3], x[3], 3, False))
                      .add(BatchNormReLU(x[3]))
                      .add(Deconvolution(dimension, x[3], x[3], 3, 2, False))
                      .add(BatchNormReLU(x[3]))
-                     .add(ValidConvolution(dimension, x[3], x[3], 3, False))
+                     .add(SubmanifoldConvolution(dimension, x[3], x[3], 3, False))
                      .add(BatchNormReLU(x[3]))
                      .add(Deconvolution(dimension, x[3], x[3], 3, 2, False))
                      )).add(JoinTable([x[1], x[2], x[3]]))
@@ -145,7 +145,7 @@ def SparseResNet(dimension, nInputPlanes, layers):
                     m.add(
                         ConcatTable().add(
                             Sequential().add(
-                                ValidConvolution(
+                                SubmanifoldConvolution(
                                     dimension,
                                     nPlanes,
                                     n,
@@ -158,7 +158,7 @@ def SparseResNet(dimension, nInputPlanes, layers):
                                     stride,
                                     False)) .add(
                                 BatchNormReLU(n)) .add(
-                                ValidConvolution(
+                                SubmanifoldConvolution(
                                     dimension,
                                     n,
                                     n,
@@ -173,14 +173,14 @@ def SparseResNet(dimension, nInputPlanes, layers):
                         ConcatTable().add(
                             Sequential().add(
                                 BatchNormReLU(nPlanes)) .add(
-                                ValidConvolution(
+                                SubmanifoldConvolution(
                                     dimension,
                                     nPlanes,
                                     n,
                                     3,
                                     False)) .add(
                                 BatchNormReLU(n)) .add(
-                                ValidConvolution(
+                                SubmanifoldConvolution(
                                     dimension,
                                     n,
                                     n,
@@ -195,7 +195,7 @@ def SparseResNet(dimension, nInputPlanes, layers):
 
 def SparseDenseNet(dimension, nInputPlanes, layers):
     """
-    SparseConvNet meets DenseNets using valid convolutions
+    SparseConvNet meets DenseNets using submanifold convolutions
     Could do with a less confusing name
     """
     nPlanes = nInputPlanes

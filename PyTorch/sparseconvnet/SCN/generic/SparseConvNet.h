@@ -16,6 +16,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#define ENABLE_OPENMP YES
 #if defined(ENABLE_OPENMP)
 #include <omp.h>
 #endif

@@ -221,7 +221,7 @@ extern "C" void scn_D_(addSampleFromThresholdedTensor)(
   THFloatTensor_resize2d(features_, nActive, nPlanes);
 }
 
-// 3x3 valid convolutions, 3x3/2x2 pooling or strided convolutions
+// 3x3 submanifold convolutions, 3x3/2x2 pooling or strided convolutions
 extern "C" void scn_D_(generateRuleBooks3s2)(void **m) {
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   long sz[Dimension], str[Dimension], inS[Dimension], outS[Dimension];
@@ -237,7 +237,7 @@ extern "C" void scn_D_(generateRuleBooks3s2)(void **m) {
     auto &SGs = _m.grids[p1];
     auto &rb = _m.validRuleBooks[p2];
     if (rb.empty())
-      ValidConvolution_SgsToRules(SGs, rb, sz);
+      SubmanifoldConvolution_SgsToRules(SGs, rb, sz);
     for (int i = 0; i < Dimension; ++i)
       if (p1[i] < 3 or p1[i] % 2 != 1)
         return;
@@ -253,7 +253,7 @@ extern "C" void scn_D_(generateRuleBooks3s2)(void **m) {
   }
 }
 
-// 3x3 valid convolutions, 2x2 pooling or strided convolutions
+// 3x3 submanifold convolutions, 2x2 pooling or strided convolutions
 extern "C" void scn_D_(generateRuleBooks2s2)(void **m) {
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   long s2[Dimension], s3[Dimension], inS[Dimension], outS[Dimension];
@@ -268,7 +268,7 @@ extern "C" void scn_D_(generateRuleBooks2s2)(void **m) {
   while (true) {
     auto &SGs = _m.grids[p1];
     auto &rb = _m.validRuleBooks[p2];
-    ValidConvolution_SgsToRules(SGs, rb, s3);
+    SubmanifoldConvolution_SgsToRules(SGs, rb, s3);
     for (int i = 0; i < Dimension; ++i)
       if (p1[i] < 2 or p1[i] % 2 != 0)
         return;

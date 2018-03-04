@@ -6,11 +6,12 @@
 
 import sparseconvnet
 import torch.nn.functional as F
-from torch.autograd import Function, Variable
+from torch.autograd import Function
 from torch.nn import Module, Parameter
 from .utils import *
 from .sparseConvNetTensor import SparseConvNetTensor
 from .batchNormalization import BatchNormalization
+
 
 class Sigmoid(Module):
     def forward(self, input):
@@ -20,6 +21,7 @@ class Sigmoid(Module):
         output.spatial_size = input.spatial_size
         return output
 
+
 class Tanh(Module):
     def forward(self, input):
         output = SparseConvNetTensor()
@@ -28,6 +30,7 @@ class Tanh(Module):
         output.spatial_size = input.spatial_size
         return output
 
+
 class ReLU(Module):
     def forward(self, input):
         output = SparseConvNetTensor()
@@ -35,6 +38,7 @@ class ReLU(Module):
         output.metadata = input.metadata
         output.spatial_size = input.spatial_size
         return output
+
 
 class ELU(Module):
     def forward(self, input):

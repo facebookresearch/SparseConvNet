@@ -25,7 +25,10 @@ class AveragePooling(SparseModule):
         self.output.metadata = input.metadata
         self.output.spatial_size =\
             (input.spatial_size - self.pool_size) / self.pool_stride + 1
-        dim_typed_fn(self.dimension, input.features, 'AveragePooling_updateOutput')(
+        dim_typed_fn(
+            self.dimension,
+            input.features,
+            'AveragePooling_updateOutput')(
             input.spatial_size,
             self.output.spatial_size,
             self.pool_size,

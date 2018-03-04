@@ -10,7 +10,8 @@ from . import SparseModule
 from ..utils import toLongTensor, dim_typed_fn, optionalTensor, nullptr
 from ..sparseConvNetTensor import SparseConvNetTensor
 
-class ValidConvolution(SparseModule):
+
+class SubmanifoldConvolution(SparseModule):
     def __init__(self, dimension, nIn, nOut, filter_size, bias):
         SparseModule.__init__(self)
         self.dimension = dimension
@@ -31,11 +32,11 @@ class ValidConvolution(SparseModule):
         self.gradInput = torch.Tensor()
 
     def updateOutput(self, input):
-        assert input.features.ndimension()==0 or input.features.size(1) == self.nIn
+        assert input.features.ndimension() == 0 or input.features.size(1) == self.nIn
         self.output.metadata = input.metadata
         self.output.spatial_size = input.spatial_size
         s.forward_pass_multiplyAdd_count +=\
-            dim_typed_fn(self.dimension, input.features, 'ValidConvolution_updateOutput')(
+            dim_typed_fn(self.dimension, input.features, 'SubmanifoldConvolution_updateOutput')(
                 input.spatial_size,
                 self.filter_size,
                 input.metadata.ffi,
@@ -51,7 +52,10 @@ class ValidConvolution(SparseModule):
     def backward(self, input, gradOutput, scale=1):
         assert scale == 1
 
-        dim_typed_fn(self.dimension, input.features, 'ValidConvolution_backward')(
+        dim_typed_fn(
+            self.dimension,
+            input.features,
+            'SubmanifoldConvolution_backward')(
             input.spatial_size,
             self.filter_size,
             input.metadata.ffi,
@@ -60,7 +64,9 @@ class ValidConvolution(SparseModule):
             gradOutput,
             self.weight,
             self.gradWeight,
-            optionalTensor(self, 'gradBias'),
+            optionalTensor(
+                self,
+                'gradBias'),
             self.filter_volume,
             torch.cuda.IntTensor() if input.features.is_cuda else nullptr)
         return self.gradInput
@@ -78,7 +84,8 @@ class ValidConvolution(SparseModule):
             self.gradBias = self.gradBias.type(t)
 
     def __repr__(self):
-        s = 'ValidConvolution ' + str(self.nIn) + '->' + str(self.nOut) + ' C'
+        s = 'SubmanifoldConvolution ' + \
+            str(self.nIn) + '->' + str(self.nOut) + ' C'
         if self.filter_size.max() == self.filter_size.min():
             s = s + str(self.filter_size[0])
         else:

@@ -4,10 +4,11 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-from torch.autograd import Function, Variable
+from torch.autograd import Function
 from torch.nn import Module
 from .utils import *
 from .sparseConvNetTensor import SparseConvNetTensor
+
 
 class AveragePoolingFunction(Function):
     @staticmethod
@@ -21,15 +22,11 @@ class AveragePoolingFunction(Function):
             pool_size,
             pool_stride,
             nFeaturesToDrop):
-        ctx.input_features=input_features
-        ctx.input_metadata=input_metadata
-        ctx.input_spatial_size = input_spatial_size
-        ctx.output_spatial_size = output_spatial_size
+        ctx.input_metadata = input_metadata
         ctx.dimension = dimension
-        ctx.pool_size = pool_size
-        ctx.pool_stride = pool_stride
         ctx.nFeaturesToDrop = nFeaturesToDrop
         output_features = input_features.new()
+
         dim_typed_fn(dimension, input_features, 'AveragePooling_updateOutput')(
             input_spatial_size,
             output_spatial_size,
@@ -40,23 +37,36 @@ class AveragePoolingFunction(Function):
             output_features,
             nFeaturesToDrop,
             torch.cuda.IntTensor() if input_features.is_cuda else nullptr)
+        ctx.save_for_backward(input_features,
+                              output_features,
+                              input_spatial_size,
+                              output_spatial_size,
+                              pool_size,
+                              pool_stride)
+
         return output_features
 
     @staticmethod
     def backward(ctx, grad_output):
-        grad_input=Variable(grad_output.data.new())
+        input_features,\
+        output_features,\
+        input_spatial_size,\
+        output_spatial_size,\
+        pool_size,\
+        pool_stride = ctx.saved_tensors
+        grad_input = grad_output.new()
         dim_typed_fn(
-            ctx.dimension, ctx.input_features, 'AveragePooling_updateGradInput')(
-            ctx.input_spatial_size,
-            ctx.output_spatial_size,
-            ctx.pool_size,
-            ctx.pool_stride,
+            ctx.dimension, input_features, 'AveragePooling_updateGradInput')(
+            input_spatial_size,
+            output_spatial_size,
+            pool_size,
+            pool_stride,
             ctx.input_metadata.ffi,
-            ctx.input_features,
-            grad_input.data,
-            grad_output.data.contiguous(),
+            input_features,
+            grad_input,
+            grad_output.contiguous(),
             ctx.nFeaturesToDrop,
-            torch.cuda.IntTensor() if ctx.input_features.is_cuda else nullptr)
+            torch.cuda.IntTensor() if input_features.is_cuda else nullptr)
         return grad_input, None, None, None, None, None, None, None
 
 
@@ -67,29 +77,39 @@ class AveragePooling(Module):
         self.pool_size = toLongTensor(dimension, pool_size)
         self.pool_stride = toLongTensor(dimension, pool_stride)
         self.nFeaturesToDrop = nFeaturesToDrop
+
     def forward(self, input):
         output = SparseConvNetTensor()
         output.metadata = input.metadata
         output.spatial_size = (
             input.spatial_size - self.pool_size) / self.pool_stride + 1
-        assert ((output.spatial_size-1)*self.pool_stride+self.pool_size==input.spatial_size).all()
-        output.features =  AveragePoolingFunction().apply(
-            input.features, input.metadata, input.spatial_size,
-            output.spatial_size, self.dimension,self.pool_size,self.pool_stride,
+        assert ((output.spatial_size - 1) * self.pool_stride +
+                self.pool_size == input.spatial_size).all()
+        output.features = AveragePoolingFunction.apply(
+            input.features,
+            input.metadata,
+            input.spatial_size,
+            output.spatial_size,
+            self.dimension,
+            self.pool_size,
+            self.pool_stride,
             self.nFeaturesToDrop)
         return output
+
     def input_spatial_size(self, out_size):
         return (out_size - 1) * self.pool_stride + self.pool_size
+
     def __repr__(self):
         s = 'AveragePooling'
         if self.pool_size.max() == self.pool_size.min() and\
                 self.pool_stride.max() == self.pool_stride.min():
-            s = s + str(self.pool_size[0]) + '/' + str(self.pool_stride[0])
+            s = s + str(self.pool_size[0].item()) + \
+                '/' + str(self.pool_stride[0].item())
         else:
-            s = s + '(' + str(self.pool_size[0])
+            s = s + '(' + str(self.pool_size[0].item())
             for i in self.pool_size[1:]:
                 s = s + ',' + str(i)
-            s = s + ')/(' + str(self.pool_stride[0])
+            s = s + ')/(' + str(self.pool_stride[0].item())
             for i in self.pool_stride[1:]:
                 s = s + ',' + str(i)
             s = s + ')'

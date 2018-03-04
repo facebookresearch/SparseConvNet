@@ -87,12 +87,12 @@ extern "C" void scn_DR_(Convolution_backward)(
   }
 }
 
-extern "C" double scn_DR_(ValidConvolution_updateOutput)(
+extern "C" double scn_DR_(SubmanifoldConvolution_updateOutput)(
     THLongTensor *inputSize, THLongTensor *filterSize, void **m,
     THCTensor *input_features, THCTensor *output_features, THCTensor *weight,
     THCTensor *bias, long filterVolume, THCITensor *rulesBuffer) {
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
-  auto _rules = _m.getValidRuleBook(inputSize, filterSize, true);
+  auto _rules = _m.getSubmanifoldRuleBook(inputSize, filterSize, true);
   uInt nActive = _m.getNActive(inputSize);
   THCTensor_(resize2d)(state, output_features, nActive, weight->size[1]);
   if (not bias)
@@ -125,13 +125,13 @@ extern "C" double scn_DR_(ValidConvolution_updateOutput)(
   return flops;
 }
 
-extern "C" void scn_DR_(ValidConvolution_backward)(
+extern "C" void scn_DR_(SubmanifoldConvolution_backward)(
     THLongTensor *inputSize, THLongTensor *filterSize, void **m,
     THCTensor *input_features, THCTensor *d_input_features,
     THCTensor *d_output_features, THCTensor *weight, THCTensor *d_weight,
     THCTensor *d_bias, long filterVolume, THCITensor *rulesBuffer) {
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
-  auto _rules = _m.getValidRuleBook(inputSize, filterSize, true);
+  auto _rules = _m.getSubmanifoldRuleBook(inputSize, filterSize, true);
   uInt nActive = _m.getNActive(inputSize);
   THCTensor_(resizeAs)(state, d_input_features, input_features);
   THCTensor_(zero)(state, d_input_features);

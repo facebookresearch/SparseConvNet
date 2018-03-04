@@ -33,6 +33,10 @@ print(model)
 spatial_size = sparseModel.suggestInputSize(torch.LongTensor([1, 1]))
 print('input spatial size', spatial_size)
 dataset = getIterators(spatial_size, 63, 3)
-scn.ClassificationTrainValidate(
-    model, dataset,
-    {'nEpochs': 100, 'initial_LR': 0.1, 'LR_decay': 0.05, 'weightDecay': 1e-4, 'checkPoint': False})
+scn.ClassificationTrainValidate(model,
+                                dataset,
+                                {'nEpochs': 100,
+                                 'initial_LR': 0.1,
+                                 'LR_decay': 0.05,
+                                 'weightDecay': 1e-4,
+                                 'checkPoint': False})

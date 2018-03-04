@@ -10,7 +10,7 @@ import sparseconvnet.legacy as scn
 import pickle
 import math
 import random
-import numpy
+import numpy as np
 import os
 
 if not os.path.exists('pickle/'):
@@ -25,6 +25,8 @@ def train(spatial_size, Scale, precomputeStride):
     for i in range(9):
         for j in range(6588):
             d.append(d[j])
+    for i, x in enumerate(d):
+        x['idx'] = i
     d = torchnet.dataset.ListDataset(d)
     randperm = torch.randperm(len(d))
 
@@ -36,10 +38,11 @@ def train(spatial_size, Scale, precomputeStride):
         center = spatial_size.float().view(1, 2) / 2
         p = torch.LongTensor(2)
         v = torch.FloatTensor([1, 0, 0])
+        np_random = np.random.RandomState(tbl['idx'])
         for char in tbl['input']:
             inp.addSample()
             m = torch.eye(2)
-            r = random.randint(1, 3)
+            r = np_random.randint(1, 3)
             alpha = random.uniform(-0.2, 0.2)
             if alpha == 1:
                 m[0][1] = alpha
@@ -74,7 +77,7 @@ def train(spatial_size, Scale, precomputeStride):
                 #     v[1]=(x2-x1)/l
                 #     v[2]=(y2-y1)/l
                 #     l=max(x2-x1,y2-y1,x1-x2,y1-y2,0.9)
-                #     for j in numpy.arange(0,1,1/l):
+                #     for j in np.arange(0,1,1/l):
                 #         p[0]=math.floor(x1*j+x2*(1-j))
                 #         p[1]=math.floor(y1*j+y2*(1-j))
                 #         inp.setLocation(p,v,False)

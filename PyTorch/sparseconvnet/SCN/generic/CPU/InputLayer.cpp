@@ -16,11 +16,11 @@ extern "C" void scn_DR_(InputLayer_updateOutput)(
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   _m.inputLayer(spatialSize, input_coords, batchSize, mode);
   auto nPlanes = input_features->size[1];
-  THTensor_(resize2d)(output_features, *_m.inputNActive, nPlanes);
-  THTensor_(zero)(output_features);
   auto &rules = _m.inputLayerRuleBook;
   auto maxActive = rules[0][1];
   auto nRows = rules[0][3];
+  THTensor_(resize2d)(output_features, *_m.inputNActive, nPlanes);
+  THTensor_(zero)(output_features);
   InputLayer_ForwardPass<real>(THTensor_(data)(input_features),
                                THTensor_(data)(output_features), nRows,
                                maxActive, nPlanes, &rules[1][0], mode == 4);
@@ -49,14 +49,20 @@ extern "C" void scn_DR_(BLInputLayer_updateOutput)(
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   _m.blLayer(spatialSize, input_coords, mode);
   auto nPlanes = input_features->size[2];
-  THTensor_(resize2d)(output_features, *_m.inputNActive, nPlanes);
-  THTensor_(zero)(output_features);
   auto &rules = _m.blLayerRuleBook;
   auto maxActive = rules[0][1];
   auto nRows = rules[0][4];
-  InputLayer_ForwardPass<real>(THTensor_(data)(input_features),
-                               THTensor_(data)(output_features), nRows,
-                               maxActive, nPlanes, &rules[1][0], mode == 4);
+  if (mode == 0) {
+    THTensor_(resizeAs)(output_features, input_features);
+    THTensor_(copy)(output_features, input_features);
+    THTensor_(resize2d)(output_features, *_m.inputNActive, nPlanes);
+  } else {
+    THTensor_(resize2d)(output_features, *_m.inputNActive, nPlanes);
+    THTensor_(zero)(output_features);
+    InputLayer_ForwardPass<real>(THTensor_(data)(input_features),
+                                 THTensor_(data)(output_features), nRows,
+                                 maxActive, nPlanes, &rules[1][0], mode == 4);
+  }
 }
 extern "C" void
 scn_DR_(BLInputLayer_updateGradInput)(void **m, THTensor *d_input_features,
@@ -65,32 +71,44 @@ scn_DR_(BLInputLayer_updateGradInput)(void **m, THTensor *d_input_features,
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   auto &rules = _m.blLayerRuleBook;
   auto nPlanes = d_output_features->size[1];
-  THTensor_(resize3d)(d_input_features, rules[0][2], rules[0][3], nPlanes);
-  THTensor_(zero)(d_input_features);
   auto mode = rules[0][0];
   auto maxActive = rules[0][1];
   auto nRows = rules[0][4];
 
-  InputLayer_BackwardPass<real>(THTensor_(data)(d_input_features),
-                                THTensor_(data)(d_output_features), nRows,
-                                maxActive, nPlanes, &rules[1][0], mode == 4);
+  if (mode == 0) {
+    THTensor_(resizeAs)(d_input_features, d_output_features);
+    THTensor_(copy)(d_input_features, d_output_features);
+    THTensor_(resize3d)(d_input_features, rules[0][2], rules[0][3], nPlanes);
+  } else {
+    THTensor_(resize3d)(d_input_features, rules[0][2], rules[0][3], nPlanes);
+    THTensor_(zero)(d_input_features);
+    InputLayer_BackwardPass<real>(THTensor_(data)(d_input_features),
+                                  THTensor_(data)(d_output_features), nRows,
+                                  maxActive, nPlanes, &rules[1][0], mode == 4);
+  }
 }
 
-extern "C" void scn_DR_(BLOutputLayer_updateOutput)(
-    void **m,
-    THTensor *input_features, THTensor *output_features,
-    void *rulesBuffer) {
+extern "C" void scn_DR_(BLOutputLayer_updateOutput)(void **m,
+                                                    THTensor *input_features,
+                                                    THTensor *output_features,
+                                                    void *rulesBuffer) {
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
   auto &rules = _m.blLayerRuleBook;
   auto nPlanes = input_features->size[1];
-  THTensor_(resize3d)(output_features, rules[0][2], rules[0][3], nPlanes);
-  THTensor_(zero)(output_features);
   auto mode = rules[0][0];
   auto maxActive = rules[0][1];
   auto nRows = rules[0][4];
-  InputLayer_BackwardPass<real>(THTensor_(data)(output_features),
-                                THTensor_(data)(input_features), nRows,
-                                maxActive, nPlanes, &rules[1][0], false);
+  if (mode == 0) {
+    THTensor_(resizeAs)(output_features, input_features);
+    THTensor_(copy)(output_features, input_features);
+    THTensor_(resize3d)(output_features, rules[0][2], rules[0][3], nPlanes);
+  } else {
+    THTensor_(resize3d)(output_features, rules[0][2], rules[0][3], nPlanes);
+    THTensor_(zero)(output_features);
+    InputLayer_BackwardPass<real>(THTensor_(data)(output_features),
+                                  THTensor_(data)(input_features), nRows,
+                                  maxActive, nPlanes, &rules[1][0], false);
+  }
 }
 extern "C" void
 scn_DR_(BLOutputLayer_updateGradInput)(void **m, THTensor *d_input_features,
@@ -102,11 +120,16 @@ scn_DR_(BLOutputLayer_updateGradInput)(void **m, THTensor *d_input_features,
   auto mode = rules[0][0];
   auto maxActive = rules[0][1];
   auto nRows = rules[0][4];
-  THTensor_(resize2d)(d_input_features, nRows, nPlanes);
-  THTensor_(zero)(d_input_features);
-
-  InputLayer_ForwardPass<real>(THTensor_(data)(d_output_features),
-                               THTensor_(data)(d_input_features), nRows,
-                               maxActive, nPlanes, &rules[1][0], false);
+  if (mode == 0) {
+    THTensor_(resizeAs)(d_input_features, d_output_features);
+    THTensor_(copy)(d_input_features, d_output_features);
+    THTensor_(resize2d)(d_input_features, nRows, nPlanes);
+  } else {
+    THTensor_(resize2d)(d_input_features, nRows, nPlanes);
+    THTensor_(zero)(d_input_features);
+    InputLayer_ForwardPass<real>(THTensor_(data)(d_output_features),
+                                 THTensor_(data)(d_input_features), nRows,
+                                 maxActive, nPlanes, &rules[1][0], false);
+  }
 }
 #endif

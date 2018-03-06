@@ -118,7 +118,7 @@ class SubmanifoldConvolution(Module):
         else:
             s = s + '(' + str(self.filter_size[0].item())
             for i in self.filter_size[1:]:
-                s = s + ',' + str(i)
+                s = s + ',' + str(i.item())
             s = s + ')'
         return s
 

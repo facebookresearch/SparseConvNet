@@ -25,7 +25,7 @@ if not os.path.exists('pickle/'):
     os.system('python readPotFiles2.py')
 
 
-def train(spatial_size, Scale, precomputeStride):
+def train(spatial_size, Scale, precomputeSize):
     d = pickle.load(open('pickle/train.pickle', 'rb'))
     d = torchnet.dataset.ListDataset(d)
     randperm = torch.randperm(len(d))
@@ -68,7 +68,7 @@ def train(spatial_size, Scale, precomputeStride):
                 #         p[1]=math.floor(y1*j+y2*(1-j))
                 #         inp.setLocation(p,v,False)
                 ###############################################################
-        inp.precomputeMetadata(precomputeStride)
+        inp.precomputeMetadata(precomputeSize)
         return {'input': inp, 'target': torch.LongTensor(tbl['target'])}
     bd = torchnet.dataset.BatchDataset(d, 100, perm=perm, merge=merge)
     tdi = scn.threadDatasetIterator(bd)
@@ -79,7 +79,7 @@ def train(spatial_size, Scale, precomputeStride):
     return iter
 
 
-def val(spatial_size, Scale, precomputeStride):
+def val(spatial_size, Scale, precomputeSize):
     d = pickle.load(open('pickle/test.pickle', 'rb'))
     d = torchnet.dataset.ListDataset(d)
     randperm = torch.randperm(len(d))
@@ -103,7 +103,7 @@ def val(spatial_size, Scale, precomputeStride):
                     inp.metadata.ffi,
                     inp.features,
                     stroke)
-        inp.precomputeMetadata(precomputeStride)
+        inp.precomputeMetadata(precomputeSize)
         return {'input': inp, 'target': torch.LongTensor(tbl['target'])}
     bd = torchnet.dataset.BatchDataset(d, 100, perm=perm, merge=merge)
     tdi = scn.threadDatasetIterator(bd)

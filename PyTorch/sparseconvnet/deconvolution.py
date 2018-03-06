@@ -127,17 +127,17 @@ class Deconvolution(Module):
 
     def __repr__(self):
         s = 'Deconvolution ' + str(self.nIn) + '->' + str(self.nOut) + ' C'
-        if self.filter_size.max() == self.filter_size.min() and\
-                self.filter_stride.max() == self.filter_stride.min():
+        if self.filter_size.max().item() == self.filter_size.min().item() and\
+                self.filter_stride.max().item() == self.filter_stride.min().item():
             s = s + str(self.filter_size[0].item()) + \
                 '/' + str(self.filter_stride[0].item())
         else:
             s = s + '(' + str(self.filter_size[0].item())
             for i in self.filter_size[1:]:
-                s = s + ',' + str(i)
+                s = s + ',' + str(i.item())
             s = s + ')/(' + str(self.filter_stride[0].item())
             for i in self.filter_stride[1:]:
-                s = s + ',' + str(i)
+                s = s + ',' + str(i.item())
             s = s + ')'
         return s
 

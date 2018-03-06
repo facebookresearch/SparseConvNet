@@ -7,7 +7,6 @@
 #ifndef INPUTLAYER_H
 #define INPUTLAYER_H
 #include "../SparseConvNet.h"
-#include <omp.h>
 
 // mode 1==overwrite, 2=keep, 3=sum, 4=mean
 template <uInt dimension>
@@ -100,6 +99,12 @@ void blRules(SparseGrids<dimension> &SGs, RuleBook &rules, long *coords,
 
   if (mode == 0) {
     nActive = batchSize * length;
+    rules.resize(1);
+    rules[0].push_back(mode);
+    rules[0].push_back(1);
+    rules[0].push_back(batchSize);
+    rules[0].push_back(length);
+    rules[0].push_back(nActive);
 #pragma omp parallel for private(I)
     for (I = 0; I < batchSize; I++) {
       auto &sg = SGs[I];
@@ -111,20 +116,6 @@ void blRules(SparseGrids<dimension> &SGs, RuleBook &rules, long *coords,
           p[j] = c[j];
         c += dimension;
         sg.mp[p] = l;
-      }
-    }
-    rules.resize(2);
-    rules[0].push_back(0);
-    rules[0].push_back(1);
-    rules[0].push_back(batchSize);
-    rules[0].push_back(length);
-    rules[0].push_back(nActive);
-    auto &rule = rules[1];
-    int ll = 0;
-    for (I = 0; I < batchSize; I++) {
-      for (int l = 0; l < length; ++l, ++ll) {
-        rule.push_back(1);
-        rule.push_back(ll);
       }
     }
     return;
@@ -199,10 +190,10 @@ void blRules(SparseGrids<dimension> &SGs, RuleBook &rules, long *coords,
     }
   }
   if (mode == 3 or mode == 4) {
-    std::cout << omp_get_num_threads() << std::endl;
     rule.resize((maxActive + 1) * nActive);
 #pragma omp parallel for private(I)
     for (I = 0; I < batchSize; I++) {
+      std::cout << omp_get_num_threads() << "\n";
       auto &ors = outputRows[I];
       auto rr = &rule[SGs[I].ctr * (maxActive + 1)];
       for (auto &row : ors) {

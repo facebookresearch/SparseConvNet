@@ -12,10 +12,8 @@ torch_dir = os.path.dirname(torch.__file__)
 
 print('Building SCN module')
 if torch.cuda.is_available():
-    r = os.system(
-        'cd sparseconvnet/SCN; nvcc init.cu -c -o init.cu.o -ccbin /usr/bin/cc'
-        + ' -m64 --std c++11 -Xcompiler '
-        + ',\"-fopenmp\",\"-fPIC\",\"-O3\" '
+    s=('cd sparseconvnet/SCN; nvcc init.cu -c -o init.cu.o -ccbin /usr/bin/cc'
+        + ' -m64 --std c++11 -Xcompiler \"-fopenmp -fPIC -O3\" '
         + '-gencode arch=compute_62,code=sm_62 '
         + '-gencode arch=compute_61,code=sm_61 '
         + '-gencode arch=compute_60,code=sm_60 '
@@ -28,6 +26,7 @@ if torch.cuda.is_available():
         + '-I' + torch_dir + '/lib/include/TH '
         + '-I' + torch_dir + '/lib/include/THC '
         + '-I.')
+    r = os.system(s)
     assert r == 0
     ffi = create_extension(
         'sparseconvnet.SCN',
@@ -44,7 +43,7 @@ if torch.cuda.is_available():
         with_cuda=True)
 else:
     r = os.system(
-        'cd sparseconvnet/SCN; g++ -std=c++11 -DENABLE_OPENMP -fPIC -c init.cpp -o init.cpp.o -I' +
+        'cd sparseconvnet/SCN; g++ -fopenmp -std=c++11 -O3 -fPIC -c init.cpp -o init.cpp.o -I' +
         torch_dir +
         '/lib/include -I' +
         torch_dir +

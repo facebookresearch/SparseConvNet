@@ -101,17 +101,17 @@ class MaxPooling(Module):
 
     def __repr__(self):
         s = 'MaxPooling'
-        if self.pool_size.max() == self.pool_size.min() and\
-                self.pool_stride.max() == self.pool_stride.min():
+        if self.pool_size.max().item() == self.pool_size.min().item() and\
+                self.pool_stride.max().item() == self.pool_stride.min().item():
             s = s + str(self.pool_size[0].item()) + \
                 '/' + str(self.pool_stride[0].item())
         else:
             s = s + '(' + str(self.pool_size[0].item())
             for i in self.pool_size[1:]:
-                s = s + ',' + str(i)
+                s = s + ',' + str(i.item())
             s = s + ')/(' + str(self.pool_stride[0].item())
             for i in self.pool_stride[1:]:
-                s = s + ',' + str(i)
+                s = s + ',' + str(i.item())
             s = s + ')'
 
         if self.nFeaturesToDrop > 0:

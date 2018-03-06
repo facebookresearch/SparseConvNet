@@ -72,12 +72,14 @@ class InputBatch(SparseConvNetTensor):
             self.spatial_size,
             threshold)
 
-    def precomputeMetadata(self, stride):
-        if stride == 2:
+    def precomputeMetadata(self, size):
+        """
+        Optional.
+        Allows precomputation of 'rulebooks' in data loading threads.
+        Use size == 2 if downsizing with size-2 stride-2 operations
+        Use size == 3 if downsizing with size-3 stride-2 operations
+        """
+        if size == 2:
             dim_fn(self.dimension, 'generateRuleBooks2s2')(self.metadata.ffi)
-        else:
+        if size == 3 :
             dim_fn(self.dimension, 'generateRuleBooks3s2')(self.metadata.ffi)
-
-    def __repr__(self):
-        return 'InputBatch<<' + repr(self.features) + repr(self.metadata) + \
-            repr(self.spatial_size) + '>>'

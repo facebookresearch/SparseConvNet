@@ -19,7 +19,7 @@ if not os.path.exists('pickle/'):
     import process
 
 
-def train(spatial_size, Scale, precomputeStride):
+def train(spatial_size, Scale, precomputeSize):
     d = pickle.load(open('pickle/train.pickle', 'rb'))
     print('Replicating training set 10 times (1 epoch = 10 iterations through the training set = 10x6588 training samples)')
     for i in range(9):
@@ -82,7 +82,7 @@ def train(spatial_size, Scale, precomputeStride):
                 #         p[1]=math.floor(y1*j+y2*(1-j))
                 #         inp.setLocation(p,v,False)
                 ###############################################################
-        inp.precomputeMetadata(precomputeStride)
+        inp.precomputeMetadata(precomputeSize)
         return {'input': inp, 'target': torch.LongTensor(tbl['target']) - 1}
     bd = torchnet.dataset.BatchDataset(d, 108, perm=perm, merge=merge)
     tdi = scn.threadDatasetIterator(bd)
@@ -93,7 +93,7 @@ def train(spatial_size, Scale, precomputeStride):
     return iter
 
 
-def val(spatial_size, Scale, precomputeStride):
+def val(spatial_size, Scale, precomputeSize):
     d = pickle.load(open('pickle/test.pickle', 'rb'))
     d = torchnet.dataset.ListDataset(d)
     randperm = torch.randperm(len(d))
@@ -117,7 +117,7 @@ def val(spatial_size, Scale, precomputeStride):
                     inp.metadata.ffi,
                     inp.features,
                     stroke)
-        inp.precomputeMetadata(precomputeStride)
+        inp.precomputeMetadata(precomputeSize)
         return {'input': inp, 'target': torch.LongTensor(tbl['target']) - 1}
     bd = torchnet.dataset.BatchDataset(d, 183, perm=perm, merge=merge)
     tdi = scn.threadDatasetIterator(bd)

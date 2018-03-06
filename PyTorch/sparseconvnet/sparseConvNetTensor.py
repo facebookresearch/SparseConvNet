@@ -16,7 +16,7 @@ class SparseConvNetTensor(object):
         self.metadata = metadata
         self.spatial_size = spatial_size
 
-    def getSpatialLocations(self, spatial_size=None):
+    def get_spatial_locations(self, spatial_size=None):
         "Coordinates and batch index for the active spatial locations"
         if spatial_size is None:
             spatial_size = self.spatial_size
@@ -51,7 +51,10 @@ class SparseConvNetTensor(object):
 
     def __repr__(self):
         return 'SparseConvNetTensor<<' + \
-            repr(self.features) + repr(self.metadata) + repr(self.spatial_size) + '>>'
+            repr(self.features) + \
+            repr(self.get_spatial_locations() if self.metadata else None) + \
+            repr(self.spatial_size) + \
+            '>>'
 
     def to_variable(self, requires_grad=False, volatile=False):
         "Convert self.features to a variable for use with modern PyTorch interface."

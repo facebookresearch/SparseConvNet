@@ -193,7 +193,6 @@ void blRules(SparseGrids<dimension> &SGs, RuleBook &rules, long *coords,
     rule.resize((maxActive + 1) * nActive);
 #pragma omp parallel for private(I)
     for (I = 0; I < batchSize; I++) {
-      std::cout << omp_get_num_threads() << "\n";
       auto &ors = outputRows[I];
       auto rr = &rule[SGs[I].ctr * (maxActive + 1)];
       for (auto &row : ors) {

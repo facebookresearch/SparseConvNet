@@ -19,7 +19,7 @@ class NetworkInNetworkFunction(Function):
             weight,
             bias):
         output_features = input_features.new()
-        ctx.save_forbackwards(input_features,
+        ctx.save_for_backward(input_features,
                               output_features,
                               weight,
                               bias)
@@ -67,8 +67,7 @@ class NetworkInNetwork(Module):
             0,
             std))
         if bias:
-            self.bias = Parameter(torch.Tensor(nOut).
-                                  _())
+            self.bias = Parameter(torch.Tensor(nOut).zero_())
         else:
             self.bias = None
 

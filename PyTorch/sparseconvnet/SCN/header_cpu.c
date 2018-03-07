@@ -49,35 +49,25 @@ void scn_8_batchAddSample(void **m){}
 void scn_9_batchAddSample(void **m){}
 void scn_10_batchAddSample(void **m){}
 void scn_1_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_2_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_3_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_4_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_5_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_6_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_7_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_8_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_9_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_10_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize){}
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize){}
 void scn_1_freeMetadata(void **metadata){}
 void scn_2_freeMetadata(void **metadata){}
 void scn_3_freeMetadata(void **metadata){}

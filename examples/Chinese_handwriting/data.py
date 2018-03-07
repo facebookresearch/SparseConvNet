@@ -39,7 +39,7 @@ def train(spatial_size, Scale, precomputeSize):
         p = torch.LongTensor(2)
         v = torch.FloatTensor([1, 0, 0])
         for char in tbl['input']:
-            inp.addSample()
+            inp.add_sample()
             for stroke in char:
                 stroke = stroke.float() * (Scale - 0.01) / 255 - 0.5 * (Scale - 0.01)
                 stroke += center.expand_as(stroke)
@@ -66,7 +66,7 @@ def train(spatial_size, Scale, precomputeSize):
                 #     for j in numpy.arange(0,1,1/l):
                 #         p[0]=math.floor(x1*j+x2*(1-j))
                 #         p[1]=math.floor(y1*j+y2*(1-j))
-                #         inp.setLocation(p,v,False)
+                #         inp.set_location(p,v,False)
                 ###############################################################
         inp.precomputeMetadata(precomputeSize)
         return {'input': inp, 'target': torch.LongTensor(tbl['target'])}
@@ -93,7 +93,7 @@ def val(spatial_size, Scale, precomputeSize):
         p = torch.LongTensor(2)
         v = torch.FloatTensor([1, 0, 0])
         for char in tbl['input']:
-            inp.addSample()
+            inp.add_sample()
             for stroke in char:
                 stroke = stroke.float() * (Scale - 0.01) / 255 - 0.5 * (Scale - 0.01)
                 stroke += center.expand_as(stroke)
@@ -114,5 +114,5 @@ def val(spatial_size, Scale, precomputeSize):
     return iter
 
 
-def getIterators(*args):
+def get_iterators(*args):
     return {'train': train(*args), 'val': val(*args)}

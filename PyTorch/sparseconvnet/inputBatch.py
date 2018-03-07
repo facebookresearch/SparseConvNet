@@ -12,28 +12,28 @@ from .sparseConvNetTensor import SparseConvNetTensor
 
 class InputBatch(SparseConvNetTensor):
     def __init__(self, dimension, spatial_size):
+        SparseConvNetTensor.__init__(self, None, None, spatial_size)
         self.dimension = dimension
         self.spatial_size = toLongTensor(dimension, spatial_size)
-        SparseConvNetTensor.__init__(self, None, None, spatial_size)
         self.features = torch.FloatTensor()
         self.metadata = Metadata(dimension)
         dim_fn(dimension, 'setInputSpatialSize')(
             self.metadata.ffi, self.spatial_size)
 
-    def addSample(self):
+    def add_sample(self):
         dim_fn(self.dimension, 'batchAddSample')(
             self.metadata.ffi)
 
-    def setLocation(self, location, vector, overwrite=False):
+    def set_location(self, location, vector, overwrite=False):
         assert location.min() >= 0 and (self.spatial_size - location).min() > 0
         dim_fn(self.dimension, 'setInputSpatialLocation')(
             self.metadata.ffi, self.features, location, vector, overwrite)
 
-    def setLocation_(self, location, vector, overwrite=False):
+    def set_location_(self, location, vector, overwrite=False):
         dim_fn(self.dimension, 'setInputSpatialLocation')(
             self.metadata.ffi, self.features, location, vector, overwrite)
 
-    def setLocations(self, locations, vectors, overwrite=False):
+    def set_locations(self, locations, vectors, overwrite=False):
         """
         To set n locations in d dimensions, locations can be
         - A size (n,d) LongTensor, giving d-dimensional coordinates -- points
@@ -52,6 +52,53 @@ class InputBatch(SparseConvNetTensor):
           to add point (1,2,3) to sample 7, and (4,5,6) to sample 9 (0-indexed).
 
         """
+        l = locations[:, :self.dimension]
+        assert l.min() >= 0 and (self.spatial_size.expand_as(l) - l).min() > 0
+        dim_fn(self.dimension, 'setInputSpatialLocations')(
+            self.metadata.ffi, self.features, locations, vectors, overwrite)
+
+    def set_locations_(self, locations, vector, overwrite=False):
+        dim_fn(self.dimension, 'setInputSpatialLocations')(
+            self.metadata.ffi, self.features, locations, vectors, overwrite)
+
+    def add_sample_from_tensor(self, tensor, offset, threshold=0):
+        self.nActive = dim_fn(
+            self.dimension,
+            'addSampleFromThresholdedTensor')(
+            self.metadata.ffi,
+            self.features,
+            tensor,
+            offset,
+            self.spatial_size,
+            threshold)
+
+    def precompute_metadata(self, size):
+        """
+        Optional.
+        Allows precomputation of 'rulebooks' in data loading threads.
+        Use size == 2 if downsizing with size-2 stride-2 operations
+        Use size == 3 if downsizing with size-3 stride-2 operations
+        """
+        if size == 2:
+            dim_fn(self.dimension, 'generateRuleBooks2s2')(self.metadata.ffi)
+        if size == 3 :
+            dim_fn(self.dimension, 'generateRuleBooks3s2')(self.metadata.ffi)
+
+    "Deprecated method names."
+    def addSample(self):
+        dim_fn(self.dimension, 'batchAddSample')(
+            self.metadata.ffi)
+
+    def setLocation(self, location, vector, overwrite=False):
+        assert location.min() >= 0 and (self.spatial_size - location).min() > 0
+        dim_fn(self.dimension, 'setInputSpatialLocation')(
+            self.metadata.ffi, self.features, location, vector, overwrite)
+
+    def setLocation_(self, location, vector, overwrite=False):
+        dim_fn(self.dimension, 'setInputSpatialLocation')(
+            self.metadata.ffi, self.features, location, vector, overwrite)
+
+    def setLocations(self, locations, vectors, overwrite=False):
         l = locations[:, :self.dimension]
         assert l.min() >= 0 and (self.spatial_size.expand_as(l) - l).min() > 0
         dim_fn(self.dimension, 'setInputSpatialLocations')(

@@ -7,7 +7,7 @@
 import torch
 import torch.legacy.nn as nn
 import sparseconvnet.legacy as scn
-from data import getIterators
+from data import get_iterators
 
 # Use the GPU if there is one, otherwise CPU
 dtype = 'torch.cuda.FloatTensor' if torch.cuda.is_available() else 'torch.FloatTensor'
@@ -35,7 +35,7 @@ print([x.size() for x in model.parameters()[0]])
 
 spatial_size = sparseModel.suggestInputSize(torch.LongTensor([1, 1]))
 print('input spatial size', spatial_size)
-dataset = getIterators(spatial_size, 63, 3)
+dataset = get_iterators(spatial_size, 63, 3)
 scn.ClassificationTrainValidate(
     model, dataset,
     {'nEpochs': 100, 'initial_LR': 0.1, 'LR_decay': 0.05, 'weightDecay': 1e-4})

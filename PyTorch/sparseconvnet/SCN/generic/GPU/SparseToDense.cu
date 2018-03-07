@@ -14,16 +14,11 @@ extern "C" void scn_DR_(SparseToDense_updateOutput)(
     THCTensor *output_features, THCITensor *rulesBuffer, long nPlanes) {
 
   SCN_INITIALIZE_AND_REFERENCE(Metadata<Dimension>, m)
-  long spatialVolume = 1;
   {
     long sz[Dimension + 2];
-    sz[0] = _m.grids.begin()->second.size();
-    sz[1] = nPlanes; // input_features->size[1];
-    for (int i = 0; i < Dimension; i++) {
-      auto x = THLongTensor_data(inputSize)[i];
-      sz[i + 2] = x;
-      spatialVolume *= x;
-    }
+    sz[0] = _m.grids.begin()->second.size(); //batch size
+    sz[1] = nPlanes;
+    std::memcpy(sz + 2, THLongTensor_data(inputSize), sizeof(long) * Dimension);
     THCTensor_(resizeNd)(state, output_features, Dimension + 2, sz, NULL);
     THCTensor_(zero)(state, output_features);
   }
@@ -32,6 +27,7 @@ extern "C" void scn_DR_(SparseToDense_updateOutput)(
     uInt _nPlanes = input_features->size[1];
     auto iF = THCTensor_(data)(state, input_features);
     auto oF = THCTensor_(data)(state, output_features);
+    long spatialVolume = THLongTensor_prodall(inputSize);
     RULEBOOKITERATOR(
         SparseToDense_ForwardPass<real>(THCState_getCurrentStream(state), iF,
                                         oF, _nPlanes, spatialVolume, rbB, nHotB);

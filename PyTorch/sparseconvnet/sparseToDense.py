@@ -52,13 +52,13 @@ class SparseToDenseFunction(Function):
         input_features, spatial_size = ctx.saved_tensors
         dim_typed_fn(
             ctx.dimension,
-            input_features,
+            input_features.contiguous(),
             'SparseToDense_updateGradInput')(
             spatial_size,
             ctx.input_metadata.ffi,
             input_features,
             grad_input,
-            grad_output,
+            grad_output.contiguous(),
             torch.cuda.IntTensor() if input_features.is_cuda else nullptr)
         return grad_input, None, None, None, None
 

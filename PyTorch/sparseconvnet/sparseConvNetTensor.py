@@ -51,9 +51,9 @@ class SparseConvNetTensor(object):
 
     def __repr__(self):
         return 'SparseConvNetTensor<<' + \
-            repr(self.features) + \
-            repr(self.get_spatial_locations() if self.metadata else None) + \
-            repr(self.spatial_size) + \
+            'features=' + repr(self.features) + \
+            'coordinates=' + repr(self.get_spatial_locations() if self.metadata else None) + \
+            'spatial size=' + repr(self.spatial_size) + \
             '>>'
 
     def to_variable(self, requires_grad=False, volatile=False):

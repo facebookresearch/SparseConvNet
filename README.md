@@ -85,17 +85,17 @@ msg = [
     " X   X  X    X    X   X  X     X X X X   X  X  X  X  X    X  X  ",
     " X   X  XXX  XXX  XXX  XX       X   X     XX   X  X  XXX  XXX   "]
 
-#Add a sample using setLocation
-input.addSample()
+#Add a sample using set_location
+input.add_sample()
 for y, line in enumerate(msg):
     for x, c in enumerate(line):
         if c == 'X':
             location = torch.LongTensor([x, y])
             featureVector = torch.FloatTensor([1])
-            input.setLocation(location, featureVector, 0)
+            input.set_location(location, featureVector, 0)
 
-#Add a sample using setLocations
-input.addSample()
+#Add a sample using set_locations
+input.add_sample()
 locations = []
 features = []
 for y, line in enumerate(msg):
@@ -105,7 +105,7 @@ for y, line in enumerate(msg):
             features.append([1])
 locations = torch.LongTensor(locations)
 features = torch.FloatTensor(features)
-input.setLocations(locations, features, 0)
+input.set_locations(locations, features, 0)
 
 # Optional: allow metadata preprocessing to be done in batch preparation threads
 # to improve GPU utilization.

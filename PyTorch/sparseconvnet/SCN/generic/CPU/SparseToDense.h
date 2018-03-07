@@ -27,7 +27,7 @@ void SparseToDense_BackwardPass(T *d_input_features, T *d_output_features,
 
   for (uInt outSite = 0; outSite < nHot; outSite++) {
     T *d_i = d_input_features + rules[2 * outSite] * nPlanes;
-    auto d_o = d_output_features + rules[2 * outSite + 1];
+    T *d_o = d_output_features + rules[2 * outSite + 1];
     for (uInt plane = 0; plane < nPlanes; plane++)
       d_i[plane] = d_o[plane * spatialVolume];
   }

@@ -12,72 +12,6 @@ from torch.nn import Module, Parameter
 from .utils import *
 from .sparseConvNetTensor import SparseConvNetTensor
 
-
-class SubmanifoldConvolutionFunction(Function):
-    @staticmethod
-    def forward(
-            ctx,
-            input_features,
-            weight,
-            bias,
-            input_metadata,
-            spatial_size,
-            dimension,
-            filter_size):
-        ctx.input_metadata = input_metadata
-        ctx.dimension = dimension
-        # ctx.input_features=input_features
-        # ctx.spatial_size=spatial_size
-        # ctx.weight=weight
-        # ctx.bias=bias
-        # ctx.filter_size=filter_size
-        output_features = input_features.new()
-        ctx.save_for_backward(
-            input_features,
-            spatial_size,
-            weight,
-            bias,
-            filter_size)
-        sparseconvnet.forward_pass_multiplyAdd_count +=\
-            dim_typed_fn(
-                dimension, input_features, 'SubmanifoldConvolution_updateOutput')(
-                spatial_size,
-                filter_size,
-                input_metadata.ffi,
-                input_features.data,
-                output_features.data,
-                weight.data,
-                bias.data if bias is not None else nullptr,
-                0,  # remove this parameter!!
-                torch.cuda.IntTensor() if input_features.is_cuda else nullptr)
-        sparseconvnet.forward_pass_hidden_states += output_features.nelement()
-        return output_features
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        input_features, spatial_size, weight, bias, filter_size = ctx.saved_tensors
-        grad_input = grad_output.new()
-        grad_weight = grad_output.new().resize_as_(weight).zero_()
-        if bias is None:
-            grad_bias = None
-        else:
-            grad_bias = grad_output.new().resize_as_(bias).zero_()
-        dim_typed_fn(
-            ctx.dimension, input_features, 'SubmanifoldConvolution_backward')(
-            spatial_size,
-            filter_size,
-            ctx.input_metadata.ffi,
-            input_features,
-            grad_input,
-            grad_output.contiguous(),
-            weight,
-            grad_weight,
-            grad_bias.data if grad_bias is not None else nullptr,
-            0,  # remove this parameter
-            torch.cuda.IntTensor() if input_features.is_cuda else nullptr)
-        return grad_input, grad_weight, grad_bias, None, None, None, None
-
-
 class SubmanifoldConvolution(Module):
     def __init__(self, dimension, nIn, nOut, filter_size, bias):
         Module.__init__(self)
@@ -128,3 +62,62 @@ class SubmanifoldConvolution(Module):
 
 class ValidConvolution(SubmanifoldConvolution):
     pass
+
+class SubmanifoldConvolutionFunction(Function):
+    @staticmethod
+    def forward(
+            ctx,
+            input_features,
+            weight,
+            bias,
+            input_metadata,
+            spatial_size,
+            dimension,
+            filter_size):
+        ctx.input_metadata = input_metadata
+        ctx.dimension = dimension
+        output_features = input_features.new()
+        ctx.save_for_backward(
+            input_features,
+            spatial_size,
+            weight,
+            bias,
+            filter_size)
+        sparseconvnet.forward_pass_multiplyAdd_count +=\
+            dim_typed_fn(
+                dimension, input_features, 'SubmanifoldConvolution_updateOutput')(
+                spatial_size,
+                filter_size,
+                input_metadata.ffi,
+                input_features.data,
+                output_features.data,
+                weight.data,
+                bias.data if bias is not None else nullptr,
+                0,  # remove this parameter!!
+                torch.cuda.IntTensor() if input_features.is_cuda else nullptr)
+        sparseconvnet.forward_pass_hidden_states += output_features.nelement()
+        return output_features
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        input_features, spatial_size, weight, bias, filter_size = ctx.saved_tensors
+        grad_input = grad_output.new()
+        grad_weight = grad_output.new().resize_as_(weight).zero_()
+        if bias is None:
+            grad_bias = None
+        else:
+            grad_bias = grad_output.new().resize_as_(bias).zero_()
+        dim_typed_fn(
+            ctx.dimension, input_features, 'SubmanifoldConvolution_backward')(
+            spatial_size,
+            filter_size,
+            ctx.input_metadata.ffi,
+            input_features,
+            grad_input,
+            grad_output.contiguous(),
+            weight,
+            grad_weight,
+            grad_bias.data if grad_bias is not None else nullptr,
+            0,  # remove this parameter
+            torch.cuda.IntTensor() if input_features.is_cuda else nullptr)
+        return grad_input, grad_weight, grad_bias, None, None, None, None

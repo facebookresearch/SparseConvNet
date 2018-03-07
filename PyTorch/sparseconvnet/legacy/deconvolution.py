@@ -21,7 +21,7 @@ class Deconvolution(SparseModule):
         self.nOut = nOut
         self.filter_size = toLongTensor(dimension, filter_size)
         self.filter_stride = toLongTensor(dimension, filter_stride)
-        self.filter_volume = self.filter_size.prod()
+        self.filter_volume = self.filter_size.prod().item()
         std = (2.0 / nIn / self.filter_volume)**0.5
         self.weight = torch.Tensor(
             nIn * self.filter_volume, nOut
@@ -91,14 +91,14 @@ class Deconvolution(SparseModule):
         s = 'Deconvolution ' + str(self.nIn) + '->' + str(self.nOut) + ' C'
         if self.filter_size.max() == self.filter_size.min() and\
                 self.filter_stride.max() == self.filter_stride.min():
-            s = s + str(self.filter_size[0]) + '/' + str(self.filter_stride[0])
+            s = s + str(self.filter_size[0].item()) + '/' + str(self.filter_stride[0].item())
         else:
-            s = s + '(' + str(self.filter_size[0])
+            s = s + '(' + str(self.filter_size[0].item())
             for i in self.filter_size[1:]:
-                s = s + ',' + str(i)
-            s = s + ')/(' + str(self.filter_stride[0])
+                s = s + ',' + str(i.item())
+            s = s + ')/(' + str(self.filter_stride[0].item())
             for i in self.filter_stride[1:]:
-                s = s + ',' + str(i)
+                s = s + ',' + str(i.item())
             s = s + ')'
         return s
 

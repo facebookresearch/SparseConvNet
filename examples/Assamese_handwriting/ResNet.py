@@ -7,7 +7,7 @@
 import torch
 import torch.nn as nn
 import sparseconvnet as scn
-from data import getIterators
+from data import get_iterators
 
 # two-dimensional SparseConvNet
 
@@ -38,7 +38,7 @@ class Model(nn.Module):
 model = Model()
 spatial_size = model.sparseModel.input_spatial_size(torch.LongTensor([1, 1]))
 print('Input spatial size:', spatial_size)
-dataset = getIterators(spatial_size, 63, 3)
+dataset = get_iterators(spatial_size, 63, 3)
 scn.ClassificationTrainValidate(
     model, dataset,
     {'n_epochs': 100,

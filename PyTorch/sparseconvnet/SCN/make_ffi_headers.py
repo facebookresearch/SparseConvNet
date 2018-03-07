@@ -84,8 +84,7 @@ void scn_DIMENSION_batchAddSample(void **m)""")
 
 dim_fn("""
 void scn_DIMENSION_createMetadataForDenseToSparse(
-  void **m, THLongTensor *spatialSize_, THLongTensor *pad, THLongTensor *nz,
-  long batchSize)""")
+  void **m, THLongTensor *spatialSize_, THLongTensor *nz, long batchSize)""")
 
 dim_fn("""
 void scn_DIMENSION_freeMetadata(void **metadata)""")

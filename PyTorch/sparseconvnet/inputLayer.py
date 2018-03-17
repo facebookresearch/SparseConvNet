@@ -13,12 +13,12 @@ from .metadata import Metadata
 class InputLayer(Module):
     """
     Takes a tuple (coords, features, batch_size [optional])
-    * coords is 2d with size
+    * coords is 2d torch.LongTensor with size
        N x dimension   (batch size == 1)
     or
        N x (dimension+1)  (first d columns are coordinates, last column is batch index)
 
-    * features is a tensor with size
+    * features is a CPU or CUDA float tensor with size
 
       N x n_feature_planes
 
@@ -49,7 +49,7 @@ class InputLayer(Module):
             self.dimension,
             output.metadata,
             self.spatial_size,
-            input[0],
+            input[0].type(torch.LongTensor),
             input[1],
             0 if len(input) == 2 else input[2],
             self.mode
@@ -60,12 +60,12 @@ class InputLayer(Module):
 class BLInputLayer(Module):
     """
     Takes a tuple (coords, features)
-    * coords is 3d LongTensor with size
+    * coords is 3d torch.LongTensor with size
        batch_size x length x dimension
 
       Coordinates should be >=0, or -1 to indicate 'empty'
 
-    * features is a 3d float Tensor with size
+    * features is a 3d CPU or CUDA float Tensor with size
 
       batch_size x length x n_feature_planes
 
@@ -93,7 +93,7 @@ class BLInputLayer(Module):
             self.dimension,
             output.metadata,
             self.spatial_size,
-            input[0],
+            input[0].type(torch.LongTensor),
             input[1],
             self.mode
         )

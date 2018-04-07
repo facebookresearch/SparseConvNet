@@ -58,7 +58,6 @@ extern "C" void scn_D_(setInputSpatialLocations)(void **m,
                                                  THLongTensor *locations,
                                                  THFloatTensor *vecs,
                                                  bool overwrite) {
-  assert(features->nDimension == 2 and "features must be 2 dimensional!");
   assert(locations->nDimension == 2 and "locations must be 2 dimensional!");
   assert(vecs->nDimension == 2 and "vecs must be 2 dimensional!");
   assert(locations->size[0] == vecs->size[0] and

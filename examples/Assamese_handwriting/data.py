@@ -6,7 +6,7 @@
 
 import torch
 import torchnet
-import sparseconvnet.legacy as scn
+import sparseconvnet as scn
 import pickle
 import math
 import random

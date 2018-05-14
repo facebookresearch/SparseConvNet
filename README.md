@@ -17,7 +17,7 @@ This is the Torch/PyTorch library for training Submanifold Sparse Convolutional 
 
 ## Spatial sparsity
 
-This library brings [Spatially-sparse convolutional networks](https://github.com/btgraham/SparseConvNet) to PyTorch and [Torch classic](README_Torch.md). Moreover, it introduces **Submanifold Sparse Convolutions**, that can be used to build computationally efficient sparse VGG/ResNet/DenseNet-style networks.
+This library brings [Spatially-sparse convolutional networks](https://github.com/btgraham/SparseConvNet) to PyTorch. Moreover, it introduces **Submanifold Sparse Convolutions**, that can be used to build computationally efficient sparse VGG/ResNet/DenseNet-style networks.
 
 With regular 3x3 convolutions, the set of active (non-zero) sites grows rapidly:<br />
 ![submanifold](img/i.gif) <br />
@@ -50,7 +50,7 @@ In theory, the library supports up to 10 dimensions. In practice, ConvNets with 
 
 
 
-## Hello World - PyTorch
+## Hello World
 SparseConvNets can be built either by [defining a function that inherits from torch.nn.Module](examples/Assamese_handwriting/VGGplus.py) or by stacking modules in a [sparseconvnet.Sequential](PyTorch/sparseconvnet/sequential.py):
 ```
 import torch
@@ -139,17 +139,13 @@ cd examples/Assamese_handwriting
 python VGGplus.py
 ```
 
-## PyTorch Setup
+## Setup
 
-Tested with Ubuntu 16.04, Python 3 in [Miniconda](https://conda.io/miniconda.html) and PyTorch master (v0.4 with merged Tensors/Variables).
+Tested with Ubuntu 16.04, Python 3 in [Miniconda](https://conda.io/miniconda.html) and PyTorch v0.4 (with merged Tensors/Variables).
 
 ```
-git clone https://github.com/pytorch/pytorch.git
-cd pytorch
-python setup.py install
-cd ..
-
-apt-get install libsparsehash-dev
+conda install -c pytorch # OR git clone https://github.com/pytorch/pytorch.git; cd pytorch; python setup.py install; cd ..
+conda install -c bioconda google-sparsehash # OR apt-get install libsparsehash-dev
 git clone git@github.com:facebookresearch/SparseConvNet.git
 cd SparseConvNet/PyTorch/
 python setup.py install

@@ -10,4 +10,4 @@ pickle
 *.pyc
 PyTorch/sparseconvnet.egg-info/
 PyTorch/sparseconvnet/SCN/__init__.py
-
+sparseconvnet.egg-info

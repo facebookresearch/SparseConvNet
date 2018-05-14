@@ -8,6 +8,7 @@ import os
 import sys
 import array
 import pickle
+import torch
 c3755 = [
     0xa1b0, 0xa2b0, 0xa3b0, 0xa4b0, 0xa5b0, 0xa6b0, 0xa7b0, 0xa8b0, 0xa9b0,
     0xaab0, 0xabb0, 0xacb0, 0xadb0, 0xaeb0, 0xafb0, 0xb0b0, 0xb1b0, 0xb2b0,
@@ -440,37 +441,38 @@ def readPOTfile(name, clist):
         sample_size = a.pop()
         label = a.pop() + a.pop() * 65536
         label = (label % 256) * 256 + label // 256
+        numStrokes = a.pop()
+        strokes = []
+        for i in range(numStrokes):
+            stroke = []
+            point = [a.pop(), a.pop()]
+            while point != [65535, 0]:
+                stroke.append(point)
+                point = [a.pop(), a.pop()]
+            strokes.append(stroke)
+        [a.pop(), a.pop()]  # End of character
         if label in clist:
             label = clist.index(label)
             labels.append(label)
-            numStrokes = a.pop()
-            strokes = []
-            for i in range(numStrokes):
-                stroke = []
-                point = [a.pop(), a.pop()]
-                while point != [65535, 0]:
-                    stroke.append(point)
-                    point = [a.pop(), a.pop()]
-                strokes.append(stroke)
-            [a.pop(), a.pop()]  # End of character
-            characters.append(strokes)
+            characters.append([torch.FloatTensor(stroke)
+                               for stroke in strokes])
     return [characters, labels]
 
 
 for dataset, f1, f2 in [('train', 1001, 1240), ('test', 1241, 1300)]:
-    c = []
-    l = []
+    chars = []
+    labels = []
     for f in range(f1, f2 + 1):
-        [characters, labels] = readPOTfile(str(f), c3755)
-        c.extend(characters)
-        l.extend(labels)
-    print(len(c), len(l))
-    for i, (x, lbl) in enumerate(zip(c, l)):
-        with open('t7/' + dataset + '/' + str(i + 1) + '.lua', 'w') as output:
-            print('return {input={', file=output)
-            for y in x:
-                print('  torch.LongTensor({', file=output)
-                for z in y:
-                    print('    {', z[0], ',', z[1], '},', file=output)
-                print('  }),', file=output)
-            print('},target=' + str(lbl + 1) + '}', file=output)
+        [chars_, labels_] = readPOTfile(str(f), c3755)
+        chars.extend(chars_)
+        labels.extend(labels_)
+    print(len(chars), len(labels))
+    for c in chars:
+        cc = torch.cat(c, 0)
+        m = cc.min(0)[0]
+        s = (cc.max(0)[0] - m).float()
+        for i, stroke in enumerate(c):
+            c[i] = ((stroke - m.expand_as(stroke)) /
+                    s.expand_as(stroke) * 255.59).byte()
+    pickle.dump([{'input': c, 'target': l} for c, l in zip(chars, labels)], open(
+        'pickle/' + dataset + '.pickle', 'wb'), protocol=pickle.HIGHEST_PROTOCOL)

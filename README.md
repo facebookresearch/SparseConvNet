@@ -1,19 +1,6 @@
 # Submanifold Sparse Convolutional Networks
 
-This is the Torch/PyTorch library for training Submanifold Sparse Convolutional Networks. If you find this code useful in your research then please cite:
-
-**[Submanifold Sparse Convolutional Networks, https://arxiv.org/abs/1706.01307](https://arxiv.org/abs/1706.01307)** <br />
-[Benjamin Graham](https://research.fb.com/people/graham-benjamin/), <br />
-[Laurens van der Maaten](https://lvdmaaten.github.io/), <br />
-
-```
-@article{SubmanifoldSparseConvNet,
-  title={Submanifold Sparse Convolutional Networks},
-  author={Graham, Benjamin and van der Maaten, Laurens},
-  journal={arXiv preprint arXiv:1706.01307},
-  year={2017}
-}
-```
+This is the PyTorch library for training Submanifold Sparse Convolutional Networks.
 
 ## Spatial sparsity
 
@@ -61,9 +48,9 @@ use_gpu = torch.cuda.is_available()
 
 model = scn.Sequential().add(
     scn.SparseVggNet(2, 1,
-                     [['C',  8], ['C',  8], ['MP', 3, 2],
-                      ['C', 16], ['C', 16], ['MP', 3, 2],
-                      ['C', 24], ['C', 24], ['MP', 3, 2]])
+		     [['C',  8], ['C',  8], ['MP', 3, 2],
+		      ['C', 16], ['C', 16], ['MP', 3, 2],
+		      ['C', 24], ['C', 24], ['MP', 3, 2]])
 ).add(
     scn.SubmanifoldConvolution(2, 24, 32, 3, False)
 ).add(
@@ -89,10 +76,10 @@ msg = [
 input.add_sample()
 for y, line in enumerate(msg):
     for x, c in enumerate(line):
-        if c == 'X':
-            location = torch.LongTensor([x, y])
-            featureVector = torch.FloatTensor([1])
-            input.set_location(location, featureVector, 0)
+	if c == 'X':
+	    location = torch.LongTensor([x, y])
+	    featureVector = torch.FloatTensor([1])
+	    input.set_location(location, featureVector, 0)
 
 #Add a sample using set_locations
 input.add_sample()
@@ -100,9 +87,9 @@ locations = []
 features = []
 for y, line in enumerate(msg):
     for x, c in enumerate(line):
-        if c == 'X':
-            locations.append([x,y])
-            features.append([1])
+	if c == 'X':
+	    locations.append([x,y])
+	    features.append([1])
 locations = torch.LongTensor(locations)
 features = torch.FloatTensor(features)
 input.set_locations(locations, features, 0)
@@ -131,7 +118,7 @@ print(output.size(), output.type())
 Examples in the examples folder include
 * [Assamese handwriting recognition](https://archive.ics.uci.edu/ml/datasets/Online+Handwritten+Assamese+Characters+Dataset#)
 * [Chinese handwriting for recognition](http://www.nlpr.ia.ac.cn/databases/handwriting/Online_database.html)
-* [ModelNet-40 Object recognition](http://modelnet.cs.princeton.edu/) using [3dcnn.torch preprocessed data](https://github.com/charlesq34/3dcnn.torch)
+* [3D Segmentation](https://shapenet.cs.stanford.edu/iccv17/) using ShapeNet Core-55
 
 Data will be downloaded/preprocessed on the first run, i.e.
 ```
@@ -144,8 +131,8 @@ python VGGplus.py
 Tested with Ubuntu 16.04, Python 3 in [Miniconda](https://conda.io/miniconda.html) and PyTorch v0.4 (with merged Tensors/Variables).
 
 ```
-conda install -c pytorch # OR git clone https://github.com/pytorch/pytorch.git; cd pytorch; python setup.py install; cd ..
-conda install -c bioconda google-sparsehash # OR apt-get install libsparsehash-dev
+conda install pytorch -c pytorch # OR git clone https://github.com/pytorch/pytorch.git; cd pytorch; python setup.py install; cd ..
+conda install google-sparsehash -c bioconda # OR apt-get install libsparsehash-dev
 git clone git@github.com:facebookresearch/SparseConvNet.git
 cd SparseConvNet/PyTorch/
 python setup.py install
@@ -168,3 +155,36 @@ pip install git+https://github.com/pytorch/tnt.git@master
 7. [Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1706.01307) Introduces deep 'submanifold' SparseConvNets.
 8. [Workshop on Learning to See from 3D Data, 2017](https://shapenet.cs.stanford.edu/iccv17workshop/) First place in the [semantic segmentation](https://shapenet.cs.stanford.edu/iccv17/) competition. [Report](https://arxiv.org/pdf/1710.06104)
 9. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets
+
+### Citations
+
+If you find this code useful in your research then please cite:
+
+**[Submanifold Sparse Convolutional Networks, https://arxiv.org/abs/1706.01307](https://arxiv.org/abs/1706.01307)** <br />
+[Benjamin Graham](https://research.fb.com/people/graham-benjamin/), <br />
+[Laurens van der Maaten](https://lvdmaaten.github.io/), <br />
+
+```
+@article{SubmanifoldSparseConvNet,
+  title={Submanifold Sparse Convolutional Networks},
+  author={Graham, Benjamin and van der Maaten, Laurens},
+  journal={arXiv preprint arXiv:1706.01307},
+  year={2017}
+}
+```
+
+and/or
+
+**[3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, CVPR 2018](https://arxiv.org/abs/1711.10275)** <br />
+[Benjamin Graham](https://research.fb.com/people/graham-benjamin/), <br />
+[Martin Engelcke](http://ori.ox.ac.uk/mrg_people/martin-engelcke/), <br />
+[Laurens van der Maaten](https://lvdmaaten.github.io/), <br />
+
+```
+@article{3DSemanticSegmentationWithSubmanifoldSparseConvNet,
+  title={3D Semantic Segmentation with Submanifold Sparse Convolutional Networks},
+  author={Graham, Benjamin and Engelcke, Martin and van der Maaten, Laurens},
+  journal={CVPR},
+  year={2018}
+}
+```

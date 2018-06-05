@@ -131,10 +131,10 @@ python VGGplus.py
 Tested with Ubuntu 16.04, Python 3 in [Miniconda](https://conda.io/miniconda.html) and PyTorch v0.4 (with merged Tensors/Variables).
 
 ```
-conda install pytorch -c pytorch # OR git clone https://github.com/pytorch/pytorch.git; cd pytorch; python setup.py install; cd ..
+conda install pytorch -c pytorch
 conda install google-sparsehash -c bioconda # OR apt-get install libsparsehash-dev
 git clone git@github.com:facebookresearch/SparseConvNet.git
-cd SparseConvNet/PyTorch/
+cd SparseConvNet/
 python setup.py install
 ```
 To run the examples you may also need to install unrar and TorchNet:

@@ -163,10 +163,9 @@ class InputLayerFunction(Function):
             mode):
         output_features = input_features.new()
         ctx.dimension = dimension
-        ctx.metadata = metadata
-        ctx.dimension = dimension
+        ctx.metadata_ = metadata
         dim_typed_fn(dimension, input_features, 'InputLayer_updateOutput')(
-            metadata.ffi,
+            metadata,
             spatial_size,
             coords,
             input_features.contiguous(),
@@ -183,7 +182,7 @@ class InputLayerFunction(Function):
             ctx.dimension,
             grad_output,
             'InputLayer_updateGradInput')(
-            ctx.metadata.ffi,
+            ctx.metadata_,
             grad_input,
             grad_output.contiguous())
         return None, None, None, None, grad_input, None, None
@@ -197,10 +196,10 @@ class OutputLayerFunction(Function):
             metadata,
             input_features):
         output_features = input_features.new()
-        ctx.metadata = metadata
+        ctx.metadata_ = metadata
         ctx.dimension = dimension
         dim_typed_fn(dimension, input_features, 'OutputLayer_updateOutput')(
-            metadata.ffi,
+            metadata,
             input_features.contiguous(),
             output_features
         )
@@ -214,7 +213,7 @@ class OutputLayerFunction(Function):
             ctx.dimension,
             grad_output,
             'OutputLayer_updateGradInput')(
-            ctx.metadata.ffi,
+            ctx.metadata_,
             grad_input,
             grad_output.contiguous())
         return None, None, grad_input
@@ -231,10 +230,10 @@ class BLInputLayerFunction(Function):
             input_features,
             mode):
         output_features = input_features.new()
-        ctx.metadata = metadata
+        ctx.metadata_ = metadata
         ctx.dimension = dimension
         dim_typed_fn(dimension, input_features, 'BLInputLayer_updateOutput')(
-            metadata.ffi,
+            metadata,
             spatial_size,
             coords,
             input_features.contiguous(),
@@ -250,7 +249,7 @@ class BLInputLayerFunction(Function):
             ctx.dimension,
             grad_output,
             'BLInputLayer_updateGradInput')(
-            ctx.metadata.ffi,
+            ctx.metadata_,
             grad_input,
             grad_output.contiguous())
         return None, None, None, None, grad_input, None
@@ -264,10 +263,10 @@ class BLOutputLayerFunction(Function):
             metadata,
             input_features):
         output_features = input_features.new()
-        ctx.metadata = metadata
+        ctx.metadata_ = metadata
         ctx.dimension = dimension
         dim_typed_fn(dimension, input_features, 'BLOutputLayer_updateOutput')(
-            metadata.ffi,
+            metadata,
             input_features.contiguous(),
             output_features
         )
@@ -280,7 +279,18 @@ class BLOutputLayerFunction(Function):
             ctx.dimension,
             grad_output,
             'BLOutputLayer_updateGradInput')(
-            ctx.metadata.ffi,
+            ctx.metadata_,
             grad_input,
             grad_output.contiguous())
         return None, None, grad_input
+
+class InputLayerInput(object):
+    def __init__(self,coords,features):
+        self.x=[coords,features]
+    def __getitem__(self,n):
+        return self.x[n]
+    def __len__(self):
+        return 2
+    def cuda(self):
+        self.x[1]=self.x[1].cuda()
+        return self

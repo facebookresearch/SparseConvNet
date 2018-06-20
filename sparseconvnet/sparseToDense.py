@@ -39,7 +39,7 @@ class SparseToDenseFunction(Function):
             input_features,
             'SparseToDense_updateOutput')(
             spatial_size,
-            input_metadata.ffi,
+            input_metadata,
             input_features,
             output,
             nPlanes)
@@ -54,7 +54,7 @@ class SparseToDenseFunction(Function):
             input_features.contiguous(),
             'SparseToDense_updateGradInput')(
             spatial_size,
-            ctx.input_metadata.ffi,
+            ctx.input_metadata,
             input_features,
             grad_input,
             grad_output.contiguous())

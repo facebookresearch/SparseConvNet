@@ -5,9 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-import sparseconvnet.SCN as scn
-from cffi import FFI
-
+import sparseconvnet_SCN as scn
 
 def toLongTensor(dimension, x):
     if hasattr(x, 'type') and x.type() == 'torch.LongTensor':
@@ -20,36 +18,30 @@ def toLongTensor(dimension, x):
 
 
 typeTable = {
-    'torch.FloatTensor': 'cpu_float',
-    'torch.DoubleTensor': 'cpu_double',
-    'torch.cuda.FloatTensor': 'gpu_float'}
+    'torch.FloatTensor': 'cpu_float_',
+    'torch.DoubleTensor': 'cpu_double_',
+    'torch.cuda.FloatTensor': 'cuda_float_'}
 
 
 def dim_fn(dimension, name):
-    # print('dim_fn',dimension,name)
-    return getattr(scn, 'scn_' + str(dimension) + '_' + name)
+    f=getattr(scn, name + '_' + str(dimension))
+    return f
 
 
 def typed_fn(t, name):
-    # print('typed_fn',t.type(),name)
-    return getattr(scn, 'scn_' + typeTable[t.type()] + '_' + name)
+    f=getattr(scn, typeTable[t.type()] + name)
+    return f
 
 
 def dim_typed_fn(dimension, t, name):
-    # print('dim_typed_fn',dimension,t.type(),name)
-    return getattr(scn, 'scn_' +
-                   typeTable[t.type()] +
-                   str(dimension) +
-                   name)
-
-
-ffi = FFI()
-nullptr = ffi.NULL
+    f=getattr(scn, typeTable[t.type()] + name + '_' + str(dimension))
+    return f
 
 
 def optionalTensor(a, b):
-    return getattr(a, b) if hasattr(a, b) else nullptr
-
+    return getattr(a, b) if hasattr(a, b) else torch.Tensor()
+def optionalTensorReturn(a):
+    return a if a.numel() else None
 
 def threadDatasetIterator(d):
     try:
@@ -72,18 +64,3 @@ def threadDatasetIterator(d):
             q.task_done()
         q.join()
     return iterator
-
-
-# def threadDatasetIterator(d):
-#     print('not threads!!!')
-#     def iterator():
-#         for x in d:
-#             yield x
-#     return iterator
-
-
-def set(obj):
-    if hasattr(obj, 'storage_type'):
-        obj.set_(obj.storage_type()())
-    else:
-        obj.set_()

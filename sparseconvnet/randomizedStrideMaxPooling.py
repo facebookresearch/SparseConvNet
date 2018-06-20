@@ -31,7 +31,7 @@ class RandomizedStrideMaxPoolingFunction(Function):
             output_spatial_size,
             pool_size,
             pool_stride,
-            input_metadata.ffi,
+            input_metadata,
             input_features,
             output_features,
             nFeaturesToDrop)
@@ -59,7 +59,7 @@ class RandomizedStrideMaxPoolingFunction(Function):
             output_spatial_size,
             pool_size,
             pool_stride,
-            ctx.input_metadata.ffi,
+            ctx.input_metadata,
             input_features,
             grad_input,
             output_features,

@@ -19,114 +19,90 @@ if not os.path.exists('pickle/'):
     import process
 
 
-def train(spatial_size, Scale, precomputeSize):
-    d = pickle.load(open('pickle/train.pickle', 'rb'))
-    print('Replicating training set 10 times (1 epoch = 10 iterations through the training set = 10x6588 training samples)')
-    for i in range(9):
-        for j in range(6588):
-            d.append(d[j])
-    for i, x in enumerate(d):
-        x['idx'] = i
-    d = torchnet.dataset.ListDataset(d)
-    randperm = torch.randperm(len(d))
-
-    def perm(idx, size):
-        return randperm[idx]
-
+def interp(sample,x,y):
+    return torch.from_numpy(np.hstack([np.interp(sample.numpy(),x.numpy(),y[:,i].numpy())[:,None] for i in range(y.shape[1])])).float()
+class Data(torch.utils.data.Dataset):
+    def __init__(self,file,scale=63,repeats=1):
+        torch.utils.data.Dataset.__init__(self)
+        self.data = pickle.load(open(file, 'rb'))
+        for j in range(len(self.data)):
+            strokes=[]
+            features=[]
+            for k,stroke in enumerate(self.data[j]['input']):
+                if len(stroke)>1:
+                    stroke=stroke.float()/255-0.5
+                    stroke*=scale-1e-3
+                    delta=stroke[1:]-stroke[:-1]
+                    mag=(delta**2).sum(1)**0.5
+                    l=mag.cumsum(0)
+                    zl=torch.cat([torch.zeros(1),l])
+                    strokes.append(interp(torch.arange(0,zl[-1]),zl,stroke))
+                    delta/=mag[:,None]
+                    delta=torch.Tensor(delta[[i//2 for i in range(2*len(l))]])
+                    zl_=zl[[i//2 for i in range(1,2*len(l)+1)]]
+                    features.append(interp(torch.arange(0,zl[-1]),zl_,delta))
+            self.data[j]['coords'] = torch.cat(strokes,0)
+            self.data[j]['features'] = torch.cat(features,0)
+            self.data[j]['target']-=1
+        if repeats>1:
+            print('Replicating dataset: 1 epoch = %d iterations of the dataset; %d x %d = %d training samples'%(repeats, repeats, len(self.data), repeats * len(self.data)))
+        for j in range(len(self.data)):
+            for i in range(repeats-1):
+                self.data.append(self.data[j])
+        for i, x in enumerate(self.data):
+            x['idx'] = i
+    def __getitem__(self,n):
+        return self.data[n]
+    def __len__(self):
+        return len(self.data)
+def TrainMergeFn(spatial_size=95, jitter=8):
+    center = spatial_size/2
     def merge(tbl):
-        inp = scn.InputBatch(2, spatial_size)
-        center = spatial_size.float().view(1, 2) / 2
-        p = torch.LongTensor(2)
-        v = torch.FloatTensor([1, 0, 0])
-        np_random = np.random.RandomState(tbl['idx'])
-        for char in tbl['input']:
-            inp.add_sample()
+        v=torch.Tensor([[1,0,0]])
+        targets=[x['target'] for x in tbl]
+        locations=[]
+        features=[]
+        for idx,char in enumerate(tbl):
             m = torch.eye(2)
-            r = np_random.randint(1, 3)
-            alpha = random.uniform(-0.2, 0.2)
-            if alpha == 1:
+            r = torch.randint(0,3,[1]).int().item()
+            alpha = torch.rand(1).item()*0.4-0.2
+            if r == 1:
                 m[0][1] = alpha
-            elif alpha == 2:
+            elif r == 2:
                 m[1][0] = alpha
             else:
                 m = torch.mm(m, torch.FloatTensor(
                     [[math.cos(alpha), math.sin(alpha)],
                      [-math.sin(alpha), math.cos(alpha)]]))
-            c = center + torch.FloatTensor(1, 2).uniform_(-8, 8)
-            for stroke in char:
-                stroke = stroke.float() / 255 - 0.5
-                stroke = c.expand_as(stroke) + \
-                    torch.mm(stroke, m * (Scale - 0.01))
-                ###############################################################
-                # To avoid GIL problems use a helper function:
-                scn.dim_fn(
-                    2,
-                    'drawCurve')(
-                    inp.metadata.ffi,
-                    inp.features,
-                    stroke)
-                ###############################################################
-                # Above is equivalent to :
-                # x1,x2,y1,y2,l=0,stroke[0][0],0,stroke[0][1],0
-                # for i in range(1,stroke.size(0)):
-                #     x1=x2
-                #     y1=y2
-                #     x2=stroke[i][0]
-                #     y2=stroke[i][1]
-                #     l=1e-10+((x2-x1)**2+(y2-y1)**2)**0.5
-                #     v[1]=(x2-x1)/l
-                #     v[2]=(y2-y1)/l
-                #     l=max(x2-x1,y2-y1,x1-x2,y1-y2,0.9)
-                #     for j in np.arange(0,1,1/l):
-                #         p[0]=math.floor(x1*j+x2*(1-j))
-                #         p[1]=math.floor(y1*j+y2*(1-j))
-                #         inp.set_location(p,v,False)
-                ###############################################################
-        inp.precomputeMetadata(precomputeSize)
-        return {'input': inp, 'target': torch.LongTensor(tbl['target']) - 1}
-    bd = torchnet.dataset.BatchDataset(d, 108, perm=perm, merge=merge)
-    tdi = scn.threadDatasetIterator(bd)
-
-    def iter():
-        randperm.copy_(torch.randperm(len(d)))
-        return tdi()
-    return iter
-
-
-def val(spatial_size, Scale, precomputeSize):
-    d = pickle.load(open('pickle/test.pickle', 'rb'))
-    d = torchnet.dataset.ListDataset(d)
-    randperm = torch.randperm(len(d))
-
-    def perm(idx, size):
-        return randperm[idx]
-
+            coords=char['coords']
+            coords = torch.mm(coords, m) + torch.FloatTensor(1, 2).uniform_(center-jitter, center+jitter)
+            coords = torch.cat([coords.long(),torch.LongTensor([idx]).expand([coords.size(0),1])],1)
+            locations.append(coords)
+            f=char['features']
+            f=torch.mm(f, m)
+            f /= (f**2).sum(1,keepdim=True)**0.5
+            f = torch.cat([f,torch.ones([f.size(0),1])],1)
+            features.append(f)
+        return {'input': scn.InputLayerInput(torch.cat(locations,0), torch.cat(features,0)), 'target': torch.LongTensor(targets)}
+    return merge
+def TestMergeFn(spatial_size=95):
+    center = spatial_size/2
     def merge(tbl):
-        inp = scn.InputBatch(2, spatial_size)
-        center = spatial_size.float().view(1, 2) / 2
-        p = torch.LongTensor(2)
-        v = torch.FloatTensor([1, 0, 0])
-        for char in tbl['input']:
-            inp.add_sample()
-            for stroke in char:
-                stroke = stroke.float() * (Scale - 0.01) / 255 - 0.5 * (Scale - 0.01)
-                stroke += center.expand_as(stroke)
-                scn.dim_fn(
-                    2,
-                    'drawCurve')(
-                    inp.metadata.ffi,
-                    inp.features,
-                    stroke)
-        inp.precomputeMetadata(precomputeSize)
-        return {'input': inp, 'target': torch.LongTensor(tbl['target']) - 1}
-    bd = torchnet.dataset.BatchDataset(d, 183, perm=perm, merge=merge)
-    tdi = scn.threadDatasetIterator(bd)
-
-    def iter():
-        randperm.copy_(torch.randperm(len(d)))
-        return tdi()
-    return iter
+        v=torch.Tensor([[1,0,0]])
+        targets=[x['target'] for x in tbl]
+        locations=[]
+        features=[]
+        for idx,char in enumerate(tbl):
+            coords=char['coords']+center
+            coords = torch.cat([coords.long(),torch.LongTensor([idx]).expand([coords.size(0),1])],1)
+            locations.append(coords)
+            f=char['features']
+            f = torch.cat([f,torch.ones([f.size(0),1])],1)
+            features.append(f)
+        return {'input': scn.InputLayerInput(torch.cat(locations,0), torch.cat(features,0)), 'target': torch.LongTensor(targets)}
+    return merge
 
 
 def get_iterators(*args):
-    return {'train': train(*args), 'val': val(*args)}
+    return {'train': torch.utils.data.DataLoader(Data('pickle/train.pickle',repeats=10), collate_fn=TrainMergeFn(), batch_size=108, shuffle=True, num_workers=10),
+            'val': torch.utils.data.DataLoader(Data('pickle/test.pickle',repeats=1), collate_fn=TestMergeFn(), batch_size=183, shuffle=True, num_workers=10)}

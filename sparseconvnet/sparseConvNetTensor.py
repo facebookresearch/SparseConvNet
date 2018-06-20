@@ -20,14 +20,8 @@ class SparseConvNetTensor(object):
         "Coordinates and batch index for the active spatial locations"
         if spatial_size is None:
             spatial_size = self.spatial_size
-
         t = torch.LongTensor()
-        dim_fn(
-            self.metadata.dimension,
-            'getSpatialLocations')(
-            self.metadata.ffi,
-            spatial_size,
-            t)
+        self.metadata.getSpatialLocations(spatial_size, t)
         return t
 
     def type(self, t=None):

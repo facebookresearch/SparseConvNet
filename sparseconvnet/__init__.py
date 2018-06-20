@@ -17,7 +17,7 @@ from .dropout import Dropout, BatchwiseDropout
 from .fullConvolution import FullConvolution
 from .identity import Identity
 from .inputBatch import InputBatch
-from .ioLayers import InputLayer, OutputLayer, BLInputLayer, BLOutputLayer
+from .ioLayers import InputLayer, OutputLayer, BLInputLayer, BLOutputLayer, InputLayerInput
 from .maxPooling import MaxPooling
 from .metadata import Metadata
 from .networkArchitectures import *

@@ -28,7 +28,7 @@ class NetworkInNetworkFunction(Function):
                 input_features,
                 output_features,
                 weight,
-                bias if bias is not None else nullptr)
+                bias)
         sparseconvnet.forward_pass_hidden_states += output_features.nelement()
         return output_features
 
@@ -40,6 +40,7 @@ class NetworkInNetworkFunction(Function):
             bias = ctx.saved_tensors
         grad_input = grad_output.new()
         grad_weight = grad_output.new().resize_as_(weight).zero_()
+        grad_bias = torch.zeros_like(bias)
         if bias is None:
             grad_bias = None
         else:
@@ -52,7 +53,7 @@ class NetworkInNetworkFunction(Function):
             input_features,
             grad_output,
             grad_weight,
-            grad_bias if grad_bias is not None else nullptr)
+            grad_bias)
         return grad_input, grad_weight, grad_bias
 
 
@@ -68,8 +69,6 @@ class NetworkInNetwork(Module):
             std))
         if bias:
             self.bias = Parameter(torch.Tensor(nOut).zero_())
-        else:
-            self.bias = None
 
     def forward(self, input):
         assert input.features.nelement() == 0 or input.features.size(1) == self.nIn
@@ -79,7 +78,7 @@ class NetworkInNetwork(Module):
         output.features = NetworkInNetworkFunction.apply(
             input.features,
             self.weight,
-            self.bias)
+            optionalTensor(self, 'bias'))
         return output
 
     def __repr__(self):

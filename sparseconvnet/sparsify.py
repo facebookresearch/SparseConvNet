@@ -29,8 +29,8 @@ class Sparsify(Module):
         output.features=input.features[active]
         active=active.type('torch.LongTensor')
         dim_fn(self.dimension, 'sparsifyMetadata')(
-            input.metadata.ffi,
-            output.metadata.ffi,
+            input.metadata,
+            output.metadata,
             input.spatial_size,
             active.byte(),
             active.cumsum(0))

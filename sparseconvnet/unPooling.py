@@ -35,7 +35,7 @@ class UnPoolingFunction(Function):
             output_spatial_size,
             pool_size,
             pool_stride,
-            input_metadata.ffi,
+            input_metadata,
             input_features,
             output_features,
             nFeaturesToDrop)
@@ -50,7 +50,7 @@ class UnPoolingFunction(Function):
             ctx.output_spatial_size,
             ctx.pool_size,
             ctx.pool_stride,
-            ctx.input_metadata.ffi,
+            ctx.input_metadata,
             ctx.input_features,
             grad_input.data,
             grad_output.data.contiguous(),

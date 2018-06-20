@@ -4,77 +4,34 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os
-import torch
-from torch.utils.ffi import create_extension
+import torch, os
+from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
+from setuptools import setup, find_packages
+
 this_dir = os.path.dirname(os.path.realpath(__file__))
 torch_dir = os.path.dirname(torch.__file__)
+conda_include_dir = '/'.join(torch_dir.split('/')[:-4]) + '/include'
 
-print('Building SCN module')
-if torch.cuda.is_available():
-    s=('cd sparseconvnet/SCN; nvcc init.cu -c -o init.cu.o -ccbin /usr/bin/cc'
-        + ' -m64 --std c++11 -Xcompiler \"-fopenmp -fPIC -O3\" '
-        + '-gencode arch=compute_62,code=sm_62 '
-        + '-gencode arch=compute_61,code=sm_61 '
-        + '-gencode arch=compute_60,code=sm_60 '
-        + '-gencode arch=compute_52,code=sm_52 '
-        + '-gencode arch=compute_50,code=sm_50 '
-        + '-gencode arch=compute_30,code=sm_30 '
-        + '-DNVCC '
-        + '-I/usr/local/cuda/include '
-        + '-I' + '/'.join(torch_dir.split('/')[:-4]) + '/include '
-        + '-I' + torch_dir + '/lib/include '
-        + '-I' + torch_dir + '/lib/include/TH '
-        + '-I' + torch_dir + '/lib/include/THC '
-        + '-I.')
-    r = os.system(s)
-    assert r == 0
-    ffi = create_extension(
-        'sparseconvnet.SCN',
-        headers=[
-            'sparseconvnet/SCN/header_cpu.h',
-            'sparseconvnet/SCN/header_gpu.h'],
-        sources=[],
-        include_dirs=[os.path.expandvars('$CUDA_HOME') + '/include'],
-        extra_objects=[
-            this_dir +
-            '/sparseconvnet/SCN/init.cu.o'],
-        relative_to=__file__,
-        extra_compile_args=["-std=c99"],
-        with_cuda=True)
-else:
-    r = os.system(
-        'cd sparseconvnet/SCN; g++ -fopenmp -std=c++11 -O3 -fPIC -c init.cpp -o init.cpp.o '
-        + '-I' + '/'.join(torch_dir.split('/')[:-4]) + '/include '
-        + '-I' + torch_dir + '/lib/include '
-        + '-I' + torch_dir + '/lib/include/TH '
-        + '-I.')
-    assert r == 0
-    ffi = create_extension(
-        'sparseconvnet.SCN',
-        headers=['sparseconvnet/SCN/header_cpu.h'],
-        sources=[],
-        extra_objects=[
-            this_dir +
-            '/sparseconvnet/SCN/init.cpp.o'],
-        relative_to=__file__,
-        extra_compile_args=["-std=c99"],
-        with_cuda=False)
+extra = {'cxx': ['-std=c++11', '-fopenmp'], 'nvcc': ['-std=c++11', '-Xcompiler', '-fopenmp']}
 
-ffi.build()
-
-from setuptools import setup, find_packages
 setup(
     name='sparseconvnet',
-    version='0.1.1',
+    version='0.2',
     description='Submanifold (Spatially) Sparse Convolutional Networks https://arxiv.org/abs/1706.01307',
     author='Facebook AI Research',
     author_email='benjamingraham@fb.com',
     url='https://github.com/facebookresearch/SparseConvNet',
-    package_data={
-        'sparseconvnet': ['SCN/_SCN.so'],
-    },
-    packages=find_packages(),
-    # Since the package includes a shared object, this is not zip-safe.
+    packages=['sparseconvnet','sparseconvnet.SCN'],
+    ext_modules=[
+      CUDAExtension('sparseconvnet_SCN',
+        ['sparseconvnet/SCN/pybind_cuda.cpp', 'sparseconvnet/SCN/instantiate_cpu.cpp', 'sparseconvnet/SCN/instantiate_cuda.cu'],
+        include_dirs=[conda_include_dir, this_dir+'/sparseconvnet/SCN/'],
+        extra_compile_args=extra)
+      if torch.cuda.is_available()  else
+      CppExtension('sparseconvnet_SCN',
+        ['sparseconvnet/SCN/pybind_cpu.cpp', 'sparseconvnet/SCN/instantiate_cpu.cpp'],
+        include_dirs=[conda_include_dir, this_dir+'/sparseconvnet/SCN/'],
+        extra_compile_args=extra['cxx'])],
+    cmdclass={'build_ext': BuildExtension},
     zip_safe=False,
 )

@@ -5,8 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from torch.nn import Sequential as S
-from .utils import set
-
 
 class Sequential(S):
     def input_spatial_size(self, out_size):

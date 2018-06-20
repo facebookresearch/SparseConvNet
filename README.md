@@ -128,19 +128,19 @@ python VGGplus.py
 
 ## Setup
 
-Tested with Ubuntu 16.04, Python 3 in [Miniconda](https://conda.io/miniconda.html) and PyTorch v0.4 (with merged Tensors/Variables).
+Tested with Ubuntu 16.04, Python 3.6 in [Miniconda](https://conda.io/miniconda.html) and PyTorch v0.4 (with merged Tensors/Variables).
 
 ```
 conda install pytorch -c pytorch
-conda install google-sparsehash -c bioconda # OR apt-get install libsparsehash-dev
+conda install google-sparsehash -c bioconda   # OR apt-get install libsparsehash-dev
+conda install -c anaconda pillow 
 git clone git@github.com:facebookresearch/SparseConvNet.git
-cd SparseConvNet/
-python setup.py install
+cd SparseConvNet/PyTorch/
+bash build.sh
 ```
-To run the examples you may also need to install unrar and TorchNet:
+To run the examples you may also need to install unrar:
 ```
 apt-get install unrar
-pip install git+https://github.com/pytorch/tnt.git@master
 ```
 
 
@@ -154,7 +154,7 @@ pip install git+https://github.com/pytorch/tnt.git@master
 6. [Kaggle Diabetic Retinopathy Detection, 2015](https://www.kaggle.com/c/diabetic-retinopathy-detection/) First place in the Kaggle Diabetic Retinopathy Detection competition.
 7. [Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1706.01307) Introduces deep 'submanifold' SparseConvNets.
 8. [Workshop on Learning to See from 3D Data, 2017](https://shapenet.cs.stanford.edu/iccv17workshop/) First place in the [semantic segmentation](https://shapenet.cs.stanford.edu/iccv17/) competition. [Report](https://arxiv.org/pdf/1710.06104)
-9. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets
+9. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets, CVPR 2018
 
 ### Citations
 

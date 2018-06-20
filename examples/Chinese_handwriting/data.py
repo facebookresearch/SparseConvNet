@@ -10,7 +10,7 @@ import sparseconvnet as scn
 import pickle
 import math
 import random
-import numpy
+import numpy as np
 import os
 
 if not os.path.exists('pickle/'):
@@ -24,95 +24,57 @@ if not os.path.exists('pickle/'):
     os.system('unzip OLHWDB1.1tst_pot.zip -d POT/')
     os.system('python readPotFiles.py')
 
+def interp(sample,x,y):
+    return torch.from_numpy(np.hstack([np.interp(sample.numpy(),x.numpy(),y[:,i].numpy())[:,None] for i in range(y.shape[1])])).float()
+class Data(torch.utils.data.Dataset):
+    def __init__(self,file,scale=63):
+        print('Loading', file, 'and balancing points for scale', scale)
+        torch.utils.data.Dataset.__init__(self)
+        self.data = pickle.load(open(file, 'rb'))
+        for j in range(len(self.data)):
+            strokes=[]
+            features=[]
+            for k,stroke in enumerate(self.data[j]['input']):
+                if len(stroke)>1:
+                    stroke=stroke.float()/255-0.5
+                    stroke*=scale-1e-3
+                    delta=stroke[1:]-stroke[:-1]
+                    mag=(delta**2).sum(1)**0.5
+                    l=mag.cumsum(0)
+                    zl=torch.cat([torch.zeros(1),l])
+                    strokes.append(interp(torch.arange(0,zl[-1]),zl,stroke))
+                    delta/=mag[:,None]
+                    delta=torch.Tensor(delta[[i//2 for i in range(2*len(l))]])
+                    zl_=zl[[i//2 for i in range(1,2*len(l)+1)]]
+                    features.append(interp(torch.arange(0,zl[-1]),zl_,delta))
+            self.data[j]['coords'] = torch.cat(strokes,0)
+            self.data[j]['features'] = torch.cat(features,0)
+        for i, x in enumerate(self.data):
+            x['idx'] = i
+        print('Loaded', len(self.data), 'points')
+    def __getitem__(self,n):
+        return self.data[n]
+    def __len__(self):
+        return len(self.data)
 
-def train(spatial_size, Scale, precomputeSize):
-    d = pickle.load(open('pickle/train.pickle', 'rb'))
-    d = torchnet.dataset.ListDataset(d)
-    randperm = torch.randperm(len(d))
-
-    def perm(idx, size):
-        return randperm[idx]
-
+def MergeFn(spatial_size=63):
+    center = spatial_size/2
     def merge(tbl):
-        inp = scn.InputBatch(2, spatial_size)
-        center = spatial_size.float().view(1, 2) / 2
-        p = torch.LongTensor(2)
-        v = torch.FloatTensor([1, 0, 0])
-        for char in tbl['input']:
-            inp.add_sample()
-            for stroke in char:
-                stroke = stroke.float() * (Scale - 0.01) / 255 - 0.5 * (Scale - 0.01)
-                stroke += center.expand_as(stroke)
-                ###############################################################
-                # To avoid GIL problems use a helper function:
-                scn.dim_fn(
-                    2,
-                    'drawCurve')(
-                    inp.metadata.ffi,
-                    inp.features,
-                    stroke)
-                ###############################################################
-                # Above is equivalent to :
-                # x1,x2,y1,y2,l=0,stroke[0][0],0,stroke[0][1],0
-                # for i in range(1,stroke.size(0)):
-                #     x1=x2
-                #     y1=y2
-                #     x2=stroke[i][0]
-                #     y2=stroke[i][1]
-                #     l=1e-10+((x2-x1)**2+(y2-y1)**2)**0.5
-                #     v[1]=(x2-x1)/l
-                #     v[2]=(y2-y1)/l
-                #     l=max(x2-x1,y2-y1,x1-x2,y1-y2,0.9)
-                #     for j in numpy.arange(0,1,1/l):
-                #         p[0]=math.floor(x1*j+x2*(1-j))
-                #         p[1]=math.floor(y1*j+y2*(1-j))
-                #         inp.set_location(p,v,False)
-                ###############################################################
-        inp.precomputeMetadata(precomputeSize)
-        return {'input': inp, 'target': torch.LongTensor(tbl['target'])}
-    bd = torchnet.dataset.BatchDataset(d, 100, perm=perm, merge=merge)
-    tdi = scn.threadDatasetIterator(bd)
-
-    def iter():
-        randperm.copy_(torch.randperm(len(d)))
-        return tdi()
-    return iter
-
-
-def val(spatial_size, Scale, precomputeSize):
-    d = pickle.load(open('pickle/test.pickle', 'rb'))
-    d = torchnet.dataset.ListDataset(d)
-    randperm = torch.randperm(len(d))
-
-    def perm(idx, size):
-        return randperm[idx]
-
-    def merge(tbl):
-        inp = scn.InputBatch(2, spatial_size)
-        center = spatial_size.float().view(1, 2) / 2
-        p = torch.LongTensor(2)
-        v = torch.FloatTensor([1, 0, 0])
-        for char in tbl['input']:
-            inp.add_sample()
-            for stroke in char:
-                stroke = stroke.float() * (Scale - 0.01) / 255 - 0.5 * (Scale - 0.01)
-                stroke += center.expand_as(stroke)
-                scn.dim_fn(
-                    2,
-                    'drawCurve')(
-                    inp.metadata.ffi,
-                    inp.features,
-                    stroke)
-        inp.precomputeMetadata(precomputeSize)
-        return {'input': inp, 'target': torch.LongTensor(tbl['target'])}
-    bd = torchnet.dataset.BatchDataset(d, 100, perm=perm, merge=merge)
-    tdi = scn.threadDatasetIterator(bd)
-
-    def iter():
-        randperm.copy_(torch.randperm(len(d)))
-        return tdi()
-    return iter
+        v=torch.Tensor([[1,0,0]])
+        targets=[x['target'] for x in tbl]
+        locations=[]
+        features=[]
+        for idx,char in enumerate(tbl):
+            coords=char['coords']+center
+            coords = torch.cat([coords.long(),torch.LongTensor([idx]).expand([coords.size(0),1])],1)
+            locations.append(coords)
+            f=char['features']
+            f = torch.cat([f,torch.ones([f.size(0),1])],1)
+            features.append(f)
+        return {'input': scn.InputLayerInput(torch.cat(locations,0), torch.cat(features,0)), 'target': torch.LongTensor(targets)}
+    return merge
 
 
 def get_iterators(*args):
-    return {'train': train(*args), 'val': val(*args)}
+    return {'train': torch.utils.data.DataLoader(Data('pickle/train.pickle'), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10),
+            'val': torch.utils.data.DataLoader(Data('pickle/test.pickle'), collate_fn=MergeFn(), batch_size=100, shuffle=True, num_workers=10)}

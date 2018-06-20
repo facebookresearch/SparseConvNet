@@ -60,7 +60,7 @@ class DenseToSparseFunction(Function):
         r = (nz * s.expand_as(nz)).sum(1).view(-1)
         output_features = aa.index_select(0, r)
         dim_fn(dimension, 'createMetadataForDenseToSparse')(
-            output_metadata.ffi,
+            output_metadata,
             output_spatial_size,
             nz.cpu(),
             input.size(0))
@@ -70,8 +70,6 @@ class DenseToSparseFunction(Function):
     @staticmethod
     def backward(ctx, grad_output):
         output_features, r = ctx.saved_tensors
-        print(r)
-        print(grad_output)
         grad_input = grad_output.new().resize_(
             ctx.aas2).zero_().index_copy_(0, r, grad_output)
         grad_input = grad_input.view(ctx.aas).permute(

@@ -53,9 +53,12 @@ def ClassificationTrainValidate(model, dataset, p):
         p['momentum'] = 0.9
     if 'check_point' not in p:
         p['check_point'] = False
-    if 'use_gpu' not in p:
-        p['use_gpu'] = torch.cuda.is_available()
-    if p['use_gpu']:
+    if 'use_gpu' in p:
+        p['use_cuda']=p['use_gpu'] #Back compatibility
+        del p['use_gpu']
+    if 'use_cuda' not in p:
+        p['use_cuda'] = torch.cuda.is_available()
+    if p['use_cuda']:
         model.cuda()
     if 'test_reps' not in p:
         p['test_reps'] = 1
@@ -81,8 +84,8 @@ def ClassificationTrainValidate(model, dataset, p):
             param_group['lr'] = p['initial_lr'] * \
                 math.exp((1 - epoch) * p['lr_decay'])
         start = time.time()
-        for batch in dataset['train']():
-            if p['use_gpu']:
+        for batch in dataset['train']:
+            if p['use_cuda']:
                 batch['input'] = batch['input'].cuda()
                 batch['target'] = batch['target'].cuda()
             optimizer.zero_grad()
@@ -116,8 +119,8 @@ def ClassificationTrainValidate(model, dataset, p):
         start = time.time()
         if p['test_reps'] == 1:
             stats = {}
-            for batch in dataset['val']():
-                if p['use_gpu']:
+            for batch in dataset['val']:
+                if p['use_cuda']:
                     batch['input'] = batch['input'].cuda()
                     batch['target'] = batch['target'].cuda()
                 output = model(batch['input'])
@@ -144,7 +147,7 @@ def ClassificationTrainValidate(model, dataset, p):
                 ta = []
                 idxs = []
                 for batch in dataset['val']():
-                    if p['use_gpu']:
+                    if p['use_cuda']:
                         batch['input'] = batch['input'].cuda()
                         batch['target'] = batch['target'].cuda()
                         batch['idx'] = batch['idx'].cuda()

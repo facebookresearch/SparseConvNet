@@ -48,10 +48,10 @@ p['lr_decay'] = 4e-2
 p['weight_decay'] = 1e-4
 p['momentum'] = 0.9
 p['check_point'] = True
-p['use_gpu'] = torch.cuda.is_available()
-dtype = 'torch.cuda.FloatTensor' if p['use_gpu'] else 'torch.FloatTensor'
-dtypei = 'torch.cuda.LongTensor' if p['use_gpu'] else 'torch.LongTensor'
-if p['use_gpu']:
+p['use_cuda'] = torch.cuda.is_available()
+dtype = 'torch.cuda.FloatTensor' if p['use_cuda'] else 'torch.FloatTensor'
+dtypei = 'torch.cuda.LongTensor' if p['use_cuda'] else 'torch.LongTensor'
+if p['use_cuda']:
     model.cuda()
     criterion.cuda()
 optimizer = optim.SGD(model.parameters(),

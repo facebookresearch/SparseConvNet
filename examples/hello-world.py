@@ -8,7 +8,7 @@ import torch
 import sparseconvnet as scn
 
 # Use the GPU if there is one, otherwise CPU
-use_gpu = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available()
 
 model = scn.Sequential().add(
     scn.SparseVggNet(2, 1,
@@ -22,7 +22,7 @@ model = scn.Sequential().add(
 ).add(
     scn.SparseToDense(2, 32)
 )
-if use_gpu:
+if use_cuda:
     model.cuda()
 
 # output will be 10x10
@@ -67,7 +67,7 @@ input.set_locations(locations, features, 0)
 input.precomputeMetadata(3)
 
 model.train()
-if use_gpu:
+if use_cuda:
     input.cuda()
 output = model.forward(input)
 

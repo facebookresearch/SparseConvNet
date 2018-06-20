@@ -17,21 +17,19 @@ class InputBatch(SparseConvNetTensor):
         self.spatial_size = toLongTensor(dimension, spatial_size)
         self.features = torch.FloatTensor()
         self.metadata = Metadata(dimension)
-        dim_fn(dimension, 'setInputSpatialSize')(
-            self.metadata.ffi, self.spatial_size)
+        self.metadata.setInputSpatialSize(self.spatial_size)
 
     def add_sample(self):
-        dim_fn(self.dimension, 'batchAddSample')(
-            self.metadata.ffi)
+        self.metadata.batchAddSample()
 
     def set_location(self, location, vector, overwrite=False):
         assert location.min() >= 0 and (self.spatial_size - location).min() > 0
-        dim_fn(self.dimension, 'setInputSpatialLocation')(
-            self.metadata.ffi, self.features, location, vector, overwrite)
+        self.metadata.setInputSpatialLocation(
+            self.features, location, vector, overwrite)
 
     def set_location_(self, location, vector, overwrite=False):
-        dim_fn(self.dimension, 'setInputSpatialLocation')(
-            self.metadata.ffi, self.features, location, vector, overwrite)
+        self.metadata.setInputSpatialLocation(
+            self.features, location, vector, overwrite)
 
     def set_locations(self, locations, vectors, overwrite=False):
         """
@@ -41,7 +39,7 @@ class InputBatch(SparseConvNetTensor):
         - A size (n,d+1) LongTensor; the extra column specifies the sample
           number (within the minibatch of samples).
 
-          Example with d=3 and n=2:
+          Example with d==3 and n==2:
           Set
           locations = LongTensor([[1,2,3],
                                   [4,5,6]])
@@ -54,18 +52,15 @@ class InputBatch(SparseConvNetTensor):
         """
         l = locations[:, :self.dimension]
         assert l.min() >= 0 and (self.spatial_size.expand_as(l) - l).min() > 0
-        dim_fn(self.dimension, 'setInputSpatialLocations')(
-            self.metadata.ffi, self.features, locations, vectors, overwrite)
+        self.metadata.setInputSpatialLocations(
+            self.features, locations, vectors, overwrite)
 
     def set_locations_(self, locations, vector, overwrite=False):
-        dim_fn(self.dimension, 'setInputSpatialLocations')(
-            self.metadata.ffi, self.features, locations, vectors, overwrite)
+        self.metadata.setInputSpatialLocations(
+            self.features, locations, vectors, overwrite)
 
     def add_sample_from_tensor(self, tensor, offset, threshold=0):
-        self.nActive = dim_fn(
-            self.dimension,
-            'addSampleFromThresholdedTensor')(
-            self.metadata.ffi,
+        self.metadata.addSampleFromThresholdedTensor(
             self.features,
             tensor,
             offset,
@@ -80,39 +75,35 @@ class InputBatch(SparseConvNetTensor):
         Use size == 3 if downsizing with size-3 stride-2 operations
         """
         if size == 2:
-            dim_fn(self.dimension, 'generateRuleBooks2s2')(self.metadata.ffi)
+            self.metadata.generateRuleBooks2s2(self.metadata)
         if size == 3 :
-            dim_fn(self.dimension, 'generateRuleBooks3s2')(self.metadata.ffi)
+            self.metadata.generateRuleBooks3s2(self.metadata)
 
     "Deprecated method names."
     def addSample(self):
-        dim_fn(self.dimension, 'batchAddSample')(
-            self.metadata.ffi)
+        self.metadata.batchAddSample()
 
     def setLocation(self, location, vector, overwrite=False):
         assert location.min() >= 0 and (self.spatial_size - location).min() > 0
-        dim_fn(self.dimension, 'setInputSpatialLocation')(
-            self.metadata.ffi, self.features, location, vector, overwrite)
+        self.metadata.setInputSpatialLocation(
+            self.features, location, vector, overwrite)
 
     def setLocation_(self, location, vector, overwrite=False):
-        dim_fn(self.dimension, 'setInputSpatialLocation')(
-            self.metadata.ffi, self.features, location, vector, overwrite)
+        self.metadata.setInputSpatialLocation(
+            self.features, location, vector, overwrite)
 
     def setLocations(self, locations, vectors, overwrite=False):
         l = locations[:, :self.dimension]
         assert l.min() >= 0 and (self.spatial_size.expand_as(l) - l).min() > 0
-        dim_fn(self.dimension, 'setInputSpatialLocations')(
-            self.metadata.ffi, self.features, locations, vectors, overwrite)
+        self.metadata.setInputSpatialLocations(
+            self.features, locations, vectors, overwrite)
 
     def setLocations_(self, locations, vector, overwrite=False):
-        dim_fn(self.dimension, 'setInputSpatialLocations')(
-            self.metadata.ffi, self.features, locations, vectors, overwrite)
+        self.metadata.setInputSpatialLocations(
+            self.features, locations, vectors, overwrite)
 
     def addSampleFromTensor(self, tensor, offset, threshold=0):
-        self.nActive = dim_fn(
-            self.dimension,
-            'addSampleFromThresholdedTensor')(
-            self.metadata.ffi,
+        self.metadata.addSampleFromThresholdedTensor(
             self.features,
             tensor,
             offset,
@@ -127,6 +118,6 @@ class InputBatch(SparseConvNetTensor):
         Use size == 3 if downsizing with size-3 stride-2 operations
         """
         if size == 2:
-            dim_fn(self.dimension, 'generateRuleBooks2s2')(self.metadata.ffi)
+            self.metadata.generateRuleBooks2s2()
         if size == 3 :
-            dim_fn(self.dimension, 'generateRuleBooks3s2')(self.metadata.ffi)
+            self.metadata.generateRuleBooks3s2()

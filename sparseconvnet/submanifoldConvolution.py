@@ -22,12 +22,10 @@ class SubmanifoldConvolution(Module):
         self.filter_volume = self.filter_size.prod().item()
         std = (2.0 / nIn / self.filter_volume)**0.5
         self.weight = Parameter(torch.Tensor(
-            nIn * self.filter_volume, nOut
+            self.filter_volume, nIn, nOut
         ).normal_(0, std))
         if bias:
             self.bias = Parameter(torch.Tensor(nOut).zero_())
-        else:
-            self.bias = None
 
     def forward(self, input):
         assert input.features.nelement() == 0 or input.features.size(1) == self.nIn
@@ -37,7 +35,7 @@ class SubmanifoldConvolution(Module):
         output.features = SubmanifoldConvolutionFunction.apply(
             input.features,
             self.weight,
-            self.bias,
+            optionalTensor(self, 'bias'),
             input.metadata,
             input.spatial_size,
             self.dimension,
@@ -83,18 +81,17 @@ class SubmanifoldConvolutionFunction(Function):
             weight,
             bias,
             filter_size)
+
         sparseconvnet.forward_pass_multiplyAdd_count +=\
             dim_typed_fn(
                 dimension, input_features, 'SubmanifoldConvolution_updateOutput')(
                 spatial_size,
                 filter_size,
-                input_metadata.ffi,
+                input_metadata,
                 input_features,
                 output_features,
                 weight,
-                bias if bias is not None else nullptr,
-                0,  # remove this parameter!!
-                )
+                bias)
         sparseconvnet.forward_pass_hidden_states += output_features.nelement()
         return output_features
 
@@ -102,22 +99,17 @@ class SubmanifoldConvolutionFunction(Function):
     def backward(ctx, grad_output):
         input_features, spatial_size, weight, bias, filter_size = ctx.saved_tensors
         grad_input = grad_output.new()
-        grad_weight = grad_output.new().resize_as_(weight).zero_()
-        if bias is None:
-            grad_bias = None
-        else:
-            grad_bias = grad_output.new().resize_as_(bias).zero_()
+        grad_weight = torch.zeros_like(weight)
+        grad_bias = torch.zeros_like(bias)
         dim_typed_fn(
             ctx.dimension, input_features, 'SubmanifoldConvolution_backward')(
             spatial_size,
             filter_size,
-            ctx.input_metadata.ffi,
+            ctx.input_metadata,
             input_features,
             grad_input,
             grad_output.contiguous(),
             weight,
             grad_weight,
-            grad_bias if grad_bias is not None else nullptr,
-            0,  # remove this parameter
-            )
-        return grad_input, grad_weight, grad_bias, None, None, None, None
+            grad_bias)
+        return grad_input, grad_weight, optionalTensorReturn(grad_bias), None, None, None, None

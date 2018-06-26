@@ -59,8 +59,7 @@ class DenseToSparseFunction(Function):
         ctx.aas2 = aa.size()
         r = (nz * s.expand_as(nz)).sum(1).view(-1)
         output_features = aa.index_select(0, r)
-        dim_fn(dimension, 'createMetadataForDenseToSparse')(
-            output_metadata,
+        output_metadata.createMetadataForDenseToSparse(
             output_spatial_size,
             nz.cpu(),
             input.size(0))

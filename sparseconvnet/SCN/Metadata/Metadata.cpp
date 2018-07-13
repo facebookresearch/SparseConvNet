@@ -55,7 +55,7 @@ template <Int dimension> void Metadata<dimension>::clear() {
   inputLayerRuleBook.clear();
   validRuleBooks.clear();
   ruleBooks.clear();
-  fullConvolutionRuleBooks.clear();
+  fullConvolutionRuleBook.clear();
   sparseToDenseRuleBooks.clear();
   inputSGs = nullptr;
   inputSG = nullptr;
@@ -238,6 +238,53 @@ void Metadata<dimension>::sparsifyMetadata(Metadata<dimension> &mOut,
   }
 }
 
+template <Int dimension>
+void Metadata<dimension>::appendMetadata(Metadata<dimension> &mAdd,
+                                         /*long*/ at::Tensor spatialSize) {
+  auto p = LongTensorToPoint<dimension>(spatialSize);
+  auto &sgs1 = grids[p];
+  auto &sgs2 = mAdd.grids[p];
+  auto &nActive1 = nActive[p];
+  auto &nActive2 = mAdd.nActive[p];
+  Int bs1 = sgs1.size();
+  Int bs2 = sgs2.size();
+  sgs1.insert(sgs1.end(), sgs2.begin(), sgs2.end());
+  for (Int i = bs1; i < bs1 + bs2; ++i)
+    sgs1[i].ctr += nActive1;
+  nActive1 += nActive2;
+}
+
+template <Int dimension>
+at::Tensor
+Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mReference,
+                                     Metadata<dimension> &mSparsified,
+                                     /*long*/ at::Tensor spatialSize) {
+  auto p = LongTensorToPoint<dimension>(spatialSize);
+  at::Tensor delta = torch::CPU(at::kFloat).zeros(nActive[p]);
+  float *deltaPtr = delta.data<float>();
+  auto &sgsReference = mReference.grids[p];
+  auto &sgsFull = grids[p];
+  auto &sgsSparsified = mSparsified.grids[p];
+  Int batchSize = sgsFull.size();
+  Int sample;
+
+#pragma omp parallel for private(sample)
+  for (sample = 0; sample < (Int)batchSize; ++sample) {
+    auto &sgReference = sgsReference[sample];
+    auto &sgFull = sgsFull[sample];
+    auto &sgSparsified = sgsSparsified[sample];
+    for (auto const &iter : sgFull.mp) {
+      bool gt = sgReference.mp.find(iter.first) != sgReference.mp.end();
+      bool hot = sgSparsified.mp.find(iter.first) != sgSparsified.mp.end();
+      if (gt and not hot)
+        deltaPtr[iter.second + sgFull.ctr] = -1;
+      if (hot and not gt)
+        deltaPtr[iter.second + sgFull.ctr] = +1;
+    }
+  }
+  return delta;
+}
+
 // tensor is size[0] x .. x size[dimension-1] x size[dimension]
 // size[0] x .. x size[dimension-1] == spatial volume
 // size[dimension] == #feature planes
@@ -383,10 +430,9 @@ void Metadata<dimension>::blLayer(/*long*/ at::Tensor spatialSize,
                      coords.size(0), coords.size(1), mode, *inputNActive);
 }
 template <Int dimension>
-RuleBook &
-Metadata<dimension>::getSubmanifoldRuleBook(/*long*/ at::Tensor spatialSize,
-                                            /*long*/ at::Tensor size,
-                                            bool openMP) {
+RuleBook &Metadata<dimension>::getSubmanifoldRuleBook(
+    /*long*/ at::Tensor spatialSize,
+    /*long*/ at::Tensor size, bool openMP) {
   auto p = TwoLongTensorsToPoint<dimension>(spatialSize, size);
   auto &rb = validRuleBooks[p];
   if (rb.empty()) {
@@ -399,8 +445,8 @@ Metadata<dimension>::getSubmanifoldRuleBook(/*long*/ at::Tensor spatialSize,
   return rb;
 }
 template <Int dimension>
-RuleBook &
-Metadata<dimension>::getActivePoolingRuleBook(/*long*/ at::Tensor spatialSize) {
+RuleBook &Metadata<dimension>::getActivePoolingRuleBook(
+    /*long*/ at::Tensor spatialSize) {
   auto spatialSz = LongTensorToPoint<dimension>(spatialSize);
   auto &SGs = grids[spatialSz];
   auto &rb = activePoolingRuleBooks[spatialSz];
@@ -409,9 +455,8 @@ Metadata<dimension>::getActivePoolingRuleBook(/*long*/ at::Tensor spatialSize) {
   return rb;
 }
 template <Int dimension>
-RuleBook &
-Metadata<dimension>::getSparseToDenseRuleBook(/*long*/ at::Tensor spatialSize,
-                                              bool openMP) {
+RuleBook &Metadata<dimension>::getSparseToDenseRuleBook(
+    /*long*/ at::Tensor spatialSize, bool openMP) {
   auto ss = LongTensorToPoint<dimension>(spatialSize);
   auto &SGs = grids[ss];
   auto &rb = sparseToDenseRuleBooks[ss];
@@ -426,11 +471,11 @@ Metadata<dimension>::getSparseToDenseRuleBook(/*long*/ at::Tensor spatialSize,
   return rb;
 }
 template <Int dimension>
-RuleBook &
-Metadata<dimension>::getRuleBook(/*long*/ at::Tensor inputSpatialSize,
-                                 /*long*/ at::Tensor outputSpatialSize,
-                                 /*long*/ at::Tensor size,
-                                 /*long*/ at::Tensor stride, bool openMP) {
+RuleBook &Metadata<dimension>::getRuleBook(
+    /*long*/ at::Tensor inputSpatialSize,
+    /*long*/ at::Tensor outputSpatialSize,
+    /*long*/ at::Tensor size,
+    /*long*/ at::Tensor stride, bool openMP) {
   auto p = ThreeLongTensorsToPoint<dimension>(inputSpatialSize, size, stride);
   auto &rb = ruleBooks[p];
   if (rb.empty()) {
@@ -458,8 +503,7 @@ RuleBook &Metadata<dimension>::getFullConvolutionRuleBook(
     /*long*/ at::Tensor outputSpatialSize,
     /*long*/ at::Tensor size,
     /*long*/ at::Tensor stride, Metadata<dimension> &newM) {
-  auto p = ThreeLongTensorsToPoint<dimension>(inputSpatialSize, size, stride);
-  auto &rb = fullConvolutionRuleBooks[p];
+  auto &rb = newM.fullConvolutionRuleBook;
   if (rb.empty()) {
     newM.clear();
     auto iS = LongTensorToPoint<dimension>(inputSpatialSize);

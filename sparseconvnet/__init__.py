@@ -28,10 +28,11 @@ from .sequential import Sequential
 from .sparseConvNetTensor import SparseConvNetTensor
 from .sparseToDense import SparseToDense
 from .sparsify import Sparsify
+from .spectral_norm import spectral_norm
 from .submanifoldConvolution import SubmanifoldConvolution, ValidConvolution
 from .tables import *
 from .unPooling import UnPooling
-
+from .utils import appendSparseConvTensors
 
 def concatenate_feature_planes(input):
     output = SparseConvNetTensor()

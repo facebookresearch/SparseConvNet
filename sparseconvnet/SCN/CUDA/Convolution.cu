@@ -4,315 +4,649 @@
 // This source code is licensed under the license found in the
 // LICENSE file in the root directory of this source tree.
 
-#include "Convolution.h"
 #include "RuleBookIterator.h"
 
-template <typename T, Int Dimension>
-double cuda_Convolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, /*cuda float*/ at::Tensor weight,
-    /*cuda float*/ at::Tensor bias) {
+template <typename T>
+__global__ void Convolution_fp_bias_(T *output_features, T *bias, Int nPlanes,
+                                     Int nActive) {
+  Int n = blockIdx.x * 32 + threadIdx.x;
+  T b = bias[n];
+  output_features += n;
+  for (Int row = blockIdx.y; row < nActive; row += gridDim.y) {
+    output_features[row * nPlanes] = b;
+  }
+}
 
-  auto _rules =
-      m.getRuleBook(inputSize, outputSize, filterSize, filterStride, true);
-  Int nActive = m.getNActive(outputSize);
-  output_features.resize_({nActive, weight.size(2)});
-  if (not bias.numel())
-    output_features.zero_();
+template <typename T>
+void Convolution_fp_bias(T *oF, T *b, Int nPlanes, Int nActive) {
+  if (nPlanes / 32 > 0)
+    Convolution_fp_bias_<<<dim3(nPlanes / 32, 4096), 32>>>(oF, b, nPlanes,
+                                                           nActive);
+  if (nPlanes % 32 > 0) {
+    Int o = nPlanes / 32 * 32;
+    Convolution_fp_bias_<<<dim3(1, 4096), nPlanes - o>>>(oF + o, b + o, nPlanes,
+                                                         nActive);
+  }
+}
 
-  double flops = 0;
-  if (nActive) {
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int ip = input_features.size(1);
-    Int op = output_features.size(1);
-    auto w = weight.data<T>();
+template <typename T>
+__global__ void dColumnSum(T *matrix, T *target, Int nRows, Int nColumns,
+                           Int nCOLUMNS) {
+  Int i = blockIdx.x * 32 + threadIdx.x;
+  T t = 0;
+  for (Int j = blockIdx.y; j < nRows; j += 32)
+    t += matrix[j * nCOLUMNS + i];
+  atomicAdd(&target[i], t);
+}
+template <typename T>
+void Convolution_bp_bias(T *matrix, T *target, Int nRows, Int nColumns,
+                         Int nCOLUMNS) {
+  if (nColumns / 32 > 0)
+    dColumnSum<<<dim3(nColumns / 32, 32), 32>>>(matrix, target, nRows, nColumns,
+                                                nCOLUMNS);
+  if (nColumns % 32 > 0) {
+    Int o = nColumns / 32 * 32;
+    dColumnSum<<<dim3(1, 32), nColumns - o>>>(matrix + o, target + o, nRows,
+                                              nColumns, nCOLUMNS);
+  }
+}
 
-    if (bias.numel()) {
-      auto b = bias.data<T>();
-      for (Int i = 0; i < op; i += 32) {
-        Int blockDim = min((Int)32, op - i);
-        Int gridDim = min((Int)4096, nActive);
-        Convolution_fp_bias<<<gridDim, blockDim>>>(oF + i, b + i, op, op,
-                                                   nActive);
+template <typename T, Int K, Int V>
+__global__ void
+dConvolution_KMxKN_forwardA(T *inFeatures, T *outFeatures, T *w, Int *rules,
+                            Int nHot, Int input_nPlanes, Int input_stride,
+                            Int output_nPlanes, Int output_stride) {
+  // nHot must be a multiple of K!!
+
+  // Input x Weight -> Output
+  // blockDim=(K,K/V,1), gridDim=(nBlocks,N,1) Volkov-blocks
+  // K is a multiple of V,
+
+  // nHot x KM -> nHot x KN - parallel over N,nHot - loop over M
+
+  Int M = input_nPlanes / K;
+  // N = gridDim.y == output_nPlanes/K
+  Int n = blockIdx.y;
+  outFeatures += n * K;
+  w += n * K;
+
+  T O[V];
+  __shared__ T W[K][K];
+  __shared__ T I[K][K];
+  Int R0[V];
+  Int R1[V];
+  const int tx = threadIdx.x;
+  int ty[V];
+#pragma unroll
+  for (int v = 0; v < V; v++)
+    ty[v] = threadIdx.y + v * (K / V);
+
+  for (int m = 0; m < M; m++) {
+// Read w
+#pragma unroll
+    for (int v = 0; v < V; v++)
+      W[ty[v]][tx] = w[ty[v] * output_nPlanes + tx];
+
+    for (Int s = blockIdx.x * K; s < nHot; s += K * gridDim.x) {
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        R0[v] = rules[2 * (s + ty[v])];
+        R1[v] = rules[2 * (s + ty[v]) + 1];
       }
-    }
-    Int c = ip * op;
-    RULEBOOKITERATOR(
-        dConvolution_forward2<T>(iF, oF, w, rbB, nHotB, ip, ip, op, op);
-        , w += c; flops += nHotB * c;)
-  }
-  return flops;
-}
+      __syncthreads();
 
-template <typename T, Int Dimension>
-void cuda_Convolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features,
-    /*cuda float*/ at::Tensor weight, /*cuda float*/ at::Tensor d_weight,
-    /*cuda float*/ at::Tensor d_bias) {
-
-  auto _rules =
-      m.getRuleBook(inputSize, outputSize, filterSize, filterStride, true);
-  Int nActive = m.getNActive(outputSize);
-  d_input_features.resize_as_(input_features);
-  d_input_features.zero_();
-
-  if (nActive) {
-    auto iF = input_features.data<T>();
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int ip = input_features.size(1);
-    Int op = d_output_features.size(1);
-    auto w = weight.data<T>();
-    auto dw = d_weight.data<T>();
-    Int c = ip * op;
-    RULEBOOKITERATOR(dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, rbB,
-                                                  nHotB, ip, ip, op, op);
-                     , w += c; dw += c;)
-
-    if (d_bias.numel()) {
-      auto db = d_bias.data<T>();
-      Convolution_bp_bias(doF, db, op, op, nActive);
-    }
-  }
-}
-
-template <typename T, Int Dimension>
-double cuda_SubmanifoldConvolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor filterSize,
-    Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, /*cuda float*/ at::Tensor weight,
-    /*cuda float*/ at::Tensor bias) {
-
-  auto _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
-  Int nActive = m.getNActive(inputSize);
-  output_features.resize_({nActive, weight.size(2)});
-  if (bias.numel() and nActive)
-    output_features.copy_(bias);
-  else
-    output_features.zero_();
-
-  double flops = 0;
-  if (nActive) {
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int ip = input_features.size(1);
-    Int op = output_features.size(1);
-    auto w = weight.data<T>();
-
-    // if (bias.numel()) {
-    //   auto b = bias.data<T>();
-    //   for (Int i = 0; i < op; i += 32) {
-    //     Int blockDim = min((Int)32, op - i);
-    //     Int gridDim = min((Int)4096, nActive);
-    //     Convolution_fp_bias<<<gridDim, blockDim>>>(oF + i, b + i, op, op,
-    //                                                nActive);
-    //   }
-    // }
-    Int c = ip * op;
-    RULEBOOKITERATOR(
-        dConvolution_forward2<T>(iF, oF, w, rbB, nHotB, ip, ip, op, op);
-        , w += c; flops += nHotB * c;)
-  }
-  return flops;
-}
-
-template <typename T, Int Dimension>
-void cuda_SubmanifoldConvolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor filterSize,
-    Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features,
-    /*cuda float*/ at::Tensor weight, /*cuda float*/ at::Tensor d_weight,
-    /*cuda float*/ at::Tensor d_bias) {
-
-  auto _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
-  Int nActive = m.getNActive(inputSize);
-  d_input_features.resize_as_(input_features);
-  d_input_features.zero_();
-
-  if (nActive) {
-    auto iF = input_features.data<T>();
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int ip = input_features.size(1);
-    Int op = d_output_features.size(1);
-    auto w = weight.data<T>();
-    auto dw = d_weight.data<T>();
-    Int c = ip * op;
-    RULEBOOKITERATOR(dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, rbB,
-                                                  nHotB, ip, ip, op, op);
-                     , w += c; dw += c;)
-
-    if (d_bias.numel()) {
-      auto db = d_bias.data<T>();
-      Convolution_bp_bias(doF, db, op, op, nActive);
-    }
-  }
-}
-
-template <typename T, Int Dimension>
-double cuda_FullConvolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &mIn,
-    Metadata<Dimension> &mOut,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, /*cuda float*/ at::Tensor weight,
-    /*cuda float*/ at::Tensor bias) {
-
-  auto _rules = mIn.getFullConvolutionRuleBook(inputSize, outputSize,
-                                               filterSize, filterStride, mOut);
-  Int nActive = mOut.getNActive(outputSize);
-  output_features.resize_({nActive, weight.size(2)});
-  if (not bias.numel())
-    output_features.zero_();
-  double flops = 0;
-
-  if (nActive) {
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int ip = input_features.size(1);
-    Int op = output_features.size(1);
-    auto w = weight.data<T>();
-
-    if (bias.numel()) {
-      auto b = bias.data<T>();
-      for (Int i = 0; i < op; i += 32) {
-        Int blockDim = min((Int)32, op - i);
-        Int gridDim = min((Int)4096, nActive);
-        Convolution_fp_bias<<<gridDim, blockDim>>>(oF + i, b + i, op, op,
-                                                   nActive);
+// Read input, reset O[]
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        I[ty[v]][tx] = inFeatures[R0[v] * input_stride + tx];
+        O[v] = 0;
       }
+      __syncthreads();
+
+#pragma unroll
+      for (int k = 0; k < K; k++)
+#pragma unroll
+        for (int v = 0; v < V; v++)
+          O[v] += I[ty[v]][k] * W[k][tx];
+
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        O[v] += outFeatures[R1[v] * output_stride + tx];
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        outFeatures[R1[v] * output_stride + tx] = O[v];
+      __syncthreads();
     }
-    Int c = ip * op;
-    RULEBOOKITERATOR(
-        dConvolution_forward2<T>(iF, oF, w, rbB, nHotB, ip, ip, op, op);
-        , w += c; flops += nHotB * c;)
-  }
-  return flops;
-}
-
-template <typename T, Int Dimension>
-void cuda_FullConvolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &mIn,
-    Metadata<Dimension> &mOut,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features,
-    /*cuda float*/ at::Tensor weight, /*cuda float*/ at::Tensor d_weight,
-    /*cuda float*/ at::Tensor d_bias) {
-
-  auto _rules = mIn.getFullConvolutionRuleBook(inputSize, outputSize,
-                                               filterSize, filterStride, mOut);
-  Int nActive = mOut.getNActive(outputSize);
-  d_input_features.resize_as_(input_features);
-  d_input_features.zero_();
-  if (nActive) {
-    auto iF = input_features.data<T>();
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int ip = input_features.size(1);
-    Int op = d_output_features.size(1);
-    auto w = weight.data<T>();
-    auto dw = d_weight.data<T>();
-    Int c = ip * op;
-    RULEBOOKITERATOR(dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, rbB,
-                                                  nHotB, ip, ip, op, op);
-                     , w += c; dw += c;)
-
-    if (d_bias.numel()) {
-      auto db = d_bias.data<T>();
-      Convolution_bp_bias(doF, db, op, op, nActive);
-    }
+    w += K * output_nPlanes;
+    inFeatures += K;
   }
 }
-template <typename T, Int Dimension>
-double cuda_RandomizedStrideConvolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features,
-    /*cuda float*/ at::Tensor weight, /*cuda float*/ at::Tensor bias) {
+template <typename T, Int K, Int V>
+__global__ void
+dConvolution_KMxKN_forwardB(T *inFeatures, T *outFeatures, T *w, Int *rules,
+                            Int nHot, Int input_nPlanes, Int input_stride,
+                            Int output_nPlanes, Int output_stride) {
+  // Input x Weight -> Output
+  // blockDim=(K,K/V,1), gridDim=(nBlocks,N,1) Volkov-blocks
+  // K is a multiple of V,
 
-  auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, filterSize,
-                                              filterStride, true);
-  Int nActive = m.getNActive(outputSize);
-  output_features.resize_({nActive, weight.size(2)});
-  if (not bias.numel())
-    output_features.zero_();
+  // nHot x KM -> nHot x KN - parallel over N,nHot - loop over M
 
-  double flops = 0;
-  if (nActive) {
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int ip = input_features.size(1);
-    Int op = output_features.size(1);
-    auto w = weight.data<T>();
+  Int M = input_nPlanes / K;
+  // N = gridDim.y == output_nPlanes/K
+  Int n = blockIdx.y;
+  outFeatures += n * K;
+  w += n * K;
 
-    if (bias.numel()) {
-      auto b = bias.data<T>();
-      for (Int i = 0; i < op; i += 32) {
-        Int blockDim = min((Int)32, op - i);
-        Int gridDim = min((Int)4096, nActive);
-        Convolution_fp_bias<<<gridDim, blockDim>>>(oF + i, b + i, op, op,
-                                                   nActive);
+  T O[V];
+  __shared__ T W[K][K];
+  __shared__ T I[K][K];
+  Int R0[V];
+  Int R1[V];
+  const int tx = threadIdx.x;
+  int ty[V];
+#pragma unroll
+  for (int v = 0; v < V; v++)
+    ty[v] = threadIdx.y + v * (K / V);
+
+  for (int m = 0; m < M; m++) {
+// Read w
+#pragma unroll
+    for (int v = 0; v < V; v++)
+      W[ty[v]][tx] = w[ty[v] * output_nPlanes + tx];
+
+    for (Int s = blockIdx.x * K; s < nHot; s += K * gridDim.x) {
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        if (s + ty[v] < nHot) {
+          R0[v] = rules[2 * (s + ty[v])];
+          R1[v] = rules[2 * (s + ty[v]) + 1];
+        }
       }
+      __syncthreads();
+
+// Read input, reset O[]
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        if (s + ty[v] < nHot)
+          I[ty[v]][tx] = inFeatures[R0[v] * input_stride + tx];
+        O[v] = 0;
+      }
+      __syncthreads();
+
+#pragma unroll
+      for (int k = 0; k < K; k++)
+#pragma unroll
+        for (int v = 0; v < V; v++)
+          O[v] += I[ty[v]][k] * W[k][tx];
+
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        if (s + ty[v] < nHot)
+          O[v] += outFeatures[R1[v] * output_stride + tx];
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        if (s + ty[v] < nHot)
+          outFeatures[R1[v] * output_stride + tx] = O[v];
+      __syncthreads();
     }
-    Int c = ip * op;
+    w += K * output_nPlanes;
+    inFeatures += K;
+  }
+}
+
+#define FOO(T, K, V)                                                           \
+  {                                                                            \
+    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {                  \
+      Int o = (nHot / K) * K;                                                  \
+      if (o >= K)                                                              \
+        dConvolution_KMxKN_forwardA<                                           \
+            T, K, V><<<dim3(std::min(o / K, (Int)512), output_nPlanes / K),    \
+                       dim3(K, K / V)>>>(inFeatures, outFeatures, w, rules, o, \
+                                         input_nPlanes, input_stride,          \
+                                         output_nPlanes, output_stride);       \
+      if (nHot > o)                                                            \
+        dConvolution_KMxKN_forwardB<                                           \
+            T, K, V><<<dim3(1, output_nPlanes / K), dim3(K, K / V)>>>(         \
+            inFeatures, outFeatures, w, rules + 2 * o, nHot - o,               \
+            input_nPlanes, input_stride, output_nPlanes, output_stride);       \
+      return;                                                                  \
+    }                                                                          \
+  }
+
+template <typename T>
+void dConvolution_forward(T *inFeatures, T *outFeatures, T *w, Int *rules,
+                          Int nHot, Int input_nPlanes, Int input_stride,
+                          Int output_nPlanes, Int output_stride) {
+  FOO(T, 64, 16)
+  FOO(T, 32, 8)
+  FOO(T, 16, 4)
+  FOO(T, 8, 2)
+  assert(false);
+}
+template <>
+void dConvolution_forward<double>(double *inFeatures, double *outFeatures,
+                                  double *w, Int *rules, Int nHot,
+                                  Int input_nPlanes, Int input_stride,
+                                  Int output_nPlanes, Int output_stride) {
+  FOO(double, 32, 8)
+  FOO(double, 16, 4)
+  FOO(double, 8, 2)
+  assert(false);
+}
+#undef FOO
+
+// dOutput x W^T -> dInput and
+// Input^T x dOutput -> dW
+// blockDim=(K,K/V,1), gridDim=(nBlocks,M,1)
+template <typename T, Int K, Int V>
+__global__ void
+dConvolution_KMxKN_backward_dW_A(T *inFeatures, T *dInFeatures, T *dOutFeatures,
+                                 T *w, T *dw, Int *rules, Int nHot,
+                                 Int input_nPlanes, Int input_stride,
+                                 Int output_nPlanes, Int output_stride) {
+  // M = gridDim.y == input_nPlanes / K
+  Int N = output_nPlanes / K;
+  Int m = blockIdx.y;
+  inFeatures += m * K;
+  dInFeatures += m * K;
+  w += m * K * output_nPlanes;
+  dw += m * K * output_nPlanes;
+
+  T dI[V];
+  T dW[V];
+  __shared__ T I[K][K];
+  __shared__ T dO[K][K];
+  __shared__ T W[K][K];
+  Int R0[V];
+  Int R1[V];
+  const int tx = threadIdx.x;
+  int ty[V];
+#pragma unroll
+  for (int v = 0; v < V; v++)
+    ty[v] = threadIdx.y + v * (K / V);
+
+  for (int n = 0; n < N; n++) {
+// Read w, reset dW
+#pragma unroll
+    for (int v = 0; v < V; v++) {
+      W[ty[v]][tx] = w[ty[v] * output_nPlanes + tx];
+      dW[v] = 0;
+    }
+
+    for (Int s = blockIdx.x * K; s < nHot; s += K * gridDim.x) {
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        R0[v] = rules[2 * (s + ty[v])];
+        R1[v] = rules[2 * (s + ty[v]) + 1];
+        dI[v] = 0;
+      }
+      __syncthreads();
+// Read input and dOutput
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        I[ty[v]][tx] = inFeatures[R0[v] * input_stride + tx];
+        dO[ty[v]][tx] = dOutFeatures[R1[v] * output_stride + tx];
+      }
+      __syncthreads();
+#pragma unroll
+      for (int k = 0; k < K; k++)
+#pragma unroll
+        for (int v = 0; v < V; v++) {
+          dI[v] += dO[ty[v]][k] * W[tx][k];
+          dW[v] += I[k][ty[v]] * dO[k][tx];
+        }
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        dI[v] += dInFeatures[R0[v] * input_stride + tx];
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        dInFeatures[R0[v] * input_stride + tx] = dI[v];
+      __syncthreads();
+    }
+#pragma unroll
+    for (int v = 0; v < V; v++)
+      atomicAdd(&dw[ty[v] * output_nPlanes + tx], dW[v]);
+    w += K;
+    dw += K;
+    dOutFeatures += K;
+  }
+}
+
+// dOutput x W^T -> dInput and
+// Input^T x dOutput -> dW
+// blockDim=(K,K/V,1), gridDim=(nBlocks,M,1)
+template <typename T, Int K, Int V>
+__global__ void
+dConvolution_KMxKN_backward_dW_B(T *inFeatures, T *dInFeatures, T *dOutFeatures,
+                                 T *w, T *dw, Int *rules, Int nHot,
+                                 Int input_nPlanes, Int input_stride,
+                                 Int output_nPlanes, Int output_stride) {
+  // M = gridDim.y == input_nPlanes / K
+  Int N = output_nPlanes / K;
+  Int m = blockIdx.y;
+  inFeatures += m * K;
+  dInFeatures += m * K;
+  w += m * K * output_nPlanes;
+  dw += m * K * output_nPlanes;
+
+  T dI[V];
+  T dW[V];
+  __shared__ T I[K][K];
+  __shared__ T dO[K][K];
+  __shared__ T W[K][K];
+  Int R0[V];
+  Int R1[V];
+  const int tx = threadIdx.x;
+  int ty[V];
+#pragma unroll
+  for (int v = 0; v < V; v++)
+    ty[v] = threadIdx.y + v * (K / V);
+
+  for (int n = 0; n < N; n++) {
+// Read w, reset dW
+#pragma unroll
+    for (int v = 0; v < V; v++) {
+      W[ty[v]][tx] = w[ty[v] * output_nPlanes + tx];
+      dW[v] = 0;
+    }
+
+    for (Int s = blockIdx.x * K; s < nHot; s += K * gridDim.x) {
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        if (s + ty[v] < nHot) {
+          R0[v] = rules[2 * (s + ty[v])];
+          R1[v] = rules[2 * (s + ty[v]) + 1];
+        }
+        dI[v] = 0;
+      }
+      __syncthreads();
+// Read input and dOutput
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        if (s + ty[v] < nHot) {
+          I[ty[v]][tx] = inFeatures[R0[v] * input_stride + tx];
+          dO[ty[v]][tx] = dOutFeatures[R1[v] * output_stride + tx];
+        } else {
+          I[ty[v]][tx] = 0;
+          dO[ty[v]][tx] = 0;
+        }
+      __syncthreads();
+#pragma unroll
+      for (int k = 0; k < K; k++)
+#pragma unroll
+        for (int v = 0; v < V; v++) {
+          dI[v] += dO[ty[v]][k] * W[tx][k];
+          dW[v] += I[k][ty[v]] * dO[k][tx];
+        }
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        if (s + ty[v] < nHot)
+          dI[v] += dInFeatures[R0[v] * input_stride + tx];
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        if (s + ty[v] < nHot)
+          dInFeatures[R0[v] * input_stride + tx] = dI[v];
+      __syncthreads();
+    }
+#pragma unroll
+    for (int v = 0; v < V; v++)
+      atomicAdd(&dw[ty[v] * output_nPlanes + tx], dW[v]);
+    w += K;
+    dw += K;
+    dOutFeatures += K;
+  }
+}
+
+#define FOO(T, K, V)                                                           \
+  {                                                                            \
+    if (input_nPlanes % K == 0 and output_nPlanes % K == 0) {                  \
+      Int o = (nHot / K) * K;                                                  \
+      if (o >= K)                                                              \
+        dConvolution_KMxKN_backward_dW_A<                                      \
+            T, K, V><<<dim3(std::min(o / K, (Int)512), input_nPlanes / K),     \
+                       dim3(K, K / V)>>>(                                      \
+            inFeatures, dInFeatures, dOutFeatures, w, dw, rules, o,            \
+            input_nPlanes, input_stride, output_nPlanes, output_stride);       \
+      if (nHot > o)                                                            \
+        dConvolution_KMxKN_backward_dW_B<                                      \
+            T, K, V><<<dim3(1, input_nPlanes / K), dim3(K, K / V)>>>(          \
+            inFeatures, dInFeatures, dOutFeatures, w, dw, rules + 2 * o,       \
+            nHot - o, input_nPlanes, input_stride, output_nPlanes,             \
+            output_stride);                                                    \
+      return;                                                                  \
+    }                                                                          \
+  }
+
+template <typename T>
+void dConvolution_backward_dW(T *inFeatures, T *dInFeatures, T *dOutFeatures,
+                              T *w, T *dw, Int *rules, Int nHot,
+                              Int input_nPlanes, Int input_stride,
+                              Int output_nPlanes, Int output_stride) {
+  FOO(T, 32, 8)
+  FOO(T, 16, 4)
+  FOO(T, 8, 2)
+  assert(false);
+}
+#undef FOO
+
+template <typename T, Int K, Int V>
+__global__ void
+dConvolution_KMxKN_forward2(T *inFeatures, T *outFeatures, T *w, Int *rules,
+                            Int nHot, Int input_nPlanes, Int input_stride,
+                            Int output_nPlanes, Int output_stride) {
+  // Input x Weight -> Output
+  // blockDim=(K,K/V,1), gridDim=(nBlocks,N,1) Volkov-blocks
+  // K is a multiple of V,
+
+  // nHot x input_nplanes<=KM -> nHot x output_nPlanes<=KN
+  // - parallel over N,nHot - loop over M
+
+  Int M = (input_nPlanes + K - 1) / K;
+  // N = gridDim.y ~ output_nPlanes/K
+  Int n = blockIdx.y;
+  outFeatures += n * K;
+  w += n * K;
+  Int KO = min(K, output_nPlanes - K * n);
+
+  T O[V];
+  __shared__ T W[K][K];
+  __shared__ T I[K][K];
+  __shared__ Int R[K * 2];
+  const int tx = threadIdx.x;
+  int ty[V];
+#pragma unroll
+  for (int v = 0; v < V; v++)
+    ty[v] = threadIdx.y + v * (K / V);
+
+  for (int m = 0; m < M; m++) {
+    Int KI = min(K, input_nPlanes - K * m);
+
+// Read w
+#pragma unroll
+    for (int v = 0; v < V; v++)
+      if (ty[v] < KI and tx < KO)
+        W[ty[v]][tx] = w[ty[v] * output_nPlanes + tx];
+
+    for (Int s = blockIdx.x * K; s < nHot; s += K * gridDim.x) {
+// Read rules for K input/output pairs
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        if (ty[v] < 2) {
+          int q = ty[v] * K + tx;
+          if (s + q / 2 < nHot)
+            R[q] = rules[2 * s + q];
+        }
+      }
+      __syncthreads();
+
+// Read input, reset O[]
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        if (tx < KI and s + ty[v] < nHot)
+          I[ty[v]][tx] = inFeatures[R[2 * ty[v]] * input_stride + tx];
+        O[v] = 0;
+      }
+      __syncthreads();
+
+#pragma unroll
+      for (int k = 0; k < KI; k++)
+#pragma unroll
+        for (int v = 0; v < V; v++)
+          O[v] += I[ty[v]][k] * W[k][tx];
+      __syncthreads();
+
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        if (tx < KO and s + ty[v] < nHot)
+          outFeatures[R[2 * ty[v] + 1] * output_stride + tx] += O[v];
+      __syncthreads();
+    }
+    w += K * output_nPlanes;
+    inFeatures += K;
+  }
+}
+
+// dOutput x W^T -> dInput and
+// Input^T x dOutput -> dW
+// blockDim=(K,K/V,1), gridDim=(nBlocks,M,1)
+template <typename T, Int K, Int V>
+__global__ void
+dConvolution_KMxKN_backward_dW2(T *inFeatures, T *dInFeatures, T *dOutFeatures,
+                                T *w, T *dw, Int *rules, Int nHot,
+                                Int input_nPlanes, Int input_stride,
+                                Int output_nPlanes, Int output_stride) {
+  // M = gridDim.y == input_nPlanes / K
+  Int N = (output_nPlanes + K - 1) / K;
+  Int m = blockIdx.y;
+  inFeatures += m * K;
+  dInFeatures += m * K;
+  w += m * K * output_nPlanes;
+  dw += m * K * output_nPlanes;
+  Int KI = min(K, input_nPlanes - K * m);
+
+  T dI[V];
+  T dW[V];
+  __shared__ T I[K][K];
+  __shared__ T dO[K][K];
+  __shared__ T W[K][K];
+  __shared__ Int R[K * 2];
+  const int tx = threadIdx.x;
+  int ty[V];
+#pragma unroll
+  for (int v = 0; v < V; v++)
+    ty[v] = threadIdx.y + v * (K / V);
+
+  for (int n = 0; n < N; n++) {
+    Int KO = min(K, output_nPlanes - K * n);
+
+// Read w, reset dW
+#pragma unroll
+    for (int v = 0; v < V; v++) {
+      if (ty[v] < KI and tx < KO)
+        W[ty[v]][tx] = w[ty[v] * output_nPlanes + tx];
+      dW[v] = 0;
+    }
+
+    for (Int s = blockIdx.x * K; s < nHot; s += K * gridDim.x) {
+// Read rules for K input/output pairs, reset dI[]
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        if (ty[v] < 2) {
+          int q = ty[v] * K + tx;
+          if (s + q / 2 < nHot)
+            R[q] = rules[2 * s + q];
+        }
+        dI[v] = 0;
+      }
+      __syncthreads();
+// Read input and dOutput
+#pragma unroll
+      for (int v = 0; v < V; v++) {
+        if (tx < KI and s + ty[v] < nHot)
+          I[ty[v]][tx] = inFeatures[R[2 * ty[v]] * input_stride + tx];
+        else
+          I[ty[v]][tx] = 0;
+        if (tx < KO and s + ty[v] < nHot)
+          dO[ty[v]][tx] = dOutFeatures[R[2 * ty[v] + 1] * output_stride + tx];
+        else
+          dO[ty[v]][tx] = 0;
+      }
+      __syncthreads();
+#pragma unroll
+      for (int k = 0; k < KO; k++)
+#pragma unroll
+        for (int v = 0; v < V; v++)
+          dI[v] += dO[ty[v]][k] * W[tx][k];
+#pragma unroll
+      for (int k = 0; k < K; k++)
+#pragma unroll
+        for (int v = 0; v < V; v++)
+          dW[v] += I[k][ty[v]] * dO[k][tx];
+      __syncthreads();
+#pragma unroll
+      for (int v = 0; v < V; v++)
+        if (tx < KI and s + ty[v] < nHot)
+          dInFeatures[R[2 * ty[v]] * input_stride + tx] += dI[v];
+      __syncthreads();
+    }
+#pragma unroll
+    for (int v = 0; v < V; v++)
+      if (ty[v] < KI and tx < KO)
+        atomicAdd(&dw[ty[v] * output_nPlanes + tx], dW[v]);
+    w += K;
+    dw += K;
+    dOutFeatures += K;
+  }
+}
+
+template <typename T>
+double dConvolution_forward2(T *inFeatures, T *outFeatures, T *w,
+                             RuleBook _rules, Int input_nPlanes,
+                             Int input_stride, Int output_nPlanes,
+                             Int output_stride) {
+  Int c = input_nPlanes * output_nPlanes;
+  double flops = 0;
+  if (input_nPlanes % 8 != 0 or output_nPlanes % 8 != 0) {
+    const int K = 16;
+    const int V = 4;
     RULEBOOKITERATOR(
-        dConvolution_forward2<T>(iF, oF, w, rbB, nHotB, ip, ip, op, op);
+        (dConvolution_KMxKN_forward2<
+            T, K,
+            V><<<dim3(128, (output_nPlanes + K - 1) / K), dim3(K, K / V)>>>(
+            inFeatures, outFeatures, w, rbB, nHotB, input_nPlanes, input_stride,
+            output_nPlanes, output_stride));
         , w += c; flops += nHotB * c;)
+  } else {
+    RULEBOOKITERATOR(dConvolution_forward(inFeatures, outFeatures, w, rbB,
+                                          nHotB, input_nPlanes, input_stride,
+                                          output_nPlanes, output_stride);
+                     , w += c; flops += nHotB * c;)
   }
   return flops;
 }
 
-template <typename T, Int Dimension>
-void cuda_RandomizedStrideConvolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features,
-    /*cuda float*/ at::Tensor weight, /*cuda float*/ at::Tensor d_weight,
-    /*cuda float*/ at::Tensor d_bias) {
-
-  auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, filterSize,
-                                              filterStride, true);
-  Int nActive = m.getNActive(outputSize);
-  d_input_features.resize_as_(input_features);
-  d_input_features.zero_();
-
-  if (nActive) {
-    auto iF = input_features.data<T>();
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int ip = input_features.size(1);
-    Int op = d_output_features.size(1);
-    auto w = weight.data<T>();
-    auto dw = d_weight.data<T>();
-    Int c = ip * op;
-    RULEBOOKITERATOR(dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, rbB,
-                                                  nHotB, ip, ip, op, op);
+template <typename T>
+void dConvolution_backward_dW2(T *inFeatures, T *dInFeatures, T *dOutFeatures,
+                               T *w, T *dw, RuleBook _rules, Int input_nPlanes,
+                               Int input_stride, Int output_nPlanes,
+                               Int output_stride) {
+  Int c = input_nPlanes * output_nPlanes;
+  if (input_nPlanes % 8 != 0 or output_nPlanes % 8 != 0) {
+    const int K = 16;
+    const int V = 4;
+    RULEBOOKITERATOR(
+        (dConvolution_KMxKN_backward_dW2<
+            T, K,
+            V><<<dim3(128, (input_nPlanes + K - 1) / K), dim3(K, K / V)>>>(
+            inFeatures, dInFeatures, dOutFeatures, w, dw, rbB, nHotB,
+            input_nPlanes, input_stride, output_nPlanes, output_stride));
+        , w += c; dw += c;)
+  } else {
+    RULEBOOKITERATOR(dConvolution_backward_dW(inFeatures, dInFeatures,
+                                              dOutFeatures, w, dw, rbB, nHotB,
+                                              input_nPlanes, input_stride,
+                                              output_nPlanes, output_stride);
                      , w += c; dw += c;)
-
-    if (d_bias.numel()) {
-      auto db = d_bias.data<T>();
-      Convolution_bp_bias(doF, db, op, op, nActive);
-    }
   }
 }

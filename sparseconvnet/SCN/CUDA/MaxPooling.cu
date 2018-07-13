@@ -4,100 +4,74 @@
 // This source code is licensed under the license found in the
 // LICENSE file in the root directory of this source tree.
 
-#include "MaxPooling.h"
 #include "RuleBookIterator.h"
 
-template <typename T, Int Dimension>
-void cuda_MaxPooling_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, long nFeaturesToDrop) {
-
-  Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules =
-      m.getRuleBook(inputSize, outputSize, poolSize, poolStride, true);
-  Int nActive = m.getNActive(outputSize);
-  output_features.resize_({nActive, nPlanes});
-  output_features.zero_();
-
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
-  RULEBOOKITERATOR(
-      cuda_MaxPooling_ForwardPass<T>(iF, oF, nPlanes, input_features.size(1),
-                                     output_features.size(1), rbB, nHotB);
-      , )
+// NTX must be >=2 so r is filled properly
+template <typename T, Int NTX, Int NTY>
+__global__ void MaxPooling_fp(T *input_features, T *output_features,
+                              Int nPlanes, Int input_stride, Int output_stride,
+                              Int *rules, Int nHot) {
+  __shared__ Int r[NTY * 2];
+  for (Int n = blockIdx.x * NTY; n < nHot; n += gridDim.x * NTY) {
+    {
+      Int i = threadIdx.x + NTX * threadIdx.y;
+      if (i < NTY * 2 and i < 2 * (nHot - n))
+        r[i] = rules[2 * n + i];
+    }
+    __syncthreads();
+    if (n + threadIdx.y < nHot) {
+      Int i = r[2 * threadIdx.y] * input_stride;
+      Int o = r[2 * threadIdx.y + 1] * output_stride;
+      for (Int plane = threadIdx.x; plane < nPlanes; plane += NTX) {
+        T inp = input_features[i + plane];
+        if (output_features[o + plane] < inp)
+          output_features[o + plane] = inp;
+      }
+    }
+    __syncthreads();
+  }
 }
-template <typename T, Int Dimension>
-void cuda_MaxPooling_updateGradInput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor output_features,
-    /*cuda float*/ at::Tensor d_output_features, long nFeaturesToDrop) {
 
-  Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules =
-      m.getRuleBook(inputSize, outputSize, poolSize, poolStride, true);
-  d_input_features.resize_as_(input_features);
-  d_input_features.zero_();
-
-  auto iF = input_features.data<T>();
-  auto oF = output_features.data<T>();
-  auto diF = d_input_features.data<T>();
-  auto doF = d_output_features.data<T>();
-  RULEBOOKITERATOR(cuda_MaxPooling_BackwardPass<T>(
-                       iF, diF, oF, doF, nPlanes, input_features.size(1),
-                       d_output_features.size(1), rbB, nHotB);
+template <typename T>
+void cuda_MaxPooling_ForwardPass(T *input_features, T *output_features,
+                                 Int nPlanes, Int input_stride,
+                                 Int output_stride, RuleBook _rules) {
+  RULEBOOKITERATOR((MaxPooling_fp<T, 32, 32><<<32, dim3(32, 32)>>>(
+      input_features, output_features, nPlanes, input_stride, output_stride,
+      rbB, nHotB));
                    , )
 }
-template <typename T, Int Dimension>
-void cuda_RandomizedStrideMaxPooling_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, long nFeaturesToDrop) {
-
-  Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, poolSize,
-                                              poolStride, true);
-  Int nActive = m.getNActive(outputSize);
-  output_features.resize_({nActive, nPlanes});
-  output_features.zero_();
-
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
-  RULEBOOKITERATOR(
-      cuda_MaxPooling_ForwardPass<T>(iF, oF, nPlanes, input_features.size(1),
-                                     output_features.size(1), rbB, nHotB);
-      , )
+template <typename T, Int NTX, Int NTY>
+__global__ void MaxPooling_bp(T *input_features, T *d_input_features,
+                              T *output_features, T *d_output_features,
+                              Int nPlanes, Int input_stride, Int output_stride,
+                              Int *rules, Int nHot) {
+  __shared__ Int r[NTY * 2];
+  for (Int n = blockIdx.x * NTY; n < nHot; n += gridDim.x * NTY) {
+    {
+      Int i = threadIdx.x + NTX * threadIdx.y;
+      if (i < NTY * 2 and i < 2 * (nHot - n))
+        r[i] = rules[2 * n + i];
+    }
+    __syncthreads();
+    if (n + threadIdx.y < nHot) {
+      Int i = r[2 * threadIdx.y] * input_stride;
+      Int o = r[2 * threadIdx.y + 1] * output_stride;
+      for (Int plane = threadIdx.x; plane < nPlanes; plane += NTX)
+        if (output_features[o + plane] == input_features[i + plane])
+          d_input_features[i + plane] += d_output_features[o + plane];
+    }
+    __syncthreads();
+  }
 }
-template <typename T, Int Dimension>
-void cuda_RandomizedStrideMaxPooling_updateGradInput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor output_features,
-    /*cuda float*/ at::Tensor d_output_features, long nFeaturesToDrop) {
 
-  Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, poolSize,
-                                              poolStride, true);
-  d_input_features.resize_as_(input_features);
-  d_input_features.zero_();
-
-  auto iF = input_features.data<T>();
-  auto oF = output_features.data<T>();
-  auto diF = d_input_features.data<T>();
-  auto doF = d_output_features.data<T>();
-  RULEBOOKITERATOR(cuda_MaxPooling_BackwardPass<T>(
-                       iF, diF, oF, doF, nPlanes, input_features.size(1),
-                       d_output_features.size(1), rbB, nHotB);
+template <typename T>
+void cuda_MaxPooling_BackwardPass(T *input_features, T *d_input_features,
+                                  T *output_features, T *d_output_features,
+                                  Int nPlanes, Int input_stride,
+                                  Int output_stride, RuleBook _rules) {
+  RULEBOOKITERATOR((MaxPooling_bp<T, 32, 32><<<32, dim3(32, 32)>>>(
+      input_features, d_input_features, output_features, d_output_features,
+      nPlanes, input_stride, output_stride, rbB, nHotB));
                    , )
 }

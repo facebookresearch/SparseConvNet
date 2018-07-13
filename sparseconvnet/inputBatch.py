@@ -6,7 +6,7 @@
 
 import torch
 from .metadata import Metadata
-from .utils import toLongTensor, dim_fn
+from .utils import toLongTensor
 from .sparseConvNetTensor import SparseConvNetTensor
 
 

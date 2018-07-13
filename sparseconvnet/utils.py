@@ -5,7 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-import sparseconvnet_SCN as scn
+from .sparseConvNetTensor import SparseConvNetTensor
+from .metadata import Metadata
 
 def toLongTensor(dimension, x):
     if hasattr(x, 'type') and x.type() == 'torch.LongTensor':
@@ -17,31 +18,13 @@ def toLongTensor(dimension, x):
         return torch.LongTensor(dimension).fill_(x)
 
 
-typeTable = {
-    'torch.FloatTensor': 'cpu_float_',
-    'torch.DoubleTensor': 'cpu_double_',
-    'torch.cuda.FloatTensor': 'cuda_float_'}
-
-
-def dim_fn(dimension, name):
-    f=getattr(scn, name + '_' + str(dimension))
-    return f
-
-
-def typed_fn(t, name):
-    f=getattr(scn, typeTable[t.type()] + name)
-    return f
-
-
-def dim_typed_fn(dimension, t, name):
-    f=getattr(scn, typeTable[t.type()] + name + '_' + str(dimension))
-    return f
-
-
 def optionalTensor(a, b):
     return getattr(a, b) if hasattr(a, b) else torch.Tensor()
+
+
 def optionalTensorReturn(a):
     return a if a.numel() else None
+
 
 def threadDatasetIterator(d):
     try:
@@ -58,9 +41,21 @@ def threadDatasetIterator(d):
         for i in range(8):
             t = threading.Thread(target=worker, args=(i,))
             t.start()
-        for i in range(len(d)):
+        for _ in range(len(d)):
             item = q.get()
             yield item
             q.task_done()
         q.join()
     return iterator
+
+
+def appendSparseConvTensors(tensors):
+    spatial_size=tensors[0].spatial_size
+    dimension=len(spatial_size)
+    x=SparseConvNetTensor(
+        features=torch.cat([t.features for t in features],0),
+        metadata=Metadata(dimension),
+        spatial_size=spatial_size)
+    for t in tensors:
+        x.metadata.appendMetadata(t.metadata,spatial_size)
+    return x

@@ -7,6 +7,7 @@
 # 'SubmanifoldConvolution == SubmanifoldConvolution'
 
 import sparseconvnet
+import sparseconvnet_SCN
 from torch.autograd import Function
 from torch.nn import Module, Parameter
 from .utils import *
@@ -83,8 +84,7 @@ class SubmanifoldConvolutionFunction(Function):
             filter_size)
 
         sparseconvnet.forward_pass_multiplyAdd_count +=\
-            dim_typed_fn(
-                dimension, input_features, 'SubmanifoldConvolution_updateOutput')(
+            sparseconvnet_SCN.SubmanifoldConvolution_updateOutput(
                 spatial_size,
                 filter_size,
                 input_metadata,
@@ -101,8 +101,7 @@ class SubmanifoldConvolutionFunction(Function):
         grad_input = grad_output.new()
         grad_weight = torch.zeros_like(weight)
         grad_bias = torch.zeros_like(bias)
-        dim_typed_fn(
-            ctx.dimension, input_features, 'SubmanifoldConvolution_backward')(
+        sparseconvnet_SCN.SubmanifoldConvolution_backward(
             spatial_size,
             filter_size,
             ctx.input_metadata,

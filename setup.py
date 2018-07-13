@@ -24,12 +24,13 @@ setup(
     packages=['sparseconvnet','sparseconvnet.SCN'],
     ext_modules=[
       CUDAExtension('sparseconvnet_SCN',
-        ['sparseconvnet/SCN/pybind_cuda.cpp', 'sparseconvnet/SCN/instantiate_cpu.cpp', 'sparseconvnet/SCN/instantiate_cuda.cu'],
+        [
+         'sparseconvnet/SCN/cuda.cu', 'sparseconvnet/SCN/sparseconvnet_cuda.cpp', 'sparseconvnet/SCN/pybind.cpp'],
         include_dirs=[conda_include_dir, this_dir+'/sparseconvnet/SCN/'],
         extra_compile_args=extra)
       if torch.cuda.is_available()  else
       CppExtension('sparseconvnet_SCN',
-        ['sparseconvnet/SCN/pybind_cpu.cpp', 'sparseconvnet/SCN/instantiate_cpu.cpp'],
+        ['sparseconvnet/SCN/pybind.cpp', 'sparseconvnet/SCN/sparseconvnet_cpu.cpp'],
         include_dirs=[conda_include_dir, this_dir+'/sparseconvnet/SCN/'],
         extra_compile_args=extra['cxx'])],
     cmdclass={'build_ext': BuildExtension},

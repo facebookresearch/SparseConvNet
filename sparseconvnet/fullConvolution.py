@@ -4,7 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import sparseconvnet
+import sparseconvnet, sparseconvnet_SCN
 from torch.autograd import Function, Variable
 from torch.nn import Module, Parameter
 from .utils import *
@@ -48,6 +48,24 @@ class FullConvolution(Module):
         )
         return output
 
+    def deconvolutionForward(self, input):
+        assert input.features.nelement() == 0 or input.features.size(1) == self.nIn
+        output = SparseConvNetTensor()
+        output.metadata = input.metadata
+        output.spatial_size =\
+            (input.spatial_size - 1) * self.filter_stride + self.filter_size
+        output.features = DeconvolutionFunction.apply(
+            input.features,
+            self.weight,
+            optionalTensor(self, 'bias'),
+            input.metadata,
+            input.spatial_size,
+            output.spatial_size,
+            self.dimension,
+            self.filter_size,
+            self.filter_stride)
+        return output
+
     def __repr__(self):
         s = 'FullConvolution ' + str(self.nIn) + '->' + str(self.nOut) + ' C'
         if self.filter_size.max() == self.filter_size.min() and\
@@ -64,7 +82,11 @@ class FullConvolution(Module):
         return s
 
     def input_spatial_size(self, out_size):
-        return (out_size - 1) * self.filter_stride + self.filter_size
+        in_size = (out_size - self.filter_size) / self.filter_stride + 1
+        assert ((in_size - 1) * self.filter_stride +
+                self.filter_size == out_size).all()
+        return in_size
+
 
 class FullConvolutionFunction(Function):
     @staticmethod
@@ -93,8 +115,7 @@ class FullConvolutionFunction(Function):
             filter_size,
             filter_stride)
         sparseconvnet.forward_pass_multiplyAdd_count +=\
-            dim_typed_fn(
-                dimension, input_features, 'FullConvolution_updateOutput')(
+            sparseconvnet_SCN.FullConvolution_updateOutput(
                 input_spatial_size,
                 output_spatial_size,
                 filter_size,
@@ -113,8 +134,7 @@ class FullConvolutionFunction(Function):
         grad_input = grad_output.new()
         grad_weight = torch.zeros_like(weight)
         grad_bias = torch.zeros_like(bias)
-        dim_typed_fn(
-            ctx.dimension, input_features, 'FullConvolution_backward')(
+        sparseconvnet_SCN.FullConvolution_backward(
             input_spatial_size,
             output_spatial_size,
             filter_size,

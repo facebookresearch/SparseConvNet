@@ -4,6 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+import sparseconvnet_SCN
 from torch.autograd import Function
 from torch.nn import Module
 from .utils import *
@@ -81,7 +82,7 @@ class AveragePoolingFunction(Function):
         ctx.nFeaturesToDrop = nFeaturesToDrop
         output_features = input_features.new()
 
-        dim_typed_fn(dimension, input_features, 'AveragePooling_updateOutput')(
+        sparseconvnet_SCN.AveragePooling_updateOutput(
             input_spatial_size,
             output_spatial_size,
             pool_size,
@@ -108,8 +109,7 @@ class AveragePoolingFunction(Function):
         pool_size,\
         pool_stride = ctx.saved_tensors
         grad_input = grad_output.new()
-        dim_typed_fn(
-            ctx.dimension, input_features, 'AveragePooling_updateGradInput')(
+        sparseconvnet_SCN.AveragePooling_updateGradInput(
             input_spatial_size,
             output_spatial_size,
             pool_size,

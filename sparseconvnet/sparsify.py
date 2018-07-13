@@ -22,15 +22,18 @@ class Sparsify(Module):
         Module.__init__(self)
         self.dimension = dimension
     def forward(self, input):
-        output = SparseConvNetTensor()
-        output.metadata = Metadata(self.dimension)
-        output.spatial_size = input.spatial_size
-        active = input.features[:,0]>0
-        output.features=input.features[active]
-        active=active.type('torch.LongTensor')
-        input.metadata.sparsifyMetadata(
-            output.metadata,
-            input.spatial_size,
-            active.byte(),
-            active.cumsum(0))
-        return output
+        if input.features.numel():
+            output = SparseConvNetTensor()
+            output.metadata = Metadata(self.dimension)
+            output.spatial_size = input.spatial_size
+            active = input.features[:,0]>0
+            output.features=input.features[active]
+            active=active.type('torch.LongTensor')
+            input.metadata.sparsifyMetadata(
+                output.metadata,
+                input.spatial_size,
+                active.byte(),
+                active.cumsum(0))
+            return output
+        else:
+            return input

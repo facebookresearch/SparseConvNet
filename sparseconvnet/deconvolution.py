@@ -4,7 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import sparseconvnet
+import sparseconvnet, sparseconvnet_SCN
 from torch.autograd import Function
 from torch.nn import Module, Parameter
 from .utils import *
@@ -43,6 +43,26 @@ class Deconvolution(Module):
             self.dimension,
             self.filter_size,
             self.filter_stride)
+        return output
+
+    def fullForward(self, input):
+        assert input.features.nelement()==0 or input.features.size(1) == self.nIn
+        output = SparseConvNetTensor()
+        output.metadata = Metadata(self.dimension)
+        output.spatial_size =\
+            (input.spatial_size - 1) * self.filter_stride + self.filter_size
+        output.features=FullConvolutionFunction().apply(
+            input.features,
+            self.weight,
+            optionalTensor(self, 'bias'),
+            input.metadata,
+            output.metadata,
+            input.spatial_size,
+            output.spatial_size,
+            self.dimension,
+            self.filter_size,
+            self.filter_stride,
+        )
         return output
 
     def __repr__(self):
@@ -85,8 +105,7 @@ class DeconvolutionFunction(Function):
         ctx.dimension = dimension
 
         sparseconvnet.forward_pass_multiplyAdd_count +=\
-            dim_typed_fn(
-                dimension, input_features, 'Deconvolution_updateOutput')(
+            sparseconvnet_SCN.Deconvolution_updateOutput(
                 input_spatial_size,
                 output_spatial_size,
                 filter_size,
@@ -120,8 +139,7 @@ class DeconvolutionFunction(Function):
         grad_input = grad_output.new()
         grad_weight = torch.zeros_like(weight)
         grad_bias = torch.zeros_like(bias)
-        dim_typed_fn(
-            ctx.dimension, input_features, 'Deconvolution_backward')(
+        sparseconvnet_SCN.Deconvolution_backward(
             input_spatial_size,
             output_spatial_size,
             filter_size,

@@ -6,7 +6,6 @@
 
 import torch
 
-from .utils import dim_fn
 from torch.autograd import Variable
 
 

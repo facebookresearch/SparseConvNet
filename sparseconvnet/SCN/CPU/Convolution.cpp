@@ -11,7 +11,9 @@ void rule_index_select(at::Tensor target, at::Tensor src, Int nRules,
   auto t_ptr = target.data<T>();
   auto s_ptr = src.data<T>();
   auto n = target.size(1);
-  for (int i = 0; i < nRules; ++i)
+  Int i;
+  #pragma omp parallel for private(i)
+  for (i = 0; i < nRules; ++i)
     std::memcpy(t_ptr + i * n, s_ptr + rules[2 * i] * n, sizeof(T) * n);
 }
 template <typename T>
@@ -20,7 +22,9 @@ void rule_index_add_(at::Tensor target, at::Tensor src, Int nRules,
   auto t_ptr = target.data<T>();
   auto s_ptr = src.data<T>();
   auto n = target.size(1);
-  for (int i = 0; i < nRules; ++i) {
+  Int i;
+  #pragma omp parallel for private(i)
+  for (i = 0; i < nRules; ++i) {
     auto t = t_ptr + rules[2 * i] * n;
     auto s = s_ptr + i * n;
     for (int j = 0; j < n; ++j)

@@ -6,8 +6,7 @@
 
 template <typename T>
 void cpu_LeakyReLU_updateOutput(/*float*/ at::Tensor input_features,
-                                /*float*/ at::Tensor output_features,
-                                float alpha) {
+                                /*float*/ at::Tensor output_features, T alpha) {
   output_features.resize_as_(input_features);
   auto iF = input_features.data<T>();
   auto oF = output_features.data<T>();
@@ -20,7 +19,7 @@ template <typename T>
 void cpu_LeakyReLU_updateGradInput(/*float*/ at::Tensor input_features,
                                    /*float*/ at::Tensor d_input_features,
                                    /*float*/ at::Tensor d_output_features,
-                                   float alpha) {
+                                   T alpha) {
   d_input_features.resize_as_(d_output_features);
   auto iF = input_features.data<T>();
   auto diF = d_input_features.data<T>();

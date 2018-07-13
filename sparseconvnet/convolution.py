@@ -4,7 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import sparseconvnet
+import sparseconvnet, sparseconvnet_SCN
 from torch.autograd import Function
 from torch.nn import Module, Parameter
 from .utils import *
@@ -91,8 +91,7 @@ class ConvolutionFunction(Function):
             filter_size,
             filter_stride)
         sparseconvnet.forward_pass_multiplyAdd_count +=\
-            dim_typed_fn(
-                dimension, input_features, 'Convolution_updateOutput')(
+            sparseconvnet_SCN.Convolution_updateOutput(
                 input_spatial_size,
                 output_spatial_size,
                 filter_size,
@@ -111,8 +110,7 @@ class ConvolutionFunction(Function):
         grad_input = grad_output.new()
         grad_weight = torch.zeros_like(weight)
         grad_bias = torch.zeros_like(bias)
-        dim_typed_fn(
-            ctx.dimension, input_features, 'Convolution_backward')(
+        sparseconvnet_SCN.Convolution_backward(
             input_spatial_size,
             output_spatial_size,
             filter_size,

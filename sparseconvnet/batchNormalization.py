@@ -4,7 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-
+import sparseconvnet_SCN
 from torch.autograd import Function
 from torch.nn import Module, Parameter
 from .utils import *
@@ -107,7 +107,7 @@ class BatchNormalizationFunction(Function):
         output_features = input_features.new()
         saveMean = input_features.new().resize_(ctx.nPlanes)
         saveInvStd = runningMean.clone().resize_(ctx.nPlanes)
-        typed_fn(input_features, 'BatchNormalization_updateOutput')(
+        sparseconvnet_SCN.BatchNormalization_updateOutput(
             input_features,
             output_features,
             saveMean,
@@ -144,7 +144,7 @@ class BatchNormalizationFunction(Function):
         grad_input = grad_output.new()
         grad_weight = torch.zeros_like(weight)
         grad_bias = torch.zeros_like(bias)
-        typed_fn(input_features, 'BatchNormalization_backward')(
+        sparseconvnet_SCN.BatchNormalization_backward(
             input_features,
             grad_input,
             output_features,

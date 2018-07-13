@@ -4,51 +4,73 @@
 // This source code is licensed under the license found in the
 // LICENSE file in the root directory of this source tree.
 
-#include "AveragePooling.h"
 #include "RuleBookIterator.h"
 
-template <typename T, Int Dimension>
-void cuda_AveragePooling_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, long nFeaturesToDrop) {
-
-  Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules =
-      m.getRuleBook(inputSize, outputSize, poolSize, poolStride, true);
-  Int nActive = m.getNActive(outputSize);
-  output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
-  output_features.zero_();
-
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
-  RULEBOOKITERATOR(cuda_AveragePooling_ForwardPass<T>(
-                       iF, oF, nPlanes, input_features.size(1),
-                       output_features.size(1), rbB, nHotB, _rules.size());
-                   , )
+// NTX must be >=2 so r is filled properly
+template <typename T, Int NTX, Int NTY>
+__global__ void AveragePooling_fp(T *input_features, T *output_features,
+                                  Int nPlanes, Int input_stride,
+                                  Int output_stride, Int *rules, Int nHot,
+                                  T alpha) {
+  __shared__ Int r[NTY * 2];
+  for (Int n = blockIdx.x * NTY; n < nHot; n += gridDim.x * NTY) {
+    {
+      Int i = threadIdx.x + NTX * threadIdx.y;
+      if (i < NTY * 2 and i < 2 * (nHot - n))
+        r[i] = rules[2 * n + i];
+    }
+    __syncthreads();
+    if (n + threadIdx.y < nHot) {
+      Int i = r[2 * threadIdx.y] * input_stride;
+      Int o = r[2 * threadIdx.y + 1] * output_stride;
+      for (Int plane = threadIdx.x; plane < nPlanes; plane += NTX)
+        atomicAdd(&output_features[o + plane],
+                  alpha * input_features[i + plane]);
+    }
+    __syncthreads();
+  }
 }
 
-template <typename T, Int Dimension>
-void cuda_AveragePooling_updateGradInput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features, long nFeaturesToDrop) {
+template <typename T>
+void cuda_AveragePooling_ForwardPass(T *input_features, T *output_features,
+                                     Int nPlanes, Int input_stride,
+                                     Int output_stride, RuleBook _rules,
+                                     Int filterVolume) {
+  RULEBOOKITERATOR((AveragePooling_fp<T, 32, 32><<<32, dim3(32, 32)>>>(
+      input_features, output_features, nPlanes, input_stride, output_stride,
+      rbB, nHotB, 1.0 / filterVolume));
+                   , )
+}
+template <typename T, Int NTX, Int NTY>
+__global__ void AveragePooling_bp(T *d_input_features, T *d_output_features,
+                                  Int nPlanes, Int input_stride,
+                                  Int output_stride, Int *rules, Int nHot,
+                                  T alpha) {
+  __shared__ Int r[NTY * 2];
+  for (Int n = blockIdx.x * NTY; n < nHot; n += gridDim.x * NTY) {
+    {
+      Int i = threadIdx.x + NTX * threadIdx.y;
+      if (i < NTY * 2 and i < 2 * (nHot - n))
+        r[i] = rules[2 * n + i];
+    }
+    __syncthreads();
+    if (n + threadIdx.y < nHot) {
+      Int i = r[2 * threadIdx.y] * input_stride;
+      Int o = r[2 * threadIdx.y + 1] * output_stride;
+      for (Int plane = threadIdx.x; plane < nPlanes; plane += NTX)
+        d_input_features[i + plane] += alpha * d_output_features[o + plane];
+    }
+    __syncthreads();
+  }
+}
 
-  Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules =
-      m.getRuleBook(inputSize, outputSize, poolSize, poolStride, true);
-  d_input_features.resize_as_(input_features);
-  d_input_features.zero_();
-
-  auto diF = d_input_features.data<T>() + nFeaturesToDrop;
-  auto doF = d_output_features.data<T>();
-  RULEBOOKITERATOR(cuda_AveragePooling_BackwardPass<T>(
-                       diF, doF, nPlanes, input_features.size(1),
-                       d_output_features.size(1), rbB, nHotB, _rules.size());
+template <typename T>
+void cuda_AveragePooling_BackwardPass(T *d_input_features, T *d_output_features,
+                                      Int nPlanes, Int input_stride,
+                                      Int output_stride, RuleBook _rules,
+                                      Int filterVolume) {
+  RULEBOOKITERATOR((AveragePooling_bp<T, 32, 32><<<32, dim3(32, 32)>>>(
+      d_input_features, d_output_features, nPlanes, input_stride, output_stride,
+      rbB, nHotB, 1.0 / filterVolume));
                    , )
 }

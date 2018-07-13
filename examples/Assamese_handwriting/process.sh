@@ -4,6 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 #!/bin/bash
+set -e
 wget https://archive.ics.uci.edu/ml/machine-learning-databases/00208/Online%20Handwritten%20Assamese%20Characters%20Dataset.rar
 unrar e -cl -y "Online Handwritten Assamese Characters Dataset.rar"
 mkdir tmp

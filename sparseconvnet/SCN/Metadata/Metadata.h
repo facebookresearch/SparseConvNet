@@ -7,11 +7,13 @@
 #ifndef Metadata_H
 #define Metadata_H
 #include "32bits.h"
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdint>
 #include <google/dense_hash_map>
 #include <iostream>
+#include <numeric>
 #include <random>
 #include <string>
 #include <unordered_map>
@@ -61,9 +63,7 @@ public:
                      IntArrayHash<3 * dimension>>
       ruleBooks;
 
-  std::unordered_map<Point<3 * dimension>, RuleBook,
-                     IntArrayHash<3 * dimension>>
-      fullConvolutionRuleBooks;
+  RuleBook fullConvolutionRuleBook;
 
   std::unordered_map<Point<dimension>, RuleBook, IntArrayHash<dimension>>
       sparseToDenseRuleBooks;
@@ -96,6 +96,13 @@ public:
                         /*long*/ at::Tensor spatialSize,
                         /*byte*/ at::Tensor filter,
                         /*long*/ at::Tensor cuSum);
+
+  void appendMetadata(Metadata<dimension> &mAdd,
+                      /*long*/ at::Tensor spatialSize);
+
+  at::Tensor sparsifyCompare(Metadata<dimension> &mReference,
+                             Metadata<dimension> &mSparsified,
+                             /*long*/ at::Tensor spatialSize);
 
   // tensor is size[0] x .. x size[dimension-1] x size[dimension]
   // size[0] x .. x size[dimension-1] == spatial volume

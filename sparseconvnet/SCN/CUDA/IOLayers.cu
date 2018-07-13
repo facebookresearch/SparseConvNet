@@ -4,241 +4,67 @@
 // This source code is licensed under the license found in the
 // LICENSE file in the root directory of this source tree.
 
-#include "IOLayers.h"
+// Rulebook Format
+// rules[0][0] == mode
+// rules[0][1] == maxActive per spatial location (==1 for modes 0,1,2)
+// rules[0][2] == nInputRows
+// rules[0][3] == nOutputRows
+// rules[1]   nOutputRows x (1+maxActive)
 
-template <typename T, Int Dimension>
-void cuda_InputLayer_updateOutput(Metadata<Dimension> &m,
-                                  /*long*/ at::Tensor spatialSize,
-                                  /*long*/ at::Tensor input_coords,
-                                  /*cuda float*/ at::Tensor input_features,
-                                  /*cuda float*/ at::Tensor output_features,
-                                  long batchSize, long mode) {
-
-  m.inputLayer(spatialSize, input_coords, batchSize, mode);
-  Int nPlanes = input_features.size(1);
-  auto &rules = m.inputLayerRuleBook;
-  Int maxActive = rules[0][1];
-  Int nRows = rules[0][3];
-  if (mode == 0) {
-    output_features.resize_as_(input_features);
-    output_features.copy_(input_features);
-  } else {
-    output_features.resize_({*m.inputNActive, nPlanes});
-    output_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
-    cudaMemcpy(rb, &rules[1][0], sizeof(Int) * rules[1].size(),
-               cudaMemcpyHostToDevice);
-    InputLayer_fp<
-        T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
-        iF, oF, nRows, maxActive, nPlanes, rb, mode == 4);
-  }
-}
-template <typename T, Int Dimension>
-void cuda_InputLayer_updateGradInput(
-    Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features) {
-
-  auto &rules = m.inputLayerRuleBook;
-  Int nPlanes = d_output_features.size(1);
-  auto mode = rules[0][0];
-  Int maxActive = rules[0][1];
-  Int nRows = rules[0][3];
-  if (mode == 0) {
-    d_input_features.resize_as_(d_output_features);
-    d_input_features.copy_(d_output_features);
-  } else {
-    d_input_features.resize_({rules[0][2], nPlanes});
-    d_input_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
-    cudaMemcpy(rb, &rules[1][0], sizeof(Int) * rules[1].size(),
-               cudaMemcpyHostToDevice);
-    InputLayer_bp<
-        T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
-        diF, doF, nRows, maxActive, nPlanes, rb, mode == 4);
+template <typename T>
+__global__ void InputLayer_fp_(T *input_features, T *output_features, Int nRows,
+                               Int maxActive, Int nPlanes, Int *rules,
+                               bool average) {
+  for (int row = blockIdx.x; row < nRows; row += gridDim.x) {
+    T *out = output_features + row * nPlanes;
+    Int *r = rules + row * (1 + maxActive);
+    Int nActive = r[0];
+    T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+    for (int i = 1; i <= nActive; i++) {
+      T *inp = input_features + r[i] * nPlanes;
+      for (Int plane = threadIdx.x; plane < nPlanes; plane += blockDim.x)
+        out[plane] += multiplier * inp[plane];
+    }
   }
 }
 
-template <typename T, Int Dimension>
-void cuda_OutputLayer_updateOutput(Metadata<Dimension> &m,
-                                   /*cuda float*/ at::Tensor input_features,
-                                   /*cuda float*/ at::Tensor output_features) {
-
-  auto &rules = m.inputLayerRuleBook;
-  Int nPlanes = input_features.size(1);
-  auto mode = rules[0][0];
-  auto maxActive = rules[0][1];
-  auto nRows = rules[0][3];
-  if (mode == 0) {
-    output_features.resize_as_(input_features);
-    output_features.copy_(input_features);
-  } else {
-    output_features.resize_({rules[0][2], nPlanes});
-    output_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
-    cudaMemcpy(rb, &rules[1][0], sizeof(Int) * rules[1].size(),
-               cudaMemcpyHostToDevice);
-    InputLayer_bp<
-        T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
-        oF, iF, nRows, maxActive, nPlanes, rb, false);
-  }
+template <typename T>
+void InputLayer_fp(T *input_features, T *output_features, Int nRows,
+                   Int maxActive, Int nPlanes, Int *rules_cpu, Int *rules_gpu,
+                   bool average) {
+  cudaMemcpy(rules_gpu, rules_cpu, sizeof(Int) * nRows * (1 + maxActive),
+             cudaMemcpyHostToDevice);
+  InputLayer_fp_<
+      T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
+      input_features, output_features, nRows, maxActive, nPlanes, rules_gpu,
+      average);
 }
-template <typename T, Int Dimension>
-void cuda_OutputLayer_updateGradInput(
-    Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features) {
 
-  auto &rules = m.inputLayerRuleBook;
-  Int nPlanes = d_output_features.size(1);
-  auto mode = rules[0][0];
-  auto maxActive = rules[0][1];
-  auto nRows = rules[0][3];
-  if (mode == 0) {
-    d_input_features.resize_as_(d_output_features);
-    d_input_features.copy_(d_output_features);
-  } else {
-    d_input_features.resize_({nRows, nPlanes});
-    d_input_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
-    cudaMemcpy(rb, &rules[1][0], sizeof(Int) * rules[1].size(),
-               cudaMemcpyHostToDevice);
-    InputLayer_fp<
-        T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
-        doF, diF, nRows, maxActive, nPlanes, rb, false);
+template <typename T>
+__global__ void InputLayer_bp_(T *d_input_features, T *d_output_features,
+                               Int nRows, Int maxActive, Int nPlanes,
+                               Int *rules, bool average) {
+  for (int row = blockIdx.x; row < nRows; row += gridDim.x) {
+    T *out = d_output_features + row * nPlanes;
+    Int *r = rules + row * (1 + maxActive);
+    Int nActive = r[0];
+    T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+    for (int i = 1; i <= nActive; i++) {
+      T *inp = d_input_features + r[i] * nPlanes;
+      for (Int plane = threadIdx.x; plane < nPlanes; plane += blockDim.x)
+        atomicAdd(&inp[plane], multiplier * out[plane]);
+    }
   }
 }
 
-template <typename T, Int Dimension>
-void cuda_BLInputLayer_updateOutput(Metadata<Dimension> &m,
-                                    /*long*/ at::Tensor spatialSize,
-                                    /*long*/ at::Tensor input_coords,
-                                    /*cuda float*/ at::Tensor input_features,
-                                    /*cuda float*/ at::Tensor output_features,
-                                    long mode) {
-
-  m.blLayer(spatialSize, input_coords, mode);
-  Int nPlanes = input_features.size(2);
-  output_features.resize_({*m.inputNActive, nPlanes});
-  output_features.zero_();
-  auto &rules = m.blLayerRuleBook;
-  Int maxActive = rules[0][1];
-  Int nRows = rules[0][4];
-
-  if (mode == 0) {
-    output_features.resize_as_(input_features);
-    output_features.copy_(input_features);
-    output_features.resize_({*m.inputNActive, nPlanes});
-  } else {
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
-    cudaMemcpy(rb, &rules[1][0], sizeof(Int) * rules[1].size(),
-               cudaMemcpyHostToDevice);
-    InputLayer_fp<
-        T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
-        iF, oF, nRows, maxActive, nPlanes, rb, mode == 4);
-  }
-}
-template <typename T, Int Dimension>
-void cuda_BLInputLayer_updateGradInput(
-    Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features) {
-
-  auto &rules = m.blLayerRuleBook;
-  Int nPlanes = d_output_features.size(1);
-  Int mode = rules[0][0];
-  Int maxActive = rules[0][1];
-  Int nRows = rules[0][4];
-
-  if (mode == 0) {
-    d_input_features.resize_as_(d_output_features);
-    d_input_features.copy_(d_output_features);
-    d_input_features.resize_({rules[0][2], rules[0][3], nPlanes});
-  } else {
-    d_input_features.resize_({rules[0][2], rules[0][3], nPlanes});
-    d_input_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
-    cudaMemcpy(rb, &rules[1][0], sizeof(Int) * rules[1].size(),
-               cudaMemcpyHostToDevice);
-    InputLayer_bp<
-        T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
-        diF, doF, nRows, maxActive, nPlanes, rb, mode == 4);
-  }
-}
-
-template <typename T, Int Dimension>
-void cuda_BLOutputLayer_updateOutput(
-    Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features) {
-
-  auto &rules = m.blLayerRuleBook;
-  Int nPlanes = input_features.size(1);
-  auto mode = rules[0][0];
-  Int maxActive = rules[0][1];
-  Int nRows = rules[0][4];
-  if (mode == 0) {
-    output_features.resize_as_(input_features);
-    output_features.copy_(input_features);
-    output_features.resize_({rules[0][2], rules[0][3], nPlanes});
-  } else {
-    output_features.resize_({rules[0][2], rules[0][3], nPlanes});
-    output_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
-    cudaMemcpy(rb, &rules[1][0], sizeof(Int) * rules[1].size(),
-               cudaMemcpyHostToDevice);
-    InputLayer_bp<
-        T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
-        oF, iF, nRows, maxActive, nPlanes, rb, false);
-  }
-}
-template <typename T, Int Dimension>
-void cuda_BLOutputLayer_updateGradInput(
-    Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features) {
-
-  auto &rules = m.blLayerRuleBook;
-  Int nPlanes = d_output_features.size(2);
-  Int mode = rules[0][0];
-  Int maxActive = rules[0][1];
-  Int nRows = rules[0][4];
-  if (mode == 0) {
-    d_input_features.resize_as_(d_output_features);
-    d_input_features.copy_(d_output_features);
-    d_input_features.resize_({nRows, nPlanes});
-  } else {
-    d_input_features.resize_({nRows, nPlanes});
-    d_input_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
-    cudaMemcpy(rb, &rules[1][0], sizeof(Int) * rules[1].size(),
-               cudaMemcpyHostToDevice);
-    InputLayer_fp<
-        T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
-        doF, diF, nRows, maxActive, nPlanes, rb, false);
-  }
+template <typename T>
+void InputLayer_bp(T *d_input_features, T *d_output_features, Int nRows,
+                   Int maxActive, Int nPlanes, Int *rules_cpu, Int *rules_gpu,
+                   bool average) {
+  cudaMemcpy(rules_gpu, rules_cpu, sizeof(Int) * nRows * (1 + maxActive),
+             cudaMemcpyHostToDevice);
+  InputLayer_bp_<
+      T><<<std::min(nRows, (Int)32768), std::min(nPlanes, (Int)32)>>>(
+      d_input_features, d_output_features, nRows, maxActive, nPlanes, rules_gpu,
+      average);
 }

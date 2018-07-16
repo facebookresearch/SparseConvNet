@@ -19,28 +19,21 @@ void BatchNormalization_ForwardPass(T *input_features, T *output_features,
   if (train) {
     std::memset(saveMean, 0, nPlanes * sizeof(T));
     std::memset(saveInvStd, 0, nPlanes * sizeof(T));
-    for (Int row = 0, ci = 0; row < nActive;
-         row++, ci += input_stride - nPlanes) {
+    for (Int row = 0; row < nActive; row++) {
+      Int ci = row * input_stride;
       for (Int plane = 0; plane < nPlanes; plane++, ci++) {
-        saveMean[plane] += input_features[ci];
+        T ifci = input_features[ci];
+        saveMean[plane] += ifci;
+        saveInvStd[plane] += ifci * ifci; // accumulate sum-squares
+                                          // before inverse square
+                                          // rooting
       }
     }
     for (Int plane = 0; plane < nPlanes; plane++) {
       saveMean[plane] /= nActive;
       runningMean[plane] =
           momentum * runningMean[plane] + (1 - momentum) * saveMean[plane];
-    }
-    for (Int row = 0, ci = 0; row < nActive;
-         row++, ci += input_stride - nPlanes) {
-      for (Int plane = 0; plane < nPlanes; plane++, ci++) {
-        saveInvStd[plane] +=
-            (input_features[ci] - saveMean[plane]) *
-            (input_features[ci] - saveMean[plane]); // accumulate sum-squares
-        // before inverse square
-        // rooting
-      }
-    }
-    for (Int plane = 0; plane < nPlanes; plane++) {
+      saveInvStd[plane] -= saveMean[plane] * saveMean[plane] * nActive;
       runningVar[plane] = momentum * runningVar[plane] +
                           (1 - momentum) * saveInvStd[plane] / (nActive - 1);
       saveInvStd[plane] = powf(saveInvStd[plane] / nActive + eps, -0.5);
@@ -57,12 +50,13 @@ void BatchNormalization_ForwardPass(T *input_features, T *output_features,
     w[plane] = saveInvStd[plane] * (weight ? weight[plane] : 1);
     b[plane] = -saveMean[plane] * w[plane] + (bias ? bias[plane] : 0);
   }
-  for (Int row = 0, ci = 0, co = 0; row < nActive;
-       row++, ci += input_stride - nPlanes, co += output_stride - nPlanes) {
+  for (Int row = 0; row < nActive; row++) {
+    Int ci = row * input_stride;
+    Int co = row * output_stride;
     for (Int plane = 0; plane < nPlanes; plane++, ci++, co++) {
       T out = input_features[ci] * w[plane] + b[plane];
-      out = (out > 0) ? out : (out * leakiness);
-      output_features[co] = out;
+      const T r = (out > 0) ? 1 : leakiness;
+      output_features[co] = out * r;
     }
   }
 }
@@ -78,11 +72,13 @@ void BatchNormalization_BackwardPass(T *input_features, T *d_input_features,
   std::vector<T> gradMean(nPlanes);
   std::vector<T> dotp(nPlanes);
   std::vector<T> k(nPlanes);
-  for (Int row = 0, ci = 0, co = 0; row < nActive;
-       row++, ci += input_stride - nPlanes, co += output_stride - nPlanes) {
+  for (Int row = 0; row < nActive; row++) {
+    Int ci = row * input_stride;
+    Int co = row * output_stride;
     for (Int plane = 0; plane < nPlanes; plane++, ci++, co++) {
       T d = d_output_features[co];
-      d = (output_features[co] > 0) ? d : (d * leakiness);
+      const T r = (output_features[co] > 0) ? 1 : leakiness;
+      d *= r;
       d_output_features[co] = d;
       gradMean[plane] += d;
       dotp[plane] += (input_features[ci] - saveMean[plane]) * d;
@@ -94,8 +90,9 @@ void BatchNormalization_BackwardPass(T *input_features, T *d_input_features,
     gradMean[plane] /= nActive;        // ...now
     k[plane] = dotp[plane] * saveInvStd[plane] * saveInvStd[plane] / nActive;
   }
-  for (Int row = 0, ci = 0, co = 0; row < nActive;
-       row++, ci += input_stride - nPlanes, co += output_stride - nPlanes) {
+  for (Int row = 0; row < nActive; row++) {
+    Int ci = row * input_stride;
+    Int co = row * output_stride;
     for (Int plane = 0; plane < nPlanes; plane++, ci++, co++) {
       d_input_features[ci] =
           (d_output_features[co] - gradMean[plane] -
@@ -158,3 +155,4 @@ void cpu_BatchNormalization_backward(
         leakiness);
   }
 }
+

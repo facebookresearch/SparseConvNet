@@ -12,8 +12,11 @@ void cpu_LeakyReLU_updateOutput(/*float*/ at::Tensor input_features,
   auto oF = output_features.data<T>();
   auto n = input_features.numel();
 
-  for (Int i = 0; i < n; i++)
-    oF[i] = (iF[i] > 0) ? iF[i] : iF[i] * alpha;
+  for (Int i = 0; i < n; i++) {
+    const T x = iF[i];
+    const T r = (x > 0) ? 1 : alpha;
+    oF[i] = x * r;
+  }
 }
 template <typename T>
 void cpu_LeakyReLU_updateGradInput(/*float*/ at::Tensor input_features,
@@ -26,6 +29,8 @@ void cpu_LeakyReLU_updateGradInput(/*float*/ at::Tensor input_features,
   auto doF = d_output_features.data<T>();
   auto n = d_input_features.numel();
 
-  for (Int i = 0; i < n; i++)
-    diF[i] = (iF[i] > 0) ? doF[i] : doF[i] * alpha;
+  for (Int i = 0; i < n; i++) {
+    const T r = (iF[i] > 0) ? 1 : alpha;
+    diF[i] = doF[i] * r;
+  }
 }

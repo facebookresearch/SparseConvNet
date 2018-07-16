@@ -59,3 +59,18 @@ def appendSparseConvTensors(tensors):
     for t in tensors:
         x.metadata.appendMetadata(t.metadata,spatial_size)
     return x
+
+class AddCoords(torch.nn.Module):
+    def forward(self, input):
+        output = SparseConvNetTensor()
+        if input.features.numel():
+            with torch.no_grad():
+                coords = input.get_spatial_locations()
+                d = (input.spatial_size.type_as(input.features)-1)/2
+                coords=coords[:,:-1].type_as(input.features)/ d[None,:] - 1
+            output.features = torch.cat([input.features,coords],1)
+        else:
+            output.features = input.features
+        output.metadata = input.metadata
+        output.spatial_size = input.spatial_size
+        return output

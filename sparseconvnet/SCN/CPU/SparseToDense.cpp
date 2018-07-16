@@ -8,7 +8,9 @@ template <typename T>
 void SparseToDense_ForwardPass(T *input_features, T *output_features,
                                Int nPlanes, Int spatialVolume, Int *rules,
                                int nHot) {
-  for (Int outSite = 0; outSite < nHot; outSite++) {
+  Int outSite;
+#pragma omp parallel for private(outSite)
+  for (outSite = 0; outSite < nHot; outSite++) {
     T *i = input_features + rules[2 * outSite] * nPlanes;
     T *o = output_features + rules[2 * outSite + 1];
     for (Int plane = 0; plane < nPlanes; plane++)
@@ -20,8 +22,9 @@ template <typename T>
 void SparseToDense_BackwardPass(T *d_input_features, T *d_output_features,
                                 Int nPlanes, Int spatialVolume, Int *rules,
                                 int nHot) {
-
-  for (Int outSite = 0; outSite < nHot; outSite++) {
+  Int outSite;
+#pragma omp parallel for private(outSite)
+  for (outSite = 0; outSite < nHot; outSite++) {
     T *d_i = d_input_features + rules[2 * outSite] * nPlanes;
     T *d_o = d_output_features + rules[2 * outSite + 1];
     for (Int plane = 0; plane < nPlanes; plane++)

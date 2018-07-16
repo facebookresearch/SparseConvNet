@@ -9,11 +9,13 @@ template <typename T>
 void ActivePooling_ForwardPass(T *input_features, T *output_features,
                                Int batchSize, Int maxActive, Int nPlanes,
                                RuleBook &rules, bool average) {
-  for (Int outSite = 0; outSite < batchSize; outSite++) {
+  Int outSite;
+#pragma omp parallel for private(outSite)
+  for (outSite = 0; outSite < batchSize; outSite++) {
     T *out = &output_features[outSite * nPlanes];
     Int *r = &rules[0][outSite * (maxActive + 1)];
     Int nActive = *r++;
-    T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+    T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     while (nActive-- > 0) {
       T *inp = &input_features[(*r++) * nPlanes];
       for (Int plane = 0; plane < nPlanes; plane++)
@@ -25,11 +27,13 @@ template <typename T>
 void ActivePooling_BackwardPass(T *d_input_features, T *d_output_features,
                                 Int batchSize, Int maxActive, Int nPlanes,
                                 RuleBook &rules, bool average) {
-  for (Int outSite = 0; outSite < batchSize; outSite++) {
+  Int outSite;
+#pragma omp parallel for private(outSite)
+  for (outSite = 0; outSite < batchSize; outSite++) {
     T *out = &d_output_features[outSite * nPlanes];
     Int *r = &rules[0][outSite * (maxActive + 1)];
     Int nActive = *r++;
-    T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+    T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     while (nActive-- > 0) {
       T *inp = &d_input_features[(*r++) * nPlanes];
       for (Int plane = 0; plane < nPlanes; plane++)

@@ -12,9 +12,11 @@ template <typename T>
 void InputLayer_ForwardPass(T *input_features, T *output_features, Int nRows,
                             Int maxActive, Int nPlanes, Int *rules,
                             bool average) {
-  for (Int row = 0; row < nRows; row++) {
+  Int row;
+#pragma omp parallel for private(row)
+  for (row = 0; row < nRows; row++) {
     auto nActive = rules[0];
-    T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+    T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     for (Int i = 1; i <= nActive; ++i) {
       auto in_f = input_features + nPlanes * rules[i];
       for (Int plane = 0; plane < nPlanes; plane++) {
@@ -29,9 +31,11 @@ template <typename T>
 void InputLayer_BackwardPass(T *d_input_features, T *d_output_features,
                              Int nRows, Int maxActive, Int nPlanes, Int *rules,
                              bool average) {
-  for (Int row = 0; row < nRows; row++) {
+  Int row;
+#pragma omp parallel for private(row)
+  for (row = 0; row < nRows; row++) {
     auto nActive = rules[0];
-    T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+    T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     for (Int i = 1; i <= nActive; ++i) {
       auto d_in_f = d_input_features + nPlanes * rules[i];
       for (Int plane = 0; plane < nPlanes; plane++)

@@ -19,7 +19,7 @@ __global__ void InputLayer_fp_(T *input_features, T *output_features, Int nRows,
     T *out = output_features + row * nPlanes;
     Int *r = rules + row * (1 + maxActive);
     Int nActive = r[0];
-    T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+    T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     for (int i = 1; i <= nActive; i++) {
       T *inp = input_features + r[i] * nPlanes;
       for (Int plane = threadIdx.x; plane < nPlanes; plane += blockDim.x)
@@ -48,7 +48,7 @@ __global__ void InputLayer_bp_(T *d_input_features, T *d_output_features,
     T *out = d_output_features + row * nPlanes;
     Int *r = rules + row * (1 + maxActive);
     Int nActive = r[0];
-    T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+    T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     for (int i = 1; i <= nActive; i++) {
       T *inp = d_input_features + r[i] * nPlanes;
       for (Int plane = threadIdx.x; plane < nPlanes; plane += blockDim.x)

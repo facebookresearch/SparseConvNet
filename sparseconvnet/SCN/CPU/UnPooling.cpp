@@ -8,7 +8,9 @@ template <typename T>
 void UnPooling_ForwardPass(T *input_features, T *output_features, Int nPlanes,
                            Int input_stride, Int output_stride, Int *rules,
                            Int nHot) {
-  for (Int outSite = 0; outSite < nHot; outSite++) {
+  Int outSite;
+#pragma omp parallel for private(outSite)
+  for (outSite = 0; outSite < nHot; outSite++) {
     Int i = rules[2 * outSite + 1] * input_stride;
     Int o = rules[2 * outSite] * output_stride;
     for (Int plane = 0; plane < nPlanes; plane++)
@@ -19,7 +21,9 @@ template <typename T>
 void UnPooling_BackwardPass(T *d_input_features, T *d_output_features,
                             Int nPlanes, Int input_stride, Int output_stride,
                             Int *rules, Int nHot) {
-  for (Int outSite = 0; outSite < nHot; outSite++) {
+  Int outSite;
+#pragma omp parallel for private(outSite)
+  for (outSite = 0; outSite < nHot; outSite++) {
     Int i = rules[2 * outSite + 1] * input_stride;
     Int o = rules[2 * outSite] * output_stride;
     for (Int plane = 0; plane < nPlanes; plane++)

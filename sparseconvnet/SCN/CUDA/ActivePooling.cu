@@ -11,7 +11,7 @@ __global__ void ActivePooling_fp(T *input_features, T *output_features,
   T *out = &output_features[blockIdx.x * nPlanes];
   Int *r = &rules[blockIdx.x * (maxActive + 1)];
   Int nActive = *r++;
-  T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+  T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
   while (nActive-- > 0) {
     T *inp = &input_features[(*r++) * nPlanes];
     for (Int plane = threadIdx.x; plane < nPlanes; plane += 32)
@@ -46,7 +46,7 @@ __global__ void ActivePooling_bp(T *d_input_features, T *d_output_features,
   T *out = &d_output_features[blockIdx.x * nPlanes];
   Int *r = &rules[blockIdx.x * (maxActive + 1)];
   Int nActive = *r++;
-  T multiplier = (average and nActive > 0) ? 1.0f / nActive : 1.0f;
+  T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
   while (nActive-- > 0) {
     T *inp = &d_input_features[(*r++) * nPlanes];
     for (Int plane = threadIdx.x; plane < nPlanes; plane += 32)

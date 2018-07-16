@@ -32,7 +32,7 @@ from .spectral_norm import spectral_norm
 from .submanifoldConvolution import SubmanifoldConvolution, ValidConvolution
 from .tables import *
 from .unPooling import UnPooling
-from .utils import appendSparseConvTensors
+from .utils import appendSparseConvTensors, AddCoords
 
 def concatenate_feature_planes(input):
     output = SparseConvNetTensor()

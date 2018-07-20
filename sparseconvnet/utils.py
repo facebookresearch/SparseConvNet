@@ -49,7 +49,23 @@ def threadDatasetIterator(d):
     return iterator
 
 
-def appendSparseConvTensors(tensors):
+
+def concatenate_feature_planes(input):
+    output = SparseConvNetTensor()
+    output.metadata = input[0].metadata
+    output.spatial_size = input[0].spatial_size
+    output.features = torch.cat([i.features for i in input], 1)
+    return output
+
+
+def add_feature_planes(input):
+    output = SparseConvNetTensor()
+    output.metadata = input[0].metadata
+    output.spatial_size = input[0].spatial_size
+    output.features = sum([i.features for i in input])
+    return output
+
+def append_tensors(tensors):
     spatial_size=tensors[0].spatial_size
     dimension=len(spatial_size)
     x=SparseConvNetTensor(

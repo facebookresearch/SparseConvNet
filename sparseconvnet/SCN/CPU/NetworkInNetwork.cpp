@@ -17,7 +17,7 @@ double cpu_NetworkInNetwork_updateOutput(/*float*/ at::Tensor input_features,
     output_features.copy_(bias);
   else
     output_features.zero_();
-  output_features.addmm(input_features, weight);
+  output_features.addmm_(input_features, weight);
   return nActive * input_nPlanes * output_nPlanes;
 }
 template <typename T>

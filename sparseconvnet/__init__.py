@@ -32,19 +32,4 @@ from .spectral_norm import spectral_norm
 from .submanifoldConvolution import SubmanifoldConvolution, ValidConvolution
 from .tables import *
 from .unPooling import UnPooling
-from .utils import appendSparseConvTensors, AddCoords
-
-def concatenate_feature_planes(input):
-    output = SparseConvNetTensor()
-    output.metadata = input[0].metadata
-    output.spatial_size = input[0].metadata
-    output.features = torch.cat([i.features for i in input], 1)
-    return output
-
-
-def add_feature_planes(input):
-    output = SparseConvNetTensor()
-    output.metadata = input[0].metadata
-    output.spatial_size = input[0].metadata
-    output.features = sum([i.features for i in input])
-    return output
+from .utils import append_tensors, AddCoords, add_feature_planes, concatenate_feature_planes

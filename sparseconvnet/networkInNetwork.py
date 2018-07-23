@@ -39,12 +39,11 @@ class NetworkInNetworkFunction(Function):
             weight,\
             bias = ctx.saved_tensors
         grad_input = grad_output.new()
-        grad_weight = grad_output.new().resize_as_(weight).zero_()
-        grad_bias = torch.zeros_like(bias)
+        grad_weight = torch.zeros_like(weight)
         if bias is None:
             grad_bias = None
         else:
-            grad_bias = grad_output.new().resize_as_(bias)
+            grad_bias = torch.zeros_like(bias)
         sparseconvnet_SCN.NetworkInNetwork_updateGradInput(
             grad_input,
             grad_output,

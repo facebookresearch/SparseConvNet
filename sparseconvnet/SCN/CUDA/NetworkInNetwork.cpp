@@ -14,12 +14,13 @@ double cuda_NetworkInNetwork_updateOutput(
   auto nActive = input_features.size(0);
   auto input_nPlanes = weight.size(0);
   auto output_nPlanes = weight.size(1);
-  output_features.resize_({nActive, input_nPlanes});
+  output_features.resize_({nActive, output_nPlanes});
   if (bias.numel())
     output_features.copy_(bias);
   else
     output_features.zero_();
-  output_features.addmm(input_features, weight);
+  if (nActive)
+    output_features.addmm_(input_features, weight);
   return nActive * input_nPlanes * output_nPlanes;
 }
 
@@ -28,9 +29,12 @@ void cuda_NetworkInNetwork_updateGradInput(
     /*cuda float*/ at::Tensor d_input_features,
     /*cuda float*/ at::Tensor d_output_features,
     /*cuda float*/ at::Tensor weight) {
-  d_input_features.resize_({(int)d_output_features.size(0), weight.size(0)});
+
+  int nActive = d_output_features.size(0);
+  d_input_features.resize_({nActive, weight.size(0)});
   d_input_features.zero_();
-  at::mm_out(d_input_features, d_output_features, weight.t());
+  if (nActive)
+    at::mm_out(d_input_features, d_output_features, weight.t());
 }
 
 template <typename T>
@@ -41,5 +45,6 @@ void cuda_NetworkInNetwork_accGradParameters(
   auto nActive = input_features.size(0);
   if (nActive and d_bias.numel())
     at::sum_out(d_bias, d_output_features, {0}, false);
-  at::mm_out(d_weight, input_features.t(), d_output_features);
+  if (nActive)
+    at::mm_out(d_weight, input_features.t(), d_output_features);
 }

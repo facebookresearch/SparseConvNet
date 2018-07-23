@@ -48,5 +48,13 @@ class ELU(Module):
         output.spatial_size = input.spatial_size
         return output
 
+class SELU(Module):
+    def forward(self, input):
+        output = SparseConvNetTensor()
+        output.features = F.selu(input.features)
+        output.metadata = input.metadata
+        output.spatial_size = input.spatial_size
+        return output
+
 def BatchNormELU(nPlanes, eps=1e-4, momentum=0.9):
     return sparseconvnet.Sequential().add(BatchNormalization(nPlanes,eps,momentum)).add(ELU())

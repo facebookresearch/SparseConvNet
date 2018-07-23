@@ -55,7 +55,7 @@ class InputBatch(SparseConvNetTensor):
         self.metadata.setInputSpatialLocations(
             self.features, locations.contiguous(), vectors.contiguous(), overwrite)
 
-    def set_locations_(self, locations, vector, overwrite=False):
+    def set_locations_(self, locations, vectors, overwrite=False):
         self.metadata.setInputSpatialLocations(
             self.features, locations, vectors, overwrite)
 

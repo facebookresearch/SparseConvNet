@@ -5,10 +5,9 @@
 // LICENSE file in the root directory of this source tree.
 
 template <typename T>
-void Convolution_fp_bias(T *of, T *b, Int nPlanes, Int nActiveOut);
+void Convolution_fp_bias(T *oF, T *b, Int nPlanes, Int nActive);
 template <typename T>
-void Convolution_bp_bias(T *matrix, T *target, Int nRows, Int nColumns,
-                         Int nCOLUMNS);
+void Convolution_bp_bias(T *d_oF, T *d_b, Int nPlanes, Int nActive);
 template <typename T>
 double dConvolution_forward2(T *inFeatures, T *outFeatures, T *w,
                              RuleBook _rules, Int input_nPlanes,
@@ -84,7 +83,7 @@ void cuda_Convolution_backward(
 
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
-      Convolution_bp_bias(doF, db, op, op, nActiveOut);
+      Convolution_bp_bias(doF, db, op, nActiveOut);
     }
   }
 }
@@ -147,7 +146,7 @@ void cuda_SubmanifoldConvolution_backward(
 
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
-      Convolution_bp_bias(doF, db, op, op, nActive);
+      Convolution_bp_bias(doF, db, op, nActive);
     }
   }
 }
@@ -216,7 +215,7 @@ void cuda_FullConvolution_backward(
 
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
-      Convolution_bp_bias(doF, db, op, op, nActiveOut);
+      Convolution_bp_bias(doF, db, op, nActiveOut);
     }
   }
 }
@@ -283,7 +282,7 @@ void cuda_RandomizedStrideConvolution_backward(
 
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
-      Convolution_bp_bias(doF, db, op, op, nActiveOut);
+      Convolution_bp_bias(doF, db, op, nActiveOut);
     }
   }
 }

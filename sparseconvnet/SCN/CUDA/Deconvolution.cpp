@@ -78,7 +78,7 @@ void cuda_Deconvolution_backward(
     dDeconvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip, op, op);
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
-      Convolution_bp_bias(doF, db, op, op, nActiveOut);
+      Convolution_bp_bias(doF, db, op, nActiveOut);
     }
   }
 }

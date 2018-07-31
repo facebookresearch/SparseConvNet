@@ -15,15 +15,15 @@
 #include "CUDA/UnPooling.cu"
 
 template void ActivePooling_ForwardPass<float>(float *input_features,
-                                               float *output_features,
-                                               Int batchSize, Int maxActive,
-                                               Int nPlanes, Int *rules,
-                                               bool average);
+					       float *output_features,
+					       Int batchSize, Int maxActive,
+					       Int nPlanes, Int *rules,
+					       bool average);
 template void ActivePooling_BackwardPass<float>(float *d_input_features,
-                                                float *d_output_features,
-                                                Int batchSize, Int maxActive,
-                                                Int nPlanes, Int *rules,
-                                                bool average);
+						float *d_output_features,
+						Int batchSize, Int maxActive,
+						Int nPlanes, Int *rules,
+						bool average);
 
 template void dAffineReluTrivialConvolution_forward<float>(
     float *inFeatures, float *outFeatures, float *affineWeight,
@@ -43,10 +43,10 @@ template void cuda_AveragePooling_BackwardPass<float>(
     float *d_input_features, float *d_output_features, Int nPlanes,
     Int input_stride, Int output_stride, RuleBook _rules, Int filterVolume);
 
-template void Convolution_fp_bias<float>(float *of, float *b, Int op,
-                                         Int nActive);
-template void Convolution_bp_bias<float>(float *matrix, float *target,
-                                         Int nRows, Int nColumns, Int nCOLUMNS);
+template void Convolution_fp_bias<float>(float *oF, float *b, Int nPlanes,
+					 Int nActive);
+template void Convolution_bp_bias<float>(float *d_oF, float *d_b,
+					 Int nPlanes, Int nActive);
 template double dConvolution_forward2<float>(
     float *inFeatures, float *outFeatures, float *w, RuleBook _rules,
     Int input_nPlanes, Int input_stride, Int output_nPlanes, Int output_stride);
@@ -66,65 +66,65 @@ template void dDeconvolution_backward_dW2<float>(
     Int output_nPlanes, Int output_stride);
 
 template void InputLayer_fp<float>(float *input_features,
-                                   float *output_features, Int nRows,
-                                   Int maxActive, Int nPlanes, Int *rules_cpu,
-                                   Int *rules_gpu, bool average);
+				   float *output_features, Int nRows,
+				   Int maxActive, Int nPlanes, Int *rules_cpu,
+				   Int *rules_gpu, bool average);
 template void InputLayer_bp<float>(float *d_input_features,
-                                   float *d_output_features, Int nRows,
-                                   Int maxActive, Int nPlanes, Int *rules_cpu,
-                                   Int *rules_gpu, bool average);
+				   float *d_output_features, Int nRows,
+				   Int maxActive, Int nPlanes, Int *rules_cpu,
+				   Int *rules_gpu, bool average);
 
 template void LeakyReLU_fp<float>(float *input_features, float *output_features,
-                                  Int n, float alpha);
+				  Int n, float alpha);
 template void LeakyReLU_bp<float>(float *input_features,
-                                  float *d_input_features,
-                                  float *output_features, Int n, float alpha);
+				  float *d_input_features,
+				  float *output_features, Int n, float alpha);
 template void cuda_MaxPooling_ForwardPass<float>(float *input_features,
-                                                 float *output_features,
-                                                 Int nPlanes, Int input_stride,
-                                                 Int output_stride,
-                                                 RuleBook _rules);
+						 float *output_features,
+						 Int nPlanes, Int input_stride,
+						 Int output_stride,
+						 RuleBook _rules);
 template void cuda_MaxPooling_BackwardPass<float>(
     float *input_features, float *d_input_features, float *output_features,
     float *d_output_features, Int nPlanes, Int input_stride, Int output_stride,
     RuleBook _rules);
 template void cuda_SparseToDense_ForwardPass<float>(float *input_features,
-                                                    float *output_features,
-                                                    Int nPlanes,
-                                                    Int spatialVolume,
-                                                    RuleBook _rules);
+						    float *output_features,
+						    Int nPlanes,
+						    Int spatialVolume,
+						    RuleBook _rules);
 template void cuda_SparseToDense_BackwardPass<float>(float *d_input_features,
-                                                     float *d_output_features,
-                                                     Int nPlanes,
-                                                     Int spatialVolume,
-                                                     RuleBook _rules);
+						     float *d_output_features,
+						     Int nPlanes,
+						     Int spatialVolume,
+						     RuleBook _rules);
 template void cuda_UnPooling_ForwardPass<float>(float *input_features,
-                                                float *output_features,
-                                                Int nPlanes, Int input_stride,
-                                                Int output_stride,
-                                                RuleBook _rules);
+						float *output_features,
+						Int nPlanes, Int input_stride,
+						Int output_stride,
+						RuleBook _rules);
 template void cuda_UnPooling_BackwardPass<float>(float *d_input_features,
-                                                 float *d_output_features,
-                                                 Int nPlanes, Int input_stride,
-                                                 Int output_stride,
-                                                 RuleBook _rules);
+						 float *d_output_features,
+						 Int nPlanes, Int input_stride,
+						 Int output_stride,
+						 RuleBook _rules);
 
 template void bn_f<float>(float *iF, float *oF, Int nPlanes, Int input_stride,
-                          Int output_stride, Int nActive, float *saveMean,
-                          float *saveInvStd, float *runningMean,
-                          float *runningVar, float *weight, float *bias,
-                          float eps, float momentum, bool train,
-                          float leakiness);
+			  Int output_stride, Int nActive, float *saveMean,
+			  float *saveInvStd, float *runningMean,
+			  float *runningVar, float *weight, float *bias,
+			  float eps, float momentum, bool train,
+			  float leakiness);
 template void bn_b<float>(float *input_features, float *d_input_features,
-                          float *output_features, float *d_output_features,
-                          Int nPlanes, Int input_stride, Int output_stride,
-                          Int nActive, float *saveMean, float *saveInvStd,
-                          float *runningMean, float *runningVar, float *weight,
-                          float *bias, float *d_weight, float *d_bias,
-                          float leakiness);
+			  float *output_features, float *d_output_features,
+			  Int nPlanes, Int input_stride, Int output_stride,
+			  Int nActive, float *saveMean, float *saveInvStd,
+			  float *runningMean, float *runningVar, float *weight,
+			  float *bias, float *d_weight, float *d_bias,
+			  float leakiness);
 
 template void bmd_f<float>(float *input_features, float *output_features,
-                           float *noise, Int nActive, Int nPlanes, float alpha);
+			   float *noise, Int nActive, Int nPlanes, float alpha);
 template void bmd_b<float>(float *input_features, float *d_input_features,
-                           float *d_output_features, float *noise, Int nActive,
-                           Int nPlanes, float alpha);
+			   float *d_output_features, float *noise, Int nActive,
+			   Int nPlanes, float alpha);

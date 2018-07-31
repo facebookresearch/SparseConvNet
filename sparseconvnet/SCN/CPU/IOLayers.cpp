@@ -17,14 +17,14 @@ void InputLayer_ForwardPass(T *input_features, T *output_features, Int nRows,
   for (row = 0; row < nRows; row++) {
     auto nActive = rules[0];
     T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
+    auto out_f = output_features + row * nPlanes;
+    auto r = rules + row * (1 + maxActive);
     for (Int i = 1; i <= nActive; ++i) {
-      auto in_f = input_features + nPlanes * rules[i];
+      auto in_f = input_features + r[i] * nPlanes;
       for (Int plane = 0; plane < nPlanes; plane++) {
-        output_features[plane] += multiplier * in_f[plane];
+        out_f[plane] += multiplier * in_f[plane];
       }
     }
-    output_features += nPlanes;
-    rules += 1 + maxActive;
   }
 }
 template <typename T>
@@ -36,13 +36,13 @@ void InputLayer_BackwardPass(T *d_input_features, T *d_output_features,
   for (row = 0; row < nRows; row++) {
     auto nActive = rules[0];
     T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
+    auto d_out_f = d_output_features + row * nPlanes;
+    auto r = rules + row * (1 + maxActive);
     for (Int i = 1; i <= nActive; ++i) {
-      auto d_in_f = d_input_features + nPlanes * rules[i];
+      auto d_in_f = d_input_features + r[i] * nPlanes;
       for (Int plane = 0; plane < nPlanes; plane++)
-        d_in_f[plane] += multiplier * d_output_features[plane];
+        d_in_f[plane] += multiplier * d_out_f[plane];
     }
-    d_output_features += nPlanes;
-    rules += 1 + maxActive;
   }
 }
 

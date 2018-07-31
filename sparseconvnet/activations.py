@@ -22,6 +22,18 @@ class Sigmoid(Module):
         return output
 
 
+class LeakyReLU(Module):
+    def __init__(self,leak=1/3):
+        Module.__init__(self)
+        self.leak=leak
+    def forward(self, input):
+        output = SparseConvNetTensor()
+        output.features = F.leaky_relu(input.features,self.leak)
+        output.metadata = input.metadata
+        output.spatial_size = input.spatial_size
+        return output
+
+
 class Tanh(Module):
     def forward(self, input):
         output = SparseConvNetTensor()

@@ -10,15 +10,15 @@
 #include "ConvolutionRules.h"
 #include "FullConvolutionRules.h"
 #include "IOLayersRules.h"
+#include "PermutohedralSubmanifoldConvolutionRules.h"
 #include "RandomizedStrideRules.h"
 #include "SubmanifoldConvolutionRules.h"
 
 template <Int dimension> SparseGrid<dimension>::SparseGrid() : ctr(0) {
-  // Sparsehash needs a key to be set aside and never used - we use
-  // (-1,...,-1)
+  // Sparsehash needs a key to be set aside and never used
   Point<dimension> empty_key;
   for (Int i = 0; i < dimension; ++i)
-    empty_key[i] = -1;
+    empty_key[i] = std::numeric_limits<Int>::min();
   mp.set_empty_key(empty_key);
 }
 
@@ -53,7 +53,7 @@ template <Int dimension> void Metadata<dimension>::clear() {
   grids.clear();
   activePoolingRuleBooks.clear();
   inputLayerRuleBook.clear();
-  validRuleBooks.clear();
+  submanifoldRuleBooks.clear();
   ruleBooks.clear();
   fullConvolutionRuleBook.clear();
   sparseToDenseRuleBooks.clear();
@@ -260,7 +260,7 @@ Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mReference,
                                      Metadata<dimension> &mSparsified,
                                      /*long*/ at::Tensor spatialSize) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
-  at::Tensor delta = torch::CPU(at::kFloat).zeros(nActive[p]);
+  at::Tensor delta = at::zeros({nActive[p]}, torch::CPU(at::kFloat));
   float *deltaPtr = delta.data<float>();
   auto &sgsReference = mReference.grids[p];
   auto &sgsFull = grids[p];
@@ -356,7 +356,7 @@ template <Int dimension> void Metadata<dimension>::generateRuleBooks3s2() {
   }
   while (true) {
     auto &SGs = grids[p1];
-    auto &rb = validRuleBooks[p2];
+    auto &rb = submanifoldRuleBooks[p2];
     if (rb.empty())
       SubmanifoldConvolution_SgsToRules(SGs, rb, sz);
     for (Int i = 0; i < dimension; ++i)
@@ -387,7 +387,7 @@ template <Int dimension> void Metadata<dimension>::generateRuleBooks2s2() {
   }
   while (true) {
     auto &SGs = grids[p1];
-    auto &rb = validRuleBooks[p2];
+    auto &rb = submanifoldRuleBooks[p2];
     if (rb.empty())
       SubmanifoldConvolution_SgsToRules(SGs, rb, s3);
     for (Int i = 0; i < dimension; ++i)
@@ -434,13 +434,27 @@ RuleBook &Metadata<dimension>::getSubmanifoldRuleBook(
     /*long*/ at::Tensor spatialSize,
     /*long*/ at::Tensor size, bool openMP) {
   auto p = TwoLongTensorsToPoint<dimension>(spatialSize, size);
-  auto &rb = validRuleBooks[p];
+  auto &rb = submanifoldRuleBooks[p];
   if (rb.empty()) {
     auto &SGs = grids[LongTensorToPoint<dimension>(spatialSize)];
 #if defined(ENABLE_OPENMP)
     openMP ? SubmanifoldConvolution_SgsToRules_OMP(SGs, rb, size.data<long>()) :
 #endif
            SubmanifoldConvolution_SgsToRules(SGs, rb, size.data<long>());
+  }
+  return rb;
+}
+template <Int dimension>
+RuleBook &Metadata<dimension>::getPermutohedralSubmanifoldRuleBook(
+    /*long*/ at::Tensor spatialSize, bool openMP) {
+  auto p = LongTensorToPoint<dimension>(spatialSize);
+  auto &rb = permutohedralRuleBooks[p];
+  if (rb.empty()) {
+    auto &SGs = grids[LongTensorToPoint<dimension>(spatialSize)];
+#if defined(ENABLE_OPENMP)
+    openMP ? PermutohedralSubmanifoldConvolution_SgsToRules_OMP(SGs, rb) :
+#endif
+           PermutohedralSubmanifoldConvolution_SgsToRules(SGs, rb);
   }
   return rb;
 }
@@ -547,6 +561,42 @@ RuleBook &Metadata<dimension>::getRandomizedStrideRuleBook(
                                             outputSpatialSize.data<long>(), re);
   }
   return rb;
+}
+
+template <Int dimension>
+std::vector<at::Tensor>
+Metadata<dimension>::compareSparseHelper(Metadata<dimension> &mR,
+                                         /* long */ at::Tensor spatialSize) {
+  auto p = LongTensorToPoint<dimension>(spatialSize);
+  auto &sgsL = grids[p];
+  auto &sgsR = mR.grids[p];
+  std::vector<long> cL, cR, L, R;
+  for (Int sample = 0; sample < (Int)sgsL.size(); ++sample) {
+    auto &sgL = sgsL[sample];
+    auto &sgR = sgsR[sample];
+    for (auto const &iter : sgL.mp) {
+      if (sgR.mp.find(iter.first) == sgR.mp.end()) {
+        L.push_back(sgL.mp[iter.first] + sgL.ctr);
+      } else {
+        cL.push_back(sgL.mp[iter.first] + sgL.ctr);
+        cR.push_back(sgR.mp[iter.first] + sgR.ctr);
+      }
+    }
+    for (auto const &iter : sgR.mp) {
+      if (sgL.mp.find(iter.first) == sgL.mp.end()) {
+        R.push_back(sgR.mp[iter.first] + sgR.ctr);
+      }
+    }
+  }
+  at::Tensor cL_ = torch::CPU(at::kLong).tensor({(long)cL.size()});
+  std::memcpy(cL_.data<long>(), &cL[0], cL.size() * sizeof(long));
+  at::Tensor cR_ = torch::CPU(at::kLong).tensor({(long)cR.size()});
+  std::memcpy(cR_.data<long>(), &cR[0], cR.size() * sizeof(long));
+  at::Tensor L_ = torch::CPU(at::kLong).tensor({(long)L.size()});
+  std::memcpy(L_.data<long>(), &L[0], L.size() * sizeof(long));
+  at::Tensor R_ = torch::CPU(at::kLong).tensor({(long)R.size()});
+  std::memcpy(R_.data<long>(), &R[0], R.size() * sizeof(long));
+  return {cL_, cR_, L_, R_};
 }
 
 template <Int dimension> Int volume(long *point) {

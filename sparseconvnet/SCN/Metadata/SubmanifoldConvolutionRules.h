@@ -4,13 +4,13 @@
 // This source code is licensed under the license found in the
 // LICENSE file in the root directory of this source tree.
 
-#ifndef VALIDCONVOLUTIONRULES_H
-#define VALIDCONVOLUTIONRULES_H
+#ifndef SUBMANIFOLDCONVOLUTIONRULES_H
+#define SUBMANIFOLDCONVOLUTIONRULES_H
 
 // Full input region for an output point
 template <Int dimension>
 RectangularRegion<dimension>
-InputRegionCalculator_Valid(const Point<dimension> &output, long *size) {
+InputRegionCalculator_Submanifold(const Point<dimension> &output, long *size) {
   Point<dimension> lb, ub;
   for (Int i = 0; i < dimension; i++) {
     Int pad = size[i] / 2;
@@ -29,7 +29,7 @@ double SubmanifoldConvolution_SgToRules(SparseGrid<dimension> &grid,
   double countActiveInputs = 0;
   for (auto const &outputIter : grid.mp) {
     auto inRegion =
-        InputRegionCalculator_Valid<dimension>(outputIter.first, size);
+        InputRegionCalculator_Submanifold<dimension>(outputIter.first, size);
     Int rulesOffset = 0;
     for (auto inputPoint : inRegion) {
       auto inputIter = grid.mp.find(inputPoint);
@@ -86,4 +86,4 @@ Int SubmanifoldConvolution_SgsToRules_OMP(SparseGrids<dimension> &SGs,
   return countActiveInputs_;
 }
 
-#endif /* VALIDCONVOLUTIONRULES_H */
+#endif /* SUBMANIFOLDCONVOLUTIONRULES_H */

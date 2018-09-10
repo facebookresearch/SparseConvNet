@@ -104,6 +104,15 @@ void SubmanifoldConvolution_backward(
     at::Tensor d_output_features, at::Tensor weight, at::Tensor d_weight,
     at::Tensor d_bias);
 template <Int Dimension>
+double PermutohedralSubmanifoldConvolution_updateOutput(
+    at::Tensor inputSize, Metadata<Dimension> &m, at::Tensor input_features,
+    at::Tensor output_features, at::Tensor weight, at::Tensor bias);
+template <Int Dimension>
+void PermutohedralSubmanifoldConvolution_backward(
+    at::Tensor inputSize, Metadata<Dimension> &m, at::Tensor input_features,
+    at::Tensor d_input_features, at::Tensor d_output_features,
+    at::Tensor weight, at::Tensor d_weight, at::Tensor d_bias);
+template <Int Dimension>
 double FullConvolution_updateOutput(
     at::Tensor inputSize, at::Tensor outputSize, at::Tensor filterSize,
     at::Tensor filterStride, Metadata<Dimension> &mIn,

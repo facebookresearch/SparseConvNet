@@ -43,10 +43,13 @@ class SparseConvNetTensor(object):
         self.spatialSize = None
 
     def __repr__(self):
+        sl = self.get_spatial_locations() if self.metadata else None
         return 'SparseConvNetTensor<<' + \
             'features=' + repr(self.features) + \
-            'coordinates=' + repr(self.get_spatial_locations() if self.metadata else None) + \
-            'spatial size=' + repr(self.spatial_size) + \
+            ',features.shape=' + repr(self.features.shape) + \
+            ',batch_locations=' + repr(sl) + \
+            ',batch_locations.shape=' + repr(sl.shape if self.metadata else None) + \
+            ',spatial size=' + repr(self.spatial_size) + \
             '>>'
 
     def to_variable(self, requires_grad=False, volatile=False):

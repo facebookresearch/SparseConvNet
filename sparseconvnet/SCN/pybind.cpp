@@ -27,8 +27,8 @@ template <Int Dimension> void dimension(py::module &m, const char *name) {
       .def("addSampleFromThresholdedTensor",
            &Metadata<Dimension>::addSampleFromThresholdedTensor)
       .def("generateRuleBooks3s2", &Metadata<Dimension>::generateRuleBooks3s2)
-      .def("generateRuleBooks2s2", &Metadata<Dimension>::generateRuleBooks2s2);
-
+      .def("generateRuleBooks2s2", &Metadata<Dimension>::generateRuleBooks2s2)
+      .def("compareSparseHelper", &Metadata<Dimension>::compareSparseHelper);
   m.def("ActivePooling_updateOutput",
         (void (*)(at::Tensor, Metadata<Dimension> &, at::Tensor, at::Tensor,
                   bool)) &
@@ -139,6 +139,16 @@ template <Int Dimension> void dimension(py::module &m, const char *name) {
         (void (*)(at::Tensor, at::Tensor, Metadata<Dimension> &, at::Tensor,
                   at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor)) &
             SubmanifoldConvolution_backward,
+        "");
+  m.def("PermutohedralSubmanifoldConvolution_updateOutput",
+        (double (*)(at::Tensor, Metadata<Dimension> &, at::Tensor, at::Tensor,
+                    at::Tensor, at::Tensor)) &
+            PermutohedralSubmanifoldConvolution_updateOutput,
+        "");
+  m.def("PermutohedralSubmanifoldConvolution_backward",
+        (void (*)(at::Tensor, Metadata<Dimension> &, at::Tensor, at::Tensor,
+                  at::Tensor, at::Tensor, at::Tensor, at::Tensor)) &
+            PermutohedralSubmanifoldConvolution_backward,
         "");
   m.def("InputLayer_updateOutput",
         (void (*)(Metadata<Dimension> &, at::Tensor, at::Tensor, at::Tensor,

@@ -206,6 +206,22 @@ void SubmanifoldConvolution_backward(
       d_output_features, weight, d_weight, d_bias);
 }
 template <Int Dimension>
+double PermutohedralSubmanifoldConvolution_updateOutput(
+    at::Tensor inputSize, Metadata<Dimension> &m, at::Tensor input_features,
+    at::Tensor output_features, at::Tensor weight, at::Tensor bias) {
+  return cpu_PermutohedralSubmanifoldConvolution_updateOutput<float, Dimension>(
+      inputSize, m, input_features, output_features, weight, bias);
+}
+template <Int Dimension>
+void PermutohedralSubmanifoldConvolution_backward(
+    at::Tensor inputSize, Metadata<Dimension> &m, at::Tensor input_features,
+    at::Tensor d_input_features, at::Tensor d_output_features,
+    at::Tensor weight, at::Tensor d_weight, at::Tensor d_bias) {
+  cpu_PermutohedralSubmanifoldConvolution_backward<float, Dimension>(
+      inputSize, m, input_features, d_input_features, d_output_features, weight,
+      d_weight, d_bias);
+}
+template <Int Dimension>
 double FullConvolution_updateOutput(
     at::Tensor inputSize, at::Tensor outputSize, at::Tensor filterSize,
     at::Tensor filterStride, Metadata<Dimension> &mIn,
@@ -436,6 +452,15 @@ void UnPooling_updateGradInput(at::Tensor inputSize, at::Tensor outputSize,
       at::Tensor weight, at::Tensor bias);                                     \
   template void SubmanifoldConvolution_backward<DIMENSION>(                    \
       at::Tensor inputSize, at::Tensor filterSize, Metadata<DIMENSION> & m,    \
+      at::Tensor input_features, at::Tensor d_input_features,                  \
+      at::Tensor d_output_features, at::Tensor weight, at::Tensor d_weight,    \
+      at::Tensor d_bias);                                                      \
+  template double PermutohedralSubmanifoldConvolution_updateOutput<DIMENSION>( \
+      at::Tensor inputSize, Metadata<DIMENSION> & m,                           \
+      at::Tensor input_features, at::Tensor output_features,                   \
+      at::Tensor weight, at::Tensor bias);                                     \
+  template void PermutohedralSubmanifoldConvolution_backward<DIMENSION>(       \
+      at::Tensor inputSize, Metadata<DIMENSION> & m,                           \
       at::Tensor input_features, at::Tensor d_input_features,                  \
       at::Tensor d_output_features, at::Tensor weight, at::Tensor d_weight,    \
       at::Tensor d_bias);                                                      \

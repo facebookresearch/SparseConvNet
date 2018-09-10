@@ -22,6 +22,7 @@ from .maxPooling import MaxPooling
 from .metadata import Metadata
 from .networkArchitectures import *
 from .networkInNetwork import NetworkInNetwork
+from .permutohedralSubmanifoldConvolution import PermutohedralSubmanifoldConvolution, permutohedral_basis
 from .randomizedStrideConvolution import RandomizedStrideConvolution
 from .randomizedStrideMaxPooling import RandomizedStrideMaxPooling
 from .sequential import Sequential
@@ -32,4 +33,4 @@ from .spectral_norm import spectral_norm
 from .submanifoldConvolution import SubmanifoldConvolution, ValidConvolution
 from .tables import *
 from .unPooling import UnPooling
-from .utils import append_tensors, AddCoords, add_feature_planes, concatenate_feature_planes
+from .utils import append_tensors, AddCoords, add_feature_planes, concatenate_feature_planes, compare_sparse

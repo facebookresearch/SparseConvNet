@@ -90,3 +90,19 @@ class AddCoords(torch.nn.Module):
         output.metadata = input.metadata
         output.spatial_size = input.spatial_size
         return output
+
+def compare_sparse(x, y):
+    cL,cR,L,R = x.metadata.compareSparseHelper(y.metadata, x.spatial_size)
+    if x.features.is_cuda:
+        cL=cL.cuda()
+        cR=cR.cuda()
+        L=L.cuda()
+        R=R.cuda()
+    e = 0
+    if cL.numel():
+        e += (x.features[cL]-y.features[cR]).pow(2).sum()
+    if L.numel():
+        e += x.features[L].pow(2).sum()
+    if R.numel():
+        e += y.features[R].pow(2).sum()
+    return e / (cL.numel() + L.numel() + R.numel())

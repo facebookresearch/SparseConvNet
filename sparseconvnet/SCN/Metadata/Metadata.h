@@ -9,10 +9,12 @@
 #include "32bits.h"
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <google/dense_hash_map>
 #include <iostream>
+#include <limits>
 #include <numeric>
 #include <random>
 #include <string>
@@ -57,7 +59,10 @@ public:
 
   std::unordered_map<Point<2 * dimension>, RuleBook,
                      IntArrayHash<2 * dimension>>
-      validRuleBooks;
+      submanifoldRuleBooks;
+
+  std::unordered_map<Point<dimension>, RuleBook, IntArrayHash<dimension>>
+      permutohedralRuleBooks;
 
   std::unordered_map<Point<3 * dimension>, RuleBook,
                      IntArrayHash<3 * dimension>>
@@ -125,6 +130,8 @@ public:
                Int mode);
   RuleBook &getSubmanifoldRuleBook(/*long*/ at::Tensor spatialSize,
                                    /*long*/ at::Tensor size, bool openMP);
+  RuleBook &getPermutohedralSubmanifoldRuleBook(/*long*/ at::Tensor spatialSize,
+                                                bool openMP);
   RuleBook &getActivePoolingRuleBook(/*long*/ at::Tensor spatialSize);
   RuleBook &getSparseToDenseRuleBook(/*long*/ at::Tensor spatialSize,
                                      bool openMP);
@@ -143,6 +150,10 @@ public:
                                         /*long*/ at::Tensor size,
                                         /*long*/ at::Tensor stride,
                                         bool openMP);
+
+  std::vector<at::Tensor>
+  compareSparseHelper(Metadata<dimension> &mR,
+					   /* long */ at::Tensor spatialSize);
 };
 
 template <typename T> T *OptionalTensorData(at::Tensor tensor);

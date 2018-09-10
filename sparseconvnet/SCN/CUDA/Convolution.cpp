@@ -152,6 +152,67 @@ void cuda_SubmanifoldConvolution_backward(
 }
 
 template <typename T, Int Dimension>
+double cuda_PermutohedralSubmanifoldConvolution_updateOutput(
+    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
+    /*cuda float*/ at::Tensor input_features,
+    /*cuda float*/ at::Tensor output_features, /*cuda float*/ at::Tensor weight,
+    /*cuda float*/ at::Tensor bias) {
+
+  auto _rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
+  Int nActive = m.getNActive(inputSize);
+
+  if (nActive) {
+    Int ip = weight.size(1);
+    Int op = weight.size(2);
+    output_features.resize_({nActive, op});
+    auto iF = input_features.data<T>();
+    auto oF = output_features.data<T>();
+    auto w = weight.data<T>();
+
+    if (bias.numel())
+      Convolution_fp_bias(oF, bias.data<T>(), op, nActive);
+    else
+      output_features.zero_();
+
+    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip, op, op);
+  } else {
+    return 0;
+  }
+}
+
+template <typename T, Int Dimension>
+void cuda_PermutohedralSubmanifoldConvolution_backward(
+    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
+    /*cuda float*/ at::Tensor input_features,
+    /*cuda float*/ at::Tensor d_input_features,
+    /*cuda float*/ at::Tensor d_output_features,
+    /*cuda float*/ at::Tensor weight, /*cuda float*/ at::Tensor d_weight,
+    /*cuda float*/ at::Tensor d_bias) {
+
+  auto _rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
+  Int nActive = m.getNActive(inputSize);
+
+  if (nActive) {
+    Int ip = weight.size(1);
+    Int op = weight.size(2);
+    d_input_features.resize_({nActive, ip});
+    d_input_features.zero_();
+    auto iF = input_features.data<T>();
+    auto diF = d_input_features.data<T>();
+    auto doF = d_output_features.data<T>();
+    auto w = weight.data<T>();
+    auto dw = d_weight.data<T>();
+
+    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip, op, op);
+
+    if (d_bias.numel()) {
+      auto db = d_bias.data<T>();
+      Convolution_bp_bias(doF, db, op, nActive);
+    }
+  }
+}
+
+template <typename T, Int Dimension>
 double cuda_FullConvolution_updateOutput(
     /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
     /*long*/ at::Tensor filterSize,

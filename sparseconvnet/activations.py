@@ -16,7 +16,7 @@ from .batchNormalization import BatchNormalization
 class Sigmoid(Module):
     def forward(self, input):
         output = SparseConvNetTensor()
-        output.features = F.sigmoid(input.features)
+        output.features = torch.sigmoid(input.features)
         output.metadata = input.metadata
         output.spatial_size = input.spatial_size
         return output
@@ -37,7 +37,7 @@ class LeakyReLU(Module):
 class Tanh(Module):
     def forward(self, input):
         output = SparseConvNetTensor()
-        output.features = F.tanh(input.features)
+        output.features = torch.tanh(input.features)
         output.metadata = input.metadata
         output.spatial_size = input.spatial_size
         return output

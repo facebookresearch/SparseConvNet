@@ -15,10 +15,10 @@ void InputLayer_ForwardPass(T *input_features, T *output_features, Int nRows,
   Int row;
 #pragma omp parallel for private(row)
   for (row = 0; row < nRows; row++) {
-    auto nActive = rules[0];
+    auto r = rules + row * (1 + maxActive);
+    auto nActive = r[0];
     T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     auto out_f = output_features + row * nPlanes;
-    auto r = rules + row * (1 + maxActive);
     for (Int i = 1; i <= nActive; ++i) {
       auto in_f = input_features + r[i] * nPlanes;
       for (Int plane = 0; plane < nPlanes; plane++) {
@@ -34,10 +34,10 @@ void InputLayer_BackwardPass(T *d_input_features, T *d_output_features,
   Int row;
 #pragma omp parallel for private(row)
   for (row = 0; row < nRows; row++) {
-    auto nActive = rules[0];
+    auto r = rules + row * (1 + maxActive);
+    auto nActive = r[0];
     T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     auto d_out_f = d_output_features + row * nPlanes;
-    auto r = rules + row * (1 + maxActive);
     for (Int i = 1; i <= nActive; ++i) {
       auto d_in_f = d_input_features + r[i] * nPlanes;
       for (Int plane = 0; plane < nPlanes; plane++)

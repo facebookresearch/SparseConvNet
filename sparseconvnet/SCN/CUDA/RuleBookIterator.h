@@ -14,16 +14,16 @@
 
 #define RULEBOOKITERATOR(X, Y)                                                 \
   {                                                                            \
-    Int rbMaxSize = 0;                                                        \
+    Int rbMaxSize = 0;                                                         \
     for (auto &r : _rules)                                                     \
-      rbMaxSize = std::max(rbMaxSize, (Int)r.size());                         \
+      rbMaxSize = std::max(rbMaxSize, (Int)r.size());                          \
     at::Tensor rulesBuffer = at::CUDA(at_kINT).tensor({rbMaxSize});            \
-    Int *rbB = rulesBuffer.data<Int>();                                       \
+    Int *rbB = rulesBuffer.data<Int>();                                        \
     for (int k = 0; k < _rules.size(); ++k) {                                  \
       auto &r = _rules[k];                                                     \
-      Int nHotB = r.size() / 2;                                               \
+      Int nHotB = r.size() / 2;                                                \
       if (nHotB) {                                                             \
-        cudaMemcpy(rbB, &r[0], sizeof(Int) * 2 * nHotB,                       \
+        cudaMemcpy(rbB, &r[0], sizeof(Int) * 2 * nHotB,                        \
                    cudaMemcpyHostToDevice);                                    \
         X                                                                      \
       }                                                                        \

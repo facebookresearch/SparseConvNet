@@ -4,7 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import sparseconvnet_SCN
+import sparseconvnet.SCN
 from torch.autograd import Function
 from torch.nn import Module
 from .utils import *
@@ -27,7 +27,7 @@ class RandomizedStrideMaxPoolingFunction(Function):
         ctx.dimension = dimension
         ctx.nFeaturesToDrop = nFeaturesToDrop
         output_features = input_features.new()
-        sparseconvnet_SCN.RandomizedStrideMaxPooling_updateOutput(
+        sparseconvnet.SCN.RandomizedStrideMaxPooling_updateOutput(
             input_spatial_size,
             output_spatial_size,
             pool_size,
@@ -54,7 +54,7 @@ class RandomizedStrideMaxPoolingFunction(Function):
             pool_size,\
             pool_stride = ctx.saved_tensors
         grad_input = grad_output.new()
-        sparseconvnet_SCN.RandomizedStrideMaxPooling_updateGradInput(
+        sparseconvnet.SCN.RandomizedStrideMaxPooling_updateGradInput(
             input_spatial_size,
             output_spatial_size,
             pool_size,

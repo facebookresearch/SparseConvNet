@@ -4,7 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import sparseconvnet_SCN
+import sparseconvnet.SCN
 from torch.autograd import Function, Variable
 from torch.nn import Module
 from .utils import *
@@ -31,7 +31,7 @@ class UnPoolingFunction(Function):
         ctx.pool_stride = pool_stride
         ctx.nFeaturesToDrop = nFeaturesToDrop
         output_features = input_features.new()
-        sparseconvnet_SCN.UnPooling_updateOutput(
+        sparseconvnet.SCN.UnPooling_updateOutput(
             input_spatial_size,
             output_spatial_size,
             pool_size,
@@ -45,7 +45,7 @@ class UnPoolingFunction(Function):
     @staticmethod
     def backward(ctx, grad_output):
         grad_input=Variable(grad_output.data.new())
-        sparseconvnet_SCN.UnPooling_updateGradInput(
+        sparseconvnet.SCN.UnPooling_updateGradInput(
             ctx.input_spatial_size,
             ctx.output_spatial_size,
             ctx.pool_size,

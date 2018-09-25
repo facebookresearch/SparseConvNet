@@ -4,7 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import sparseconvnet_SCN
+import sparseconvnet.SCN
 from torch.autograd import Function
 from torch.nn import Module, Parameter
 from .utils import *
@@ -165,7 +165,7 @@ class InputLayerFunction(Function):
         output_features = input_features.new()
         ctx.dimension = dimension
         ctx.metadata_ = metadata
-        sparseconvnet_SCN.InputLayer_updateOutput(
+        sparseconvnet.SCN.InputLayer_updateOutput(
             metadata,
             spatial_size,
             coords,
@@ -179,7 +179,7 @@ class InputLayerFunction(Function):
     @staticmethod
     def backward(ctx, grad_output):
         grad_input = grad_output.new()
-        sparseconvnet_SCN.InputLayer_updateGradInput(
+        sparseconvnet.SCN.InputLayer_updateGradInput(
             ctx.metadata_,
             grad_input,
             grad_output.contiguous())
@@ -196,7 +196,7 @@ class OutputLayerFunction(Function):
         output_features = input_features.new()
         ctx.metadata_ = metadata
         ctx.dimension = dimension
-        sparseconvnet_SCN.OutputLayer_updateOutput(
+        sparseconvnet.SCN.OutputLayer_updateOutput(
             metadata,
             input_features.contiguous(),
             output_features
@@ -207,7 +207,7 @@ class OutputLayerFunction(Function):
     def backward(ctx, grad_output):
         grad_input = grad_output.new()
         grad_output=grad_output.contiguous()
-        sparseconvnet_SCN.OutputLayer_updateGradInput(
+        sparseconvnet.SCN.OutputLayer_updateGradInput(
             ctx.metadata_,
             grad_input,
             grad_output.contiguous())
@@ -227,7 +227,7 @@ class BLInputLayerFunction(Function):
         output_features = input_features.new()
         ctx.metadata_ = metadata
         ctx.dimension = dimension
-        sparseconvnet_SCN.BLInputLayer_updateOutput(
+        sparseconvnet.SCN.BLInputLayer_updateOutput(
             metadata,
             spatial_size,
             coords,
@@ -240,7 +240,7 @@ class BLInputLayerFunction(Function):
     @staticmethod
     def backward(ctx, grad_output):
         grad_input = grad_output.new()
-        sparseconvnet_SCN.BLInputLayer_updateGradInput(
+        sparseconvnet.SCN.BLInputLayer_updateGradInput(
             ctx.metadata_,
             grad_input,
             grad_output.contiguous())
@@ -257,7 +257,7 @@ class BLOutputLayerFunction(Function):
         output_features = input_features.new()
         ctx.metadata_ = metadata
         ctx.dimension = dimension
-        sparseconvnet_SCN.BLOutputLayer_updateOutput(
+        sparseconvnet.SCN.BLOutputLayer_updateOutput(
             metadata,
             input_features.contiguous(),
             output_features
@@ -267,7 +267,7 @@ class BLOutputLayerFunction(Function):
     @staticmethod
     def backward(ctx, grad_output):
         grad_input = grad_output.new()
-        sparseconvnet_SCN.BLOutputLayer_updateGradInput(
+        sparseconvnet.SCN.BLOutputLayer_updateGradInput(
             ctx.metadata_,
             grad_input,
             grad_output.contiguous())

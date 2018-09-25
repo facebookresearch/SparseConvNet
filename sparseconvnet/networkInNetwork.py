@@ -4,7 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import sparseconvnet, sparseconvnet_SCN
+import sparseconvnet, sparseconvnet.SCN
 from torch.autograd import Function
 from torch.nn import Module, Parameter
 from .utils import *
@@ -24,7 +24,7 @@ class NetworkInNetworkFunction(Function):
                               weight,
                               bias)
         sparseconvnet.forward_pass_multiplyAdd_count +=\
-            sparseconvnet_SCN.NetworkInNetwork_updateOutput(
+            sparseconvnet.SCN.NetworkInNetwork_updateOutput(
                 input_features,
                 output_features,
                 weight,
@@ -44,11 +44,11 @@ class NetworkInNetworkFunction(Function):
             grad_bias = None
         else:
             grad_bias = torch.zeros_like(bias)
-        sparseconvnet_SCN.NetworkInNetwork_updateGradInput(
+        sparseconvnet.SCN.NetworkInNetwork_updateGradInput(
             grad_input,
             grad_output,
             weight)
-        sparseconvnet_SCN.NetworkInNetwork_accGradParameters(
+        sparseconvnet.SCN.NetworkInNetwork_accGradParameters(
             input_features,
             grad_output,
             grad_weight,

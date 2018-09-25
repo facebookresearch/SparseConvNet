@@ -15,7 +15,7 @@ Parameters:
 dimension : of the input field,
 """
 
-import sparseconvnet_SCN
+import sparseconvnet.SCN
 from torch.autograd import Function
 from torch.nn import Module
 from .utils import *
@@ -35,7 +35,7 @@ class SparseToDenseFunction(Function):
         ctx.dimension = dimension
         ctx.save_for_backward(input_features, spatial_size)
         output = input_features.new()
-        sparseconvnet_SCN.SparseToDense_updateOutput(
+        sparseconvnet.SCN.SparseToDense_updateOutput(
             spatial_size,
             input_metadata,
             input_features,
@@ -47,7 +47,7 @@ class SparseToDenseFunction(Function):
     def backward(ctx, grad_output):
         grad_input = grad_output.new()
         input_features, spatial_size = ctx.saved_tensors
-        sparseconvnet_SCN.SparseToDense_updateGradInput(
+        sparseconvnet.SCN.SparseToDense_updateGradInput(
             spatial_size,
             ctx.input_metadata,
             input_features,

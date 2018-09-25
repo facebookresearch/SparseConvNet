@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import sparseconvnet
-import sparseconvnet_SCN
+import sparseconvnet.SCN
 from torch.autograd import Function
 from torch.nn import Module, Parameter
 from .utils import *
@@ -82,7 +82,7 @@ class PermutohedralSubmanifoldConvolutionFunction(Function):
             bias)
 
         sparseconvnet.forward_pass_multiplyAdd_count +=\
-            sparseconvnet_SCN.PermutohedralSubmanifoldConvolution_updateOutput(
+            sparseconvnet.SCN.PermutohedralSubmanifoldConvolution_updateOutput(
                 spatial_size,
                 input_metadata,
                 input_features,
@@ -98,7 +98,7 @@ class PermutohedralSubmanifoldConvolutionFunction(Function):
         grad_input = grad_output.new()
         grad_weight = torch.zeros_like(weight)
         grad_bias = torch.zeros_like(bias)
-        sparseconvnet_SCN.PermutohedralSubmanifoldConvolution_backward(
+        sparseconvnet.SCN.PermutohedralSubmanifoldConvolution_backward(
             spatial_size,
             ctx.input_metadata,
             input_features,

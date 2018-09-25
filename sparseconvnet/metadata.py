@@ -11,7 +11,7 @@ all coexist within the same MetaData object as long as each spatial size
 only occurs once.
 """
 
-import sparseconvnet_SCN
+import sparseconvnet.SCN
 
 def Metadata(dim):
-    return getattr(sparseconvnet_SCN, 'Metadata_%d'%dim)()
+    return getattr(sparseconvnet.SCN, 'Metadata_%d'%dim)()

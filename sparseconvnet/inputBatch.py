@@ -75,9 +75,9 @@ class InputBatch(SparseConvNetTensor):
         Use size == 3 if downsizing with size-3 stride-2 operations
         """
         if size == 2:
-            self.metadata.generateRuleBooks2s2(self.metadata)
+            self.metadata.generateRuleBooks2s2()
         if size == 3 :
-            self.metadata.generateRuleBooks3s2(self.metadata)
+            self.metadata.generateRuleBooks3s2()
 
     "Deprecated method names."
     def addSample(self):

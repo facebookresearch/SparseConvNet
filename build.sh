@@ -1,3 +1,3 @@
 #!/bin/bash
-rm -rf build/ dist/ sparseconvnet.egg-info sparseconvnet_SCN*.so
+rm -rf build/ dist/ sparseconvnet.egg-info
 python setup.py install

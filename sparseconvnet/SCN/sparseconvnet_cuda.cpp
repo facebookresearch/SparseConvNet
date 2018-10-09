@@ -9,10 +9,9 @@
 #include <omp.h>
 #endif
 
-//#include <ATen/ATen.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <torch/torch.h>
+#include <torch/extension.h>
 
 #include "Metadata/Metadata.cpp"
 template class Metadata<1>;

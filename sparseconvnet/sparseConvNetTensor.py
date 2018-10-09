@@ -29,8 +29,8 @@ class SparseConvNetTensor(object):
             return self
         return self.features.type()
 
-    def cuda(self, async=False):
-        self.features = self.features.cuda(async=async)
+    def cuda(self):
+        self.features = self.features.cuda()
         return self
 
     def cpu(self):

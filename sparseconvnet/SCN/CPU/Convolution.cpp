@@ -62,7 +62,7 @@ double cpu_Convolution_updateOutput(
       // auto w = weight.select(0, i);
       // auto output_rows = at::mm(input_rows, w);
       // output_features.index_add_(0, rt.select(1, 1), output_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
       auto w = weight.select(0, i);
       auto output_rows = at::mm(input_rows, w);
@@ -105,9 +105,9 @@ void cpu_Convolution_backward(
       // at::mm_out(dw, input_rows.t(), d_output_rows);
       // auto d_input_rows = at::mm(d_output_rows, w.t());
       // d_input_features.index_add_(0, rt.select(1, 0), d_input_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
-      auto d_output_rows = d_output_features.type().tensor({nRules, op});
+      auto d_output_rows = at::empty({nRules, op}, d_output_features.type());
       rule_index_select<T>(d_output_rows, d_output_features, nRules, &r[1]);
       at::mm_out(dw, input_rows.t(), d_output_rows);
       auto d_input_rows = at::mm(d_output_rows, w.t());
@@ -144,7 +144,7 @@ double cpu_SubmanifoldConvolution_updateOutput(
       // auto w = weight.select(0, i);
       // auto output_rows = at::mm(input_rows, w);
       // output_features.index_add_(0, rt.select(1, 1), output_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
       auto w = weight.select(0, i);
       auto output_rows = at::mm(input_rows, w);
@@ -186,9 +186,9 @@ void cpu_SubmanifoldConvolution_backward(
       // at::mm_out(dw, input_rows.t(), d_output_rows);
       // auto d_input_rows = at::mm(d_output_rows, w.t());
       // d_input_features.index_add_(0, rt.select(1, 0), d_input_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
-      auto d_output_rows = d_output_features.type().tensor({nRules, op});
+      auto d_output_rows = at::empty({nRules, op}, d_output_features.type());
       rule_index_select<T>(d_output_rows, d_output_features, nRules, &r[1]);
       at::mm_out(dw, input_rows.t(), d_output_rows);
       auto d_input_rows = at::mm(d_output_rows, w.t());
@@ -224,7 +224,7 @@ double cpu_PermutohedralSubmanifoldConvolution_updateOutput(
       // auto w = weight.select(0, i);
       // auto output_rows = at::mm(input_rows, w);
       // output_features.index_add_(0, rt.select(1, 1), output_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
       auto w = weight.select(0, i);
       auto output_rows = at::mm(input_rows, w);
@@ -265,9 +265,9 @@ void cpu_PermutohedralSubmanifoldConvolution_backward(
       // at::mm_out(dw, input_rows.t(), d_output_rows);
       // auto d_input_rows = at::mm(d_output_rows, w.t());
       // d_input_features.index_add_(0, rt.select(1, 0), d_input_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
-      auto d_output_rows = d_output_features.type().tensor({nRules, op});
+      auto d_output_rows = at::empty({nRules, op}, d_output_features.type());
       rule_index_select<T>(d_output_rows, d_output_features, nRules, &r[1]);
       at::mm_out(dw, input_rows.t(), d_output_rows);
       auto d_input_rows = at::mm(d_output_rows, w.t());
@@ -307,7 +307,7 @@ double cpu_FullConvolution_updateOutput(
       // auto w = weight.select(0, i);
       // auto output_rows = at::mm(input_rows, w);
       // output_features.index_add_(0, rt.select(1, 1), output_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
       auto w = weight.select(0, i);
       auto output_rows = at::mm(input_rows, w);
@@ -352,9 +352,9 @@ void cpu_FullConvolution_backward(
       // at::mm_out(dw, input_rows.t(), d_output_rows);
       // auto d_input_rows = at::mm(d_output_rows, w.t());
       // d_input_features.index_add_(0, rt.select(1, 0), d_input_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
-      auto d_output_rows = d_output_features.type().tensor({nRules, op});
+      auto d_output_rows = at::empty({nRules, op}, d_output_features.type());
       rule_index_select<T>(d_output_rows, d_output_features, nRules, &r[1]);
       at::mm_out(dw, input_rows.t(), d_output_rows);
       auto d_input_rows = at::mm(d_output_rows, w.t());
@@ -393,7 +393,7 @@ double cpu_RandomizedStrideConvolution_updateOutput(
       // auto w = weight.select(0, i);
       // auto output_rows = at::mm(input_rows, w);
       // output_features.index_add_(0, rt.select(1, 1), output_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
       auto w = weight.select(0, i);
       auto output_rows = at::mm(input_rows, w);
@@ -436,9 +436,9 @@ void cpu_RandomizedStrideConvolution_backward(
       // at::mm_out(dw, input_rows.t(), d_output_rows);
       // auto d_input_rows = at::mm(d_output_rows, w.t());
       // d_input_features.index_add_(0, rt.select(1, 0), d_input_rows);
-      auto input_rows = input_features.type().tensor({nRules, ip});
+      auto input_rows = at::empty({nRules, ip}, input_features.type());
       rule_index_select<T>(input_rows, input_features, nRules, &r[0]);
-      auto d_output_rows = d_output_features.type().tensor({nRules, op});
+      auto d_output_rows = at::empty({nRules, op}, d_output_features.type());
       rule_index_select<T>(d_output_rows, d_output_features, nRules, &r[1]);
       at::mm_out(dw, input_rows.t(), d_output_rows);
       auto d_input_rows = at::mm(d_output_rows, w.t());

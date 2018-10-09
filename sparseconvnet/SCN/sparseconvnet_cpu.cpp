@@ -9,7 +9,7 @@
 #include <omp.h>
 #endif
 
-#include <torch/torch.h>
+#include <torch/extension.h>
 
 #include "Metadata/Metadata.cpp"
 template class Metadata<1>;

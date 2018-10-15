@@ -143,9 +143,10 @@ To run the examples you may also need to install unrar:
 apt-get install unrar
 ```
 
+## License
+SparseConvNet is Attribution-NonCommercial 4.0 International licensed, as found in the LICENSE file.
 
-
-### Links
+## Links
 1. [ICDAR 2013 Chinese Handwriting Recognition Competition 2013](http://www.nlpr.ia.ac.cn/events/CHRcompetition2013/competition/Home.html) First place in task 3, with test error of 2.61%. Human performance on the test set was 4.81%. [Report](http://www.nlpr.ia.ac.cn/events/CHRcompetition2013/competition/ICDAR%202013%20CHR%20competition.pdf)
 2. [Spatially-sparse convolutional neural networks, 2014](http://arxiv.org/abs/1409.6070) SparseConvNets for Chinese handwriting recognition
 3. [Fractional max-pooling, 2014](http://arxiv.org/abs/1412.6071) A SparseConvNet with fractional max-pooling achieves an error rate of 3.47% for CIFAR-10.
@@ -156,7 +157,7 @@ apt-get install unrar
 8. [Workshop on Learning to See from 3D Data, 2017](https://shapenet.cs.stanford.edu/iccv17workshop/) First place in the [semantic segmentation](https://shapenet.cs.stanford.edu/iccv17/) competition. [Report](https://arxiv.org/pdf/1710.06104)
 9. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets, CVPR 2018
 
-### Citations
+## Citations
 
 If you find this code useful in your research then please cite:
 

@@ -148,3 +148,5 @@ class FullConvolutionFunction(Function):
             grad_weight,
             grad_bias)
         return grad_input, grad_weight, optionalTensorReturn(grad_bias), None, None, None, None, None, None, None
+
+TransposeConvolution=FullConvolution

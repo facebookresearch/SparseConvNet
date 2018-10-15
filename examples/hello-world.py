@@ -69,7 +69,7 @@ input.precomputeMetadata(3)
 model.train()
 if use_cuda:
     input.cuda()
-output = model.forward(input)
+output = model(input)
 
 # Output is 2x32x10x10: our minibatch has 2 samples, the network has 32 output
 # feature planes, and 10x10 is the spatial size of the output.

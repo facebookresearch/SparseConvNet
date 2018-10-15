@@ -31,3 +31,16 @@ class Sequential(torch.nn.Sequential):
             else:
                 input = module(input)
         return input
+
+    def rebias(self, input):
+        for module in self._modules.values():
+            if isinstance(module, Sequential):
+                input = module.reweight(input)
+            elif hasattr(input, 'features') and hasattr(module, 'bias'):
+                f = module(input).features
+                f = f - module.bias
+                module.bias = torch.nn.Parameter(-f.mean(0))
+                input = module(input)
+            else:
+                input = module(input)
+        return input

@@ -69,7 +69,7 @@ def append_tensors(tensors):
     spatial_size=tensors[0].spatial_size
     dimension=len(spatial_size)
     x=SparseConvNetTensor(
-        features=torch.cat([t.features for t in features],0),
+        features=torch.cat([t.features for t in tensors],0),
         metadata=Metadata(dimension),
         spatial_size=spatial_size)
     for t in tensors:
@@ -106,3 +106,10 @@ def compare_sparse(x, y):
     if R.numel():
         e += y.features[R].pow(2).sum()
     return e / (cL.numel() + L.numel() + R.numel())
+
+def spectral_norm_svd(module):
+    w=module.weight
+    if w.ndimension()==3:
+        w=w.view(-1,w.size(2))
+    _,s,_=torch.svd(w)
+    return s[0]

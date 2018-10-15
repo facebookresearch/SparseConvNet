@@ -1,15 +1,18 @@
-import torch
-
+# Copyright 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
 import torch
 from torch.nn.functional import normalize
 from torch.nn.parameter import Parameter
 
-
 class SpectralNorm(object):
 
-    def __init__(self, name='weight', n_power_iterations=1, dim=0, eps=1e-12):
+    def __init__(self, name='weight', n_power_iterations=1, dim=0, eps=1e-12, norm=1):
         self.name = name
         self.dim = dim
+        self.norm = norm
         if n_power_iterations <= 0:
             raise ValueError('Expected n_power_iterations to be positive, but '
                              'got n_power_iterations={}'.format(n_power_iterations))
@@ -19,7 +22,7 @@ class SpectralNorm(object):
     def compute_weight(self, module):
         weight = getattr(module, self.name + '_orig')
         u = getattr(module, self.name + '_u')
-        weight_mat = weight
+        weight_mat = weight #/ self.norm
         if self.dim != 0:
             # permute dim to front
             weight_mat = weight_mat.permute(self.dim,
@@ -35,7 +38,7 @@ class SpectralNorm(object):
                 u = normalize(torch.matmul(weight_mat, v), dim=0, eps=self.eps)
 
         sigma = torch.dot(u, torch.matmul(weight_mat, v))
-        weight = weight / sigma
+        weight = weight * (self.norm / sigma)
         return weight, u
 
     def remove(self, module):
@@ -55,8 +58,8 @@ class SpectralNorm(object):
             getattr(module, self.name).detach_().requires_grad_(r_g)
 
     @staticmethod
-    def apply(module, name, n_power_iterations, dim, eps):
-        fn = SpectralNorm(name, n_power_iterations, dim, eps)
+    def apply(module, name, n_power_iterations, dim, eps, norm):
+        fn = SpectralNorm(name, n_power_iterations, dim, eps, norm)
         weight = module._parameters[name]
         height = weight.size(dim)
 
@@ -75,11 +78,10 @@ class SpectralNorm(object):
         module.register_forward_pre_hook(fn)
         return fn
 
-def spectral_norm(module, n_power_iterations=1, eps=1e-12):
+def spectral_norm(module, n_power_iterations=1, eps=1e-12, norm=1):
     """
     https://github.com/pytorch/pytorch/blob/master/torch/nn/utils/spectral_norm.py
     """
-    dim=1
-    #torch.nn.utils.
-    SpectralNorm.apply(module, 'weight', n_power_iterations, dim, eps)
+    dim=module.weight.ndimension()-1
+    SpectralNorm.apply(module, 'weight', n_power_iterations, dim, eps, norm)
     return module

@@ -17,7 +17,7 @@
     Int rbMaxSize = 0;                                                         \
     for (auto &r : _rules)                                                     \
       rbMaxSize = std::max(rbMaxSize, (Int)r.size());                          \
-    at::Tensor rulesBuffer = at::CUDA(at_kINT).tensor({rbMaxSize});            \
+    at::Tensor rulesBuffer = at::empty({rbMaxSize}, at::CUDA(at_kINT));        \
     Int *rbB = rulesBuffer.data<Int>();                                        \
     for (int k = 0; k < _rules.size(); ++k) {                                  \
       auto &r = _rules[k];                                                     \

@@ -33,7 +33,7 @@ void cuda_InputLayer_updateOutput(Metadata<Dimension> &m,
   } else {
     output_features.resize_({*m.inputNActive, nPlanes});
     output_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
+    auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
     Int *rb = rulesBuffer.data<Int>();
@@ -58,7 +58,7 @@ void cuda_InputLayer_updateGradInput(
   } else {
     d_input_features.resize_({rules[0][2], nPlanes});
     d_input_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
+    auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
     auto diF = d_input_features.data<T>();
     auto doF = d_output_features.data<T>();
     Int *rb = rulesBuffer.data<Int>();
@@ -83,7 +83,7 @@ void cuda_OutputLayer_updateOutput(Metadata<Dimension> &m,
   } else {
     output_features.resize_({rules[0][2], nPlanes});
     output_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
+    auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
     Int *rb = rulesBuffer.data<Int>();
@@ -107,7 +107,7 @@ void cuda_OutputLayer_updateGradInput(
   } else {
     d_input_features.resize_({nRows, nPlanes});
     d_input_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
+    auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
     auto diF = d_input_features.data<T>();
     auto doF = d_output_features.data<T>();
     Int *rb = rulesBuffer.data<Int>();
@@ -137,7 +137,7 @@ void cuda_BLInputLayer_updateOutput(Metadata<Dimension> &m,
     output_features.copy_(input_features);
     output_features.resize_({*m.inputNActive, nPlanes});
   } else {
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
+    auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
     Int *rb = rulesBuffer.data<Int>();
@@ -164,7 +164,7 @@ void cuda_BLInputLayer_updateGradInput(
   } else {
     d_input_features.resize_({rules[0][2], rules[0][3], nPlanes});
     d_input_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
+    auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
     auto diF = d_input_features.data<T>();
     auto doF = d_output_features.data<T>();
     Int *rb = rulesBuffer.data<Int>();
@@ -191,7 +191,7 @@ void cuda_BLOutputLayer_updateOutput(
   } else {
     output_features.resize_({rules[0][2], rules[0][3], nPlanes});
     output_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
+    auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
     Int *rb = rulesBuffer.data<Int>();
@@ -216,7 +216,7 @@ void cuda_BLOutputLayer_updateGradInput(
   } else {
     d_input_features.resize_({nRows, nPlanes});
     d_input_features.zero_();
-    auto rulesBuffer = at::CUDA(at_kINT).tensor({(int)rules[1].size()});
+    auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
     auto diF = d_input_features.data<T>();
     auto doF = d_output_features.data<T>();
     Int *rb = rulesBuffer.data<Int>();

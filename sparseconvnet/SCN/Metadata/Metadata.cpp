@@ -588,13 +588,13 @@ Metadata<dimension>::compareSparseHelper(Metadata<dimension> &mR,
       }
     }
   }
-  at::Tensor cL_ = torch::CPU(at::kLong).tensor({(long)cL.size()});
+  at::Tensor cL_ = at::empty({(long)cL.size()}, at::CPU(at::kLong));
   std::memcpy(cL_.data<long>(), &cL[0], cL.size() * sizeof(long));
-  at::Tensor cR_ = torch::CPU(at::kLong).tensor({(long)cR.size()});
+  at::Tensor cR_ = at::empty({(long)cR.size()}, at::CPU(at::kLong));
   std::memcpy(cR_.data<long>(), &cR[0], cR.size() * sizeof(long));
-  at::Tensor L_ = torch::CPU(at::kLong).tensor({(long)L.size()});
+  at::Tensor L_ = at::empty({(long)L.size()}, at::CPU(at::kLong));
   std::memcpy(L_.data<long>(), &L[0], L.size() * sizeof(long));
-  at::Tensor R_ = torch::CPU(at::kLong).tensor({(long)R.size()});
+  at::Tensor R_ = at::empty({(long)R.size()}, at::CPU(at::kLong));
   std::memcpy(R_.data<long>(), &R[0], R.size() * sizeof(long));
   return {cL_, cR_, L_, R_};
 }

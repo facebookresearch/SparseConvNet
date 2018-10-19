@@ -80,15 +80,12 @@ class BatchNormReLU(BatchNormalization):
 
 
 class BatchNormLeakyReLU(BatchNormalization):
-    def __init__(self, nPlanes, eps=1e-4, momentum=0.9):
-        BatchNormalization.__init__(self, nPlanes, eps, momentum, True, 0.333)
+    def __init__(self, nPlanes, eps=1e-4, momentum=0.9, leakiness=0.333):
+        BatchNormalization.__init__(self, nPlanes, eps, momentum, True, leakiness)
 
     def __repr__(self):
-        s = 'BatchLeakyNorm(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
-            ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine)
-        if self.leakiness > 0:
-            s = s + ',leakiness=' + str(self.leakiness)
-        s = s + ')'
+        s = 'BatchNormLeakyReLU(' + str(self.nPlanes) + ',eps=' + str(self.eps) + \
+            ',momentum=' + str(self.momentum) + ',affine=' + str(self.affine) + ',leakiness='+str(self.leakiness)+')'
         return s
 
 class BatchNormalizationFunction(Function):

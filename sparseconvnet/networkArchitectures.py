@@ -200,7 +200,7 @@ def SparseResNet(dimension, nInputPlanes, layers):
     return m
 
 
-def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2]):
+def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2], leakiness=0):
     """
     U-Net style network with VGG or ResNet-style blocks.
     For voxel level prediction:
@@ -223,14 +223,14 @@ def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2]):
             m.add(scn.ConcatTable()
                   .add(scn.Identity() if a == b else scn.NetworkInNetwork(a, b, False))
                   .add(scn.Sequential()
-                    .add(scn.BatchNormReLU(a))
+                    .add(scn.BatchNormLeakyReLU(a,leakiness=leakiness))
                     .add(scn.SubmanifoldConvolution(dimension, a, b, 3, False))
-                    .add(scn.BatchNormReLU(b))
+                    .add(scn.BatchNormLeakyReLU(b,leakiness=leakiness))
                     .add(scn.SubmanifoldConvolution(dimension, b, b, 3, False)))
              ).add(scn.AddTable())
         else: #VGG style blocks
             m.add(scn.Sequential()
-                 .add(scn.BatchNormReLU(a))
+                 .add(scn.BatchNormLeakyReLU(a,leakiness=leakiness))
                  .add(scn.SubmanifoldConvolution(dimension, a, b, 3, False)))
     def U(nPlanes): #Recursive function
         m = scn.Sequential()
@@ -245,11 +245,11 @@ def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2]):
                 scn.ConcatTable().add(
                     scn.Identity()).add(
                     scn.Sequential().add(
-                        scn.BatchNormReLU(nPlanes[0])).add(
+                        scn.BatchNormLeakyReLU(nPlanes[0],leakiness=leakiness)).add(
                         scn.Convolution(dimension, nPlanes[0], nPlanes[1],
                             downsample[0], downsample[1], False)).add(
                         U(nPlanes[1:])).add(
-                        scn.BatchNormReLU(nPlanes[1])).add(
+                        scn.BatchNormLeakyReLU(nPlanes[1],leakiness=leakiness)).add(
                         scn.Deconvolution(dimension, nPlanes[1], nPlanes[0],
                             downsample[0], downsample[1], False))))
             m.add(scn.JoinTable())

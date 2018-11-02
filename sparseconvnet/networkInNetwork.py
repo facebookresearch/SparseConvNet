@@ -70,7 +70,7 @@ class NetworkInNetwork(Module):
             self.bias = Parameter(torch.Tensor(nOut).zero_())
 
     def forward(self, input):
-        assert input.features.nelement() == 0 or input.features.size(1) == self.nIn
+        assert input.features.nelement() == 0 or input.features.size(1) == self.nIn, (self.nIn, input.features.shape)
         output = SparseConvNetTensor()
         output.metadata = input.metadata
         output.spatial_size = input.spatial_size

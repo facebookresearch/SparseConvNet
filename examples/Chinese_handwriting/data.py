@@ -1,3 +1,4 @@
+
 # Copyright 2016-present, Facebook, Inc.
 # All rights reserved.
 #
@@ -19,7 +20,7 @@ if not os.path.exists('pickle/'):
         'wget http://www.nlpr.ia.ac.cn/databases/download/feature_data/OLHWDB1.1trn_pot.zip')
     os.system(
         'wget http://www.nlpr.ia.ac.cn/databases/download/feature_data/OLHWDB1.1tst_pot.zip')
-    os.system('mkdir -p t7/train/ t7/test/ POT/ pickle/')
+    os.system('mkdir -p POT/ pickle/')
     os.system('unzip OLHWDB1.1trn_pot.zip -d POT/')
     os.system('unzip OLHWDB1.1tst_pot.zip -d POT/')
     os.system('python readPotFiles.py')

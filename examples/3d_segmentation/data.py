@@ -5,8 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import numpy as np
-import torch
-import torchnet
+import torch, torch.utils.data
 import glob, math, os
 import scipy, scipy.ndimage
 import sparseconvnet as scn

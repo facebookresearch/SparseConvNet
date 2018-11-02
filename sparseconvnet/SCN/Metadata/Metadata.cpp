@@ -260,7 +260,7 @@ Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mReference,
                                      Metadata<dimension> &mSparsified,
                                      /*long*/ at::Tensor spatialSize) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
-  at::Tensor delta = at::zeros({nActive[p]}, torch::CPU(at::kFloat));
+  at::Tensor delta = at::zeros({nActive[p]}, at::kFloat);
   float *deltaPtr = delta.data<float>();
   auto &sgsReference = mReference.grids[p];
   auto &sgsFull = grids[p];

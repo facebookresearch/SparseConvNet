@@ -18,8 +18,8 @@ public:
   RSRTicks(Int input_spatialSize, Int output_spatialSize, Int size, Int stride,
            std::default_random_engine re) {
     std::vector<Int> steps;
-    // steps.resize(output_spatialSize/3,stride-1);
-    // steps.resize(output_spatialSize/3*2,stride+1);
+    steps.resize(output_spatialSize / 3, stride - 1);
+    steps.resize(output_spatialSize / 3 * 2, stride + 1);
     steps.resize(output_spatialSize - 1, stride);
     std::shuffle(steps.begin(), steps.end(), re);
     inputL.push_back(0);

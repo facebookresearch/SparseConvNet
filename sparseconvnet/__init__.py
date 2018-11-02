@@ -34,3 +34,4 @@ from .submanifoldConvolution import SubmanifoldConvolution, ValidConvolution
 from .tables import *
 from .unPooling import UnPooling
 from .utils import append_tensors, AddCoords, add_feature_planes, concatenate_feature_planes, compare_sparse
+from .shapeContext import ShapeContext, MultiscaleShapeContext

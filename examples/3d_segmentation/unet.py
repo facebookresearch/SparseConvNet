@@ -14,9 +14,9 @@ import os, sys
 import math
 import numpy as np
 
-data.init(-1,24,24*8+15,16)
+data.init(-1,24,24*8,16)
 dimension = 3
-reps = 2 #Conv block repetition factor
+reps = 1 #Conv block repetition factor
 m = 32 #Unet number of features
 nPlanes = [m, 2*m, 3*m, 4*m, 5*m] #UNet number of features per level
 

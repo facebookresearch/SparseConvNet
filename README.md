@@ -94,14 +94,6 @@ locations = torch.LongTensor(locations)
 features = torch.FloatTensor(features)
 input.set_locations(locations, features, 0)
 
-# Optional: allow metadata preprocessing to be done in batch preparation threads
-# to improve GPU utilization.
-#
-# Parameter:
-#    3 if using MP3/2 pooling or C3/2 convolutions for downsizing,
-#    2 if using MP2 pooling for downsizing.
-input.precomputeMetadata(3)
-
 model.train()
 if use_gpu:
     input.cuda()

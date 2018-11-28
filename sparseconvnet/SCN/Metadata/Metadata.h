@@ -92,8 +92,7 @@ public:
                                 /*long*/ at::Tensor locations,
                                 /*float*/ at::Tensor vecs, bool overwrite);
 
-  void getSpatialLocations(/*long*/ at::Tensor spatialSize,
-                           /*long*/ at::Tensor locations);
+  at::Tensor getSpatialLocations(/*long*/ at::Tensor spatialSize);
   void createMetadataForDenseToSparse(/*long*/ at::Tensor spatialSize,
                                       /*long*/ at::Tensor nz_, long batchSize);
 
@@ -153,7 +152,7 @@ public:
 
   std::vector<at::Tensor>
   compareSparseHelper(Metadata<dimension> &mR,
-					   /* long */ at::Tensor spatialSize);
+                      /* long */ at::Tensor spatialSize);
 };
 
 template <typename T> T *OptionalTensorData(at::Tensor tensor);

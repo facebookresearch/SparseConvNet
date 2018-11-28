@@ -136,7 +136,7 @@ conda install google-sparsehash -c bioconda   # OR apt-get install libsparsehash
 conda install -c anaconda pillow
 git clone git@github.com:facebookresearch/SparseConvNet.git
 cd SparseConvNet/
-bash build.sh
+bash develop.sh
 ```
 To run the examples you may also need to install unrar:
 ```

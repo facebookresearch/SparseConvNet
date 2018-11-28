@@ -26,7 +26,7 @@ class Model(nn.Module):
         self.sparseModel = scn.Sequential().add(
            scn.InputLayer(dimension, data.spatialSize, mode=3)).add(
            scn.SubmanifoldConvolution(dimension, 1, m, 3, False)).add(
-           scn.UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[3,2])).add(
+           scn.UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2,2])).add(
            scn.BatchNormReLU(m)).add(
            scn.OutputLayer(dimension))
         self.linear = nn.Linear(m, data.nClassesTotal)

@@ -148,25 +148,11 @@ SparseConvNet is Attribution-NonCommercial 4.0 International licensed, as found 
 7. [Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1706.01307) Introduces deep 'submanifold' SparseConvNets.
 8. [Workshop on Learning to See from 3D Data, 2017](https://shapenet.cs.stanford.edu/iccv17workshop/) First place in the [semantic segmentation](https://shapenet.cs.stanford.edu/iccv17/) competition. [Report](https://arxiv.org/pdf/1710.06104)
 9. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets, CVPR 2018
+10. [ScanNet 3D semantic label benchmark 2018](http://kaldir.vc.in.tum.de/scannet_benchmark/semantic_label_3d) 0.726 average IOU.
 
 ## Citations
 
 If you find this code useful in your research then please cite:
-
-**[Submanifold Sparse Convolutional Networks, https://arxiv.org/abs/1706.01307](https://arxiv.org/abs/1706.01307)** <br />
-[Benjamin Graham](https://research.fb.com/people/graham-benjamin/), <br />
-[Laurens van der Maaten](https://lvdmaaten.github.io/), <br />
-
-```
-@article{SubmanifoldSparseConvNet,
-  title={Submanifold Sparse Convolutional Networks},
-  author={Graham, Benjamin and van der Maaten, Laurens},
-  journal={arXiv preprint arXiv:1706.01307},
-  year={2017}
-}
-```
-
-and/or
 
 **[3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, CVPR 2018](https://arxiv.org/abs/1711.10275)** <br />
 [Benjamin Graham](https://research.fb.com/people/graham-benjamin/), <br />
@@ -179,5 +165,20 @@ and/or
   author={Graham, Benjamin and Engelcke, Martin and van der Maaten, Laurens},
   journal={CVPR},
   year={2018}
+}
+```
+
+and/or
+
+**[Submanifold Sparse Convolutional Networks, https://arxiv.org/abs/1706.01307](https://arxiv.org/abs/1706.01307)** <br />
+[Benjamin Graham](https://research.fb.com/people/graham-benjamin/), <br />
+[Laurens van der Maaten](https://lvdmaaten.github.io/), <br />
+
+```
+@article{SubmanifoldSparseConvNet,
+  title={Submanifold Sparse Convolutional Networks},
+  author={Graham, Benjamin and van der Maaten, Laurens},
+  journal={arXiv preprint arXiv:1706.01307},
+  year={2017}
 }
 ```

@@ -111,8 +111,9 @@ Examples in the examples folder include
 * [Assamese handwriting recognition](https://archive.ics.uci.edu/ml/datasets/Online+Handwritten+Assamese+Characters+Dataset#)
 * [Chinese handwriting for recognition](http://www.nlpr.ia.ac.cn/databases/handwriting/Online_database.html)
 * [3D Segmentation](https://shapenet.cs.stanford.edu/iccv17/) using ShapeNet Core-55
+* [ScanNet](http://www.scan-net.org/) 3D Semantic label benchmark
 
-Data will be downloaded/preprocessed on the first run, i.e.
+For example:
 ```
 cd examples/Assamese_handwriting
 python VGGplus.py

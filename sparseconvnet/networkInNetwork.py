@@ -57,7 +57,7 @@ class NetworkInNetworkFunction(Function):
 
 
 class NetworkInNetwork(Module):
-    def __init__(self, nIn, nOut, bias=False):
+    def __init__(self, nIn, nOut, bias):
         Module.__init__(self)
         self.nIn = nIn
         self.nOut = nOut

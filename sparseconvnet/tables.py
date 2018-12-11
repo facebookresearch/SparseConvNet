@@ -10,7 +10,10 @@ from .utils import *
 from .sparseConvNetTensor import SparseConvNetTensor
 
 
-class JoinTable(Module):
+class JoinTable(torch.nn.Sequential):
+    def __init__(self, *args):
+        torch.nn.Sequential.__init__(self, *args)
+
     def forward(self, input):
         output = SparseConvNetTensor()
         output.metadata = input[0].metadata
@@ -22,7 +25,10 @@ class JoinTable(Module):
         return out_size
 
 
-class AddTable(Module):
+class AddTable(torch.nn.Sequential):
+    def __init__(self, *args):
+        torch.nn.Sequential.__init__(self, *args)
+
     def forward(self, input):
         output = SparseConvNetTensor()
         output.metadata = input[0].metadata
@@ -34,7 +40,10 @@ class AddTable(Module):
         return out_size
 
 
-class ConcatTable(Module):
+class ConcatTable(torch.nn.Sequential):
+    def __init__(self, *args):
+        torch.nn.Sequential.__init__(self, *args)
+
     def forward(self, input):
         return [module(input) for module in self._modules.values()]
 

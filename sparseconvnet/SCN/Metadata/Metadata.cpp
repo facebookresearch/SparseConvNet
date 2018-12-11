@@ -254,12 +254,13 @@ void Metadata<dimension>::appendMetadata(Metadata<dimension> &mAdd,
 }
 
 template <Int dimension>
-at::Tensor
+std::vector<at::Tensor>
 Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mReference,
                                      Metadata<dimension> &mSparsified,
                                      /*long*/ at::Tensor spatialSize) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
   at::Tensor delta = torch::zeros({nActive[p]}, at::kFloat);
+  at::Tensor ref_map = torch::empty({mReference.nActive[p]}, at::kLong);
   float *deltaPtr = delta.data<float>();
   auto &sgsReference = mReference.grids[p];
   auto &sgsFull = grids[p];
@@ -275,13 +276,16 @@ Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mReference,
     for (auto const &iter : sgFull.mp) {
       bool gt = sgReference.mp.find(iter.first) != sgReference.mp.end();
       bool hot = sgSparsified.mp.find(iter.first) != sgSparsified.mp.end();
+      if (gt)
+        ref_map[sgReference.mp[iter.first] + sgReference.ctr] =
+            iter.second + sgFull.ctr;
       if (gt and not hot)
         deltaPtr[iter.second + sgFull.ctr] = -1;
       if (hot and not gt)
         deltaPtr[iter.second + sgFull.ctr] = +1;
     }
   }
-  return delta;
+  return {delta, ref_map};
 }
 
 // tensor is size[0] x .. x size[dimension-1] x size[dimension]

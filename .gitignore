@@ -12,3 +12,6 @@ PyTorch/sparseconvnet/SCN/__init__.py
 sparseconvnet.egg-info
 *.zip
 *.rar
+*.pdf
+.vscode
+python-environment

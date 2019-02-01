@@ -5,142 +5,128 @@
 # LICENSE file in the root directory of this source tree.
 
 # Options
-m = 16 # 16 or 32
-residual_blocks=False #True or False
-block_reps = 1 #Conv block repetition factor: 1 or 2
-
-import torch, data, iou
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import sparseconvnet as scn
-import time
-import os, sys, glob
-import math
+import glob
+import sys
+import iou
+import data
+from open3d import *
+import os
+import torch
 import numpy as np
-from open3d import *  
+import math
+import time
+import sparseconvnet as scn
+import torch.nn.functional as F
+import torch.optim as optim
+import torch.nn as nn
+m = 16  # 16 or 32
+residual_blocks = False  # True or False
+block_reps = 1  # Conv block repetition factor: 1 or 2
+eval_epoch = 10
+
 
 use_cuda = torch.cuda.is_available()
-exp_name='unet_scale20_m16_rep1_notResidualBlocks'
+exp_name = 'unet_scale20_m16_rep1_notResidualBlocks'
+
 
 class Model(nn.Module):
     def __init__(self):
         nn.Module.__init__(self)
         self.sparseModel = scn.Sequential().add(
-           scn.InputLayer(data.dimension,data.full_scale, mode=4)).add(
-           scn.SubmanifoldConvolution(data.dimension, 3, m, 3, False)).add(
-               scn.UNet(data.dimension, block_reps, [m, 2*m, 3*m, 4*m, 5*m, 6*m, 7*m], residual_blocks)).add(
-           scn.BatchNormReLU(m)).add(
-           scn.OutputLayer(data.dimension))
+            scn.InputLayer(data.dimension, data.full_scale, mode=4)).add(
+            scn.SubmanifoldConvolution(data.dimension, 3, m, 3, False)).add(
+            scn.UNet(data.dimension, block_reps, [m, 2*m, 3*m, 4*m, 5*m, 6*m, 7*m], residual_blocks)).add(
+            scn.BatchNormReLU(m)).add(
+            scn.OutputLayer(data.dimension))
         self.linear = nn.Linear(m, 20)
-    def forward(self,x):
-        x=self.sparseModel(x)
-        x=self.linear(x)
+
+    def forward(self, x):
+        x = self.sparseModel(x)
+        x = self.linear(x)
         return x
 
-unet=Model()
-if use_cuda:
-    unet=unet.cuda()
 
-training_epochs=512
-training_epoch=scn.checkpoint_restore(unet,exp_name,'unet',use_cuda)
+unet = Model()
+if use_cuda:
+    unet = unet.cuda()
+
+
+def evaluate(save_ply=False, prefix=""):
+    with torch.no_grad():
+        trained_batches = []
+        for i, batch in enumerate(data.train_data_loader):
+            trained_batches.append(batch)
+
+        unet.eval()
+        store = torch.zeros(data.valOffsets[-1], 20)
+        scn.forward_pass_multiplyAdd_count = 0
+        scn.forward_pass_hidden_states = 0
+        start = time.time()
+        for rep in range(1, 1+data.val_reps):
+            for i, batch in enumerate(data.val_data_loader):
+                if use_cuda:
+                    batch['x'][1] = batch['x'][1].cuda()
+                    batch['y'] = batch['y'].cuda()
+                predictions = unet(batch['x'])
+                predictions = predictions.cpu()
+                store.index_add_(0, batch['point_ids'], predictions)
+
+                if save_ply:
+                    predLabels = predictions.max(1)[1].numpy()
+
+                    # xyz = data.val[i][0] #from original ply file
+                    # from distorted xyz used when training
+                    xyz = trained_batches[i]['elastic_locs']
+
+                    label_id_to_color = batch['label_id_to_color']
+                    unknown_color = [1, 1, 1]
+                    colors = list(map(
+                        lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, predLabels))
+
+                    pcd = PointCloud()
+                    pcd.points = Vector3dVector(xyz)
+                    pcd.colors = Vector3dVector(colors)
+                    write_point_cloud(
+                        "./ply/{prefix}batch_{rep}_{i}_.ply".format(prefix=prefix, rep=rep, i=i), pcd)
+
+            print('infer', rep, 'Val MegaMulAdd=', scn.forward_pass_multiplyAdd_count/len(data.val)/1e6,
+                  'MegaHidden', scn.forward_pass_hidden_states/len(data.val)/1e6, 'time=', time.time() - start, 's')
+
+            predLabels = store.max(1)[1].numpy()
+            iou.evaluate(predLabels, data.valLabels)
+
+
+training_epochs = 512
+training_epoch = scn.checkpoint_restore(unet, exp_name, 'unet', use_cuda)
+final_training_epoch = training_epochs+1
 optimizer = optim.Adam(unet.parameters())
+print('training_epoch', training_epoch)
 print('#classifer parameters', sum([x.nelement() for x in unet.parameters()]))
 
-for epoch in range(training_epoch, training_epochs+1):
+
+for epoch in range(training_epoch, final_training_epoch):
     unet.train()
     stats = {}
-    scn.forward_pass_multiplyAdd_count=0
-    scn.forward_pass_hidden_states=0
+    scn.forward_pass_multiplyAdd_count = 0
+    scn.forward_pass_hidden_states = 0
     start = time.time()
-    train_loss=0
-    for i,batch in enumerate(data.train_data_loader):
+    train_loss = 0
+    for i, batch in enumerate(data.train_data_loader):
         optimizer.zero_grad()
         if use_cuda:
-            batch['x'][1]=batch['x'][1].cuda()
-            batch['y']=batch['y'].cuda()
-        predictions=unet(batch['x'])
-        loss = torch.nn.functional.cross_entropy(predictions,batch['y'])
-        train_loss+=loss.item()
+            batch['x'][1] = batch['x'][1].cuda()
+            batch['y'] = batch['y'].cuda()
+        predictions = unet(batch['x'])
+        loss = torch.nn.functional.cross_entropy(predictions, batch['y'])
+        train_loss += loss.item()
         loss.backward()
         optimizer.step()
-    print(epoch,'Train loss',train_loss/(i+1), 'MegaMulAdd=',scn.forward_pass_multiplyAdd_count/len(data.train)/1e6, 'MegaHidden',scn.forward_pass_hidden_states/len(data.train)/1e6,'time=',time.time() - start,'s')
-    scn.checkpoint_save(unet,exp_name,'unet',epoch, use_cuda)
+    print(epoch, 'Train loss', train_loss/(i+1), 'MegaMulAdd=', scn.forward_pass_multiplyAdd_count/len(data.train) /
+          1e6, 'MegaHidden', scn.forward_pass_hidden_states/len(data.train)/1e6, 'time=', time.time() - start, 's')
+    scn.checkpoint_save(unet, exp_name, 'unet', epoch, use_cuda)
 
-    if scn.is_power2(epoch):
-        with torch.no_grad():
-            unet.eval()
-            store=torch.zeros(data.valOffsets[-1],20)
-            scn.forward_pass_multiplyAdd_count=0
-            scn.forward_pass_hidden_states=0
-            start = time.time()
-            for rep in range(1,1+data.val_reps):
-                for i,batch in enumerate(data.val_data_loader):
-                    if use_cuda:
-                        batch['x'][1]=batch['x'][1].cuda()
-                        batch['y']=batch['y'].cuda()
-                    predictions=unet(batch['x'])
+    if scn.is_power2(epoch) or epoch % eval_epoch == 0 or epoch == training_epochs:
+        evaluate(save_ply=scn.is_power2(epoch),
+                 prefix="epoch_{epoch}_".format(epoch=epoch))
 
-                    predictions = predictions.cpu()
-                    store.index_add_(0,batch['point_ids'],predictions)
-                print(epoch,rep,'Val MegaMulAdd=',scn.forward_pass_multiplyAdd_count/len(data.val)/1e6, 'MegaHidden',scn.forward_pass_hidden_states/len(data.val)/1e6,'time=',time.time() - start,'s')
-
-                predLabels = store.max(1)[1].numpy()
-                iou.evaluate(predLabels,data.valLabels)
-
-
-
-
-with torch.no_grad():
-
-    trained_batches = []
-    for i,batch in enumerate(data.train_data_loader):
-        trained_batches.append(batch)
-
-    unet.eval()
-    store=torch.zeros(data.valOffsets[-1],20)
-    scn.forward_pass_multiplyAdd_count=0
-    scn.forward_pass_hidden_states=0
-    start = time.time()
-    for rep in range(1,1+data.val_reps):
-        for i,batch in enumerate(data.val_data_loader):
-            if use_cuda:
-                batch['x'][1]=batch['x'][1].cuda()
-                batch['y']=batch['y'].cuda()
-            predictions=unet(batch['x'])
-
-            predictions = predictions.cpu()
-            
-            predLabels = predictions.max(1)[1].numpy()
-            # print('predLabels', predLabels)
-            # print('valLabels', data.valLabels)
-
-            store.index_add_(0,batch['point_ids'],predictions)
-            
-            unique_lables = np.unique(data.valLabels)
-            # print("label_ids", unique_lables)
-
-            label_id_to_color = batch['label_id_to_color']
-            # print("label_id_to_color", label_id_to_color)
-
-            # print(len(trained_batches[i]['elastic_locs']))
-            # print(len(data.val[i][0]))
-            # print(trained_batches[i]['elastic_locs'])
-            # print(data.val[i][0])
-
-            # xyz = data.val[i][0] #from ply file
-            xyz = trained_batches[i]['elastic_locs'] #from distorted xyz used when training
-        
-            unknown_color = [1,1,1]
-
-            colors = list(map(lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, predLabels))
-        
-            pcd = PointCloud()
-            pcd.points = Vector3dVector(xyz)
-            pcd.colors = Vector3dVector(colors)
-            write_point_cloud("./ply/batch_{rep}_{i}_.ply".format(rep=rep, i=i), pcd)
-            
-        print('infer',rep,'Val MegaMulAdd=',scn.forward_pass_multiplyAdd_count/len(data.val)/1e6, 'MegaHidden',scn.forward_pass_hidden_states/len(data.val)/1e6,'time=',time.time() - start,'s')
-
-        predLabels = store.max(1)[1].numpy()
-        iou.evaluate(predLabels,data.valLabels)
+evaluate(save_ply=True)

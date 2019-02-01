@@ -32,23 +32,31 @@ def get_iou(label_id, confusion):
 
     denom = (tp + fp + fn)
     if denom == 0:
-        return float('nan')
+        return False
     return (float(tp) / denom, tp, denom)
 
 def evaluate(pred_ids,gt_ids):
     print('evaluating', gt_ids.size, 'points...')
     confusion=confusion_matrix(pred_ids,gt_ids)
     class_ious = {}
-    mean_iou = 0
     for i in range(len(VALID_CLASS_IDS)):
         label_name = CLASS_LABELS[i]
         label_id = VALID_CLASS_IDS[i]
-        class_ious[label_name] = get_iou(label_id, confusion)
-        mean_iou+=class_ious[label_name][0]/20
+        class_iou = get_iou(label_id, confusion)
+        if class_iou is not False:
+            class_ious[label_name] = get_iou(label_id, confusion)
+
+    sum_iou = 0
+    for label_name in class_ious:
+        sum_iou+=class_ious[label_name][0]
+    mean_iou = sum_iou/len(class_ious)
 
     print('classes          IoU')
     print('----------------------------')
     for i in range(len(VALID_CLASS_IDS)):
         label_name = CLASS_LABELS[i]
-        print('{0:<14s}: {1:>5.3f}   ({2:>6d}/{3:<6d})'.format(label_name, class_ious[label_name][0], class_ious[label_name][1], class_ious[label_name][2]))
+        if label_name in class_ious:
+            print('{0:<14s}: {1:>5.3f}   ({2:>6d}/{3:<6d})'.format(label_name, class_ious[label_name][0], class_ious[label_name][1], class_ious[label_name][2]))
+        else:
+            print('{0:<14s}: {1}'.format(label_name, 'missing'))
     print('mean IOU', mean_iou)

@@ -100,17 +100,13 @@ with torch.no_grad():
             store.index_add_(0,batch['point_ids'],predictions.cpu())
             
             unique_lables = np.unique(data.valLabels)
-            print("label_ids", unique_lables)
+            # print("label_ids", unique_lables)
+
+            label_id_to_color = batch['label_id_to_color']
+            # print("label_id_to_color", label_id_to_color)
 
             xyz = data.val[i][0]
         
-            label_id_to_color = {
-                0 : [1, 0, 0],
-                1 : [1, 1, 0],
-                2 : [0, 1, 0],
-                8 : [1, 0, 1],
-                -100 : [0, 0, 0],
-            }
             unknown_color = [1,1,1]
 
             colors = list(map(lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, data.valLabels))

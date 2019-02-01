@@ -6,15 +6,61 @@
 
 import torch, numpy as np
 
-#Classes relabelled {-100,0,1,...,19}.
+
+SELECTED_LABEL_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28, 33, 34, 36, 39]
+
 #Predictions will all be in the set {0,1,...,19}
+VALID_CLASS_IDS = range(0, len(SELECTED_LABEL_IDS))
 
-#VALID_CLASS_IDS = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28, 33, 34, 36, 39])
-VALID_CLASS_IDS = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
+#label id to label name mapping: http://dovahkiin.stanford.edu/scannet-public/v1/tasks/scannet-labels.combined.tsv
+LABEL_ID_TO_LABEL_NAME = {
+    1:	'wall',
+    2:	'chair',
+    3:	'floor',
+    4:	'table',
+    5:	'door',
+    6:	'couch',
+    7:	'cabinet',
+    8:	'shelf',
+    9:	'desk',
+    10:	'office chair',
+    11:	'bed',
+    12:	'trashcan',
+    13:	'pillow',
+    14:	'sink',
+    15:	'picture',
+    16:	'window',
+    17:	'toilet',
+    18:	'bookshelf',
+    19:	'monitor',
+    20:	'computer',
+    21:	'curtain',
+    22:	'book',
+    23:	'armchair',
+    24:	'coffee table',
+    25:	'drawer',
+    26:	'box',
+    27:	'refrigerator',
+    28:	'lamp',
+    29:	'kitchen cabinet',
+    30:	'dining chair',
+    31:	'towel',
+    32:	'clothes',
+    33:	'tv',
+    34:	'nightstand',
+    35:	'counter',
+    36:	'dresser',
+    37:	'countertop',
+    38:	'stool',
+    39:	'cushion',
+}
 
+#Classes relabelled
+CLASS_LABELS = []
+for i, x in enumerate(SELECTED_LABEL_IDS):
+    # print(i, LABEL_ID_TO_LABEL_NAME[x])
+    CLASS_LABELS.append(LABEL_ID_TO_LABEL_NAME[x])
 
-CLASS_LABELS = ['wall', 'floor', 'cabinet', 'bed', 'chair', 'sofa', 'table', 'door', 'window', 'bookshelf', 'picture', 'counter', 'desk', 'curtain', 'refrigerator', 'shower curtain', 'toilet', 'sink', 'bathtub', 'otherfurniture']
-UNKNOWN_ID = -100
 
 def confusion_matrix(pred_ids, gt_ids):
     assert pred_ids.shape == gt_ids.shape, (pred_ids.shape, gt_ids.shape)

@@ -18,6 +18,7 @@ import time
 import os, sys, glob
 import math
 import numpy as np
+from open3d import *  
 
 use_cuda = torch.cuda.is_available()
 exp_name='unet_scale20_m16_rep1_notResidualBlocks'
@@ -82,3 +83,42 @@ for epoch in range(training_epoch, training_epochs+1):
                     store.index_add_(0,batch['point_ids'],predictions.cpu())
                 print(epoch,rep,'Val MegaMulAdd=',scn.forward_pass_multiplyAdd_count/len(data.val)/1e6, 'MegaHidden',scn.forward_pass_hidden_states/len(data.val)/1e6,'time=',time.time() - start,'s')
                 iou.evaluate(store.max(1)[1].numpy(),data.valLabels)
+
+with torch.no_grad():
+    unet.eval()
+    store=torch.zeros(data.valOffsets[-1],20)
+    scn.forward_pass_multiplyAdd_count=0
+    scn.forward_pass_hidden_states=0
+    start = time.time()
+    for rep in range(1,1+data.val_reps):
+        for i,batch in enumerate(data.val_data_loader):
+            if use_cuda:
+                batch['x'][1]=batch['x'][1].cuda()
+                batch['y']=batch['y'].cuda()
+            predictions=unet(batch['x'])
+
+            store.index_add_(0,batch['point_ids'],predictions.cpu())
+            
+            unique_lables = np.unique(data.valLabels)
+            print("label_ids", unique_lables)
+
+            xyz = data.val[i][0]
+        
+            label_id_to_color = {
+                0 : [1, 0, 0],
+                1 : [1, 1, 0],
+                2 : [0, 1, 0],
+                8 : [1, 0, 1],
+                -100 : [0, 0, 0],
+            }
+            unknown_color = [1,1,1]
+
+            colors = list(map(lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, data.valLabels))
+        
+            pcd = PointCloud()
+            pcd.points = Vector3dVector(xyz)
+            pcd.colors = Vector3dVector(colors)
+            write_point_cloud("./ply/batch_{rep}_{i}_.ply".format(rep=rep, i=i), pcd)
+            
+        print('infer',rep,'Val MegaMulAdd=',scn.forward_pass_multiplyAdd_count/len(data.val)/1e6, 'MegaHidden',scn.forward_pass_hidden_states/len(data.val)/1e6,'time=',time.time() - start,'s')
+        iou.evaluate(store.max(1)[1].numpy(),data.valLabels)

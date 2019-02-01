@@ -80,9 +80,13 @@ for epoch in range(training_epoch, training_epochs+1):
                         batch['x'][1]=batch['x'][1].cuda()
                         batch['y']=batch['y'].cuda()
                     predictions=unet(batch['x'])
-                    store.index_add_(0,batch['point_ids'],predictions.cpu())
+
+                    predictions = predictions.cpu()
+                    store.index_add_(0,batch['point_ids'],predictions)
                 print(epoch,rep,'Val MegaMulAdd=',scn.forward_pass_multiplyAdd_count/len(data.val)/1e6, 'MegaHidden',scn.forward_pass_hidden_states/len(data.val)/1e6,'time=',time.time() - start,'s')
-                iou.evaluate(store.max(1)[1].numpy(),data.valLabels)
+
+                predLabels = store.max(1)[1].numpy()
+                iou.evaluate(predLabels,data.valLabels)
 
 with torch.no_grad():
     unet.eval()
@@ -97,7 +101,13 @@ with torch.no_grad():
                 batch['y']=batch['y'].cuda()
             predictions=unet(batch['x'])
 
-            store.index_add_(0,batch['point_ids'],predictions.cpu())
+            predictions = predictions.cpu()
+            
+            predLabels = predictions.max(1)[1].numpy()
+            # print('predLabels', predLabels)
+            # print('valLabels', data.valLabels)
+
+            store.index_add_(0,batch['point_ids'],predictions)
             
             unique_lables = np.unique(data.valLabels)
             # print("label_ids", unique_lables)
@@ -109,7 +119,7 @@ with torch.no_grad():
         
             unknown_color = [1,1,1]
 
-            colors = list(map(lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, data.valLabels))
+            colors = list(map(lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, predLabels))
         
             pcd = PointCloud()
             pcd.points = Vector3dVector(xyz)
@@ -117,4 +127,6 @@ with torch.no_grad():
             write_point_cloud("./ply/batch_{rep}_{i}_.ply".format(rep=rep, i=i), pcd)
             
         print('infer',rep,'Val MegaMulAdd=',scn.forward_pass_multiplyAdd_count/len(data.val)/1e6, 'MegaHidden',scn.forward_pass_hidden_states/len(data.val)/1e6,'time=',time.time() - start,'s')
-        iou.evaluate(store.max(1)[1].numpy(),data.valLabels)
+
+        predLabels = store.max(1)[1].numpy()
+        iou.evaluate(predLabels,data.valLabels)

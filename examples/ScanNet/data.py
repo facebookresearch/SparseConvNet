@@ -75,7 +75,7 @@ def trainMerge(tbl):
     locs=torch.cat(locs,0)
     feats=torch.cat(feats,0)
     labels=torch.cat(labels,0)
-    return {'x': [locs,feats], 'y': labels.long(), 'id': tbl}
+    return {'x': [locs,feats], 'y': labels.long(), 'id': tbl, 'elastic_locs': a}
 train_data_loader = torch.utils.data.DataLoader(
     list(range(len(train))),batch_size=batch_size, collate_fn=trainMerge, num_workers=20, shuffle=True)
 

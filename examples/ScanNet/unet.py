@@ -88,7 +88,15 @@ for epoch in range(training_epoch, training_epochs+1):
                 predLabels = store.max(1)[1].numpy()
                 iou.evaluate(predLabels,data.valLabels)
 
+
+
+
 with torch.no_grad():
+
+    trained_batches = []
+    for i,batch in enumerate(data.train_data_loader):
+        trained_batches.append(batch)
+
     unet.eval()
     store=torch.zeros(data.valOffsets[-1],20)
     scn.forward_pass_multiplyAdd_count=0
@@ -115,7 +123,13 @@ with torch.no_grad():
             label_id_to_color = batch['label_id_to_color']
             # print("label_id_to_color", label_id_to_color)
 
-            xyz = data.val[i][0]
+            # print(len(trained_batches[i]['elastic_locs']))
+            # print(len(data.val[i][0]))
+            # print(trained_batches[i]['elastic_locs'])
+            # print(data.val[i][0])
+
+            # xyz = data.val[i][0] #from ply file
+            xyz = trained_batches[i]['elastic_locs'] #from distorted xyz used when training
         
             unknown_color = [1,1,1]
 

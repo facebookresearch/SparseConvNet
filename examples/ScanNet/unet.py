@@ -72,10 +72,11 @@ def evaluate(save_ply=False, prefix=""):
                 # print(len(batch['x'][0]))
                 # print('batchchhhhh', i)
 
-                # xyz = data.val[i][0] #from original ply file
-                # print(batch['x'][0].numpy())
+                # xyz = data.val[idx][0] #from original ply file
                 
                 batch_locs = batch['x'][0].numpy() # from distorted xyz used when training    
+
+                print(len(batch_locs))
 
                 if locs is None:
                     locs = batch_locs
@@ -97,9 +98,16 @@ def evaluate(save_ply=False, prefix=""):
                 colors = np.array(list(map(
                     lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, predLabels)))
 
-                idx_data = {}
 
-                for loc, color in zip(locs, colors):
+                ori_points = []
+
+                for idx, idx_val in enumerate(data.val):
+                    # print(len(idx_val[0]))
+                    ori_points.extend(idx_val[0])
+
+
+                idx_data = {}
+                for loc, color, ori_point in zip(locs, colors, ori_points):
                     idx = loc[3]
                     point = loc[0:3]
 
@@ -107,16 +115,20 @@ def evaluate(save_ply=False, prefix=""):
                         idx_data[idx] = {}
                         idx_data[idx]['points'] = []
                         idx_data[idx]['colors'] = []
+                        idx_data[idx]['ori_points'] = []
                     
                     idx_data[idx]['points'].append(point)
                     idx_data[idx]['colors'].append(color)
+                    idx_data[idx]['ori_points'].append(ori_point)
 
                 for idx, datum in idx_data.items():
                     points = datum['points']
                     colors = datum['colors']
+                    ori_points = datum['ori_points']
 
                     pcd = PointCloud()
-                    pcd.points = Vector3dVector(points)
+                    # pcd.points = Vector3dVector(points) #the ordering seems to be wrong :/
+                    pcd.points = Vector3dVector(ori_points)
                     pcd.colors = Vector3dVector(colors)
                     write_point_cloud(
                         "./ply/{prefix}batch_{rep}_{idx}_.ply".format(prefix=prefix, rep=rep, idx=idx), pcd)

@@ -24,6 +24,7 @@ residual_blocks = False  # True or False
 block_reps = 1  # Conv block repetition factor: 1 or 2
 # eval_epoch = 10
 eval_epoch = None
+eval_save_ply = True #save ply file when evaluating training
 training_epochs = 1024
 
 use_cuda = torch.cuda.is_available()
@@ -68,14 +69,15 @@ def evaluate(save_ply=False, prefix=""):
                 predictions = unet(batch['x'])
                 predictions = predictions.cpu()
                 store.index_add_(0, batch['point_ids'], predictions)
-                
+
                 # print(len(predictions))
                 # print(len(batch['x'][0]))
                 # print('batchchhhhh', i)
 
                 # xyz = data.val[idx][0] #from original ply file
-                
-                batch_locs = batch['x'][0].numpy() # from distorted xyz used when training    
+
+                # from distorted xyz used when training
+                batch_locs = batch['x'][0].numpy()
 
                 print(len(batch_locs))
 
@@ -83,12 +85,10 @@ def evaluate(save_ply=False, prefix=""):
                     locs = batch_locs
                 else:
                     np.concatenate((locs, batch_locs))
-                
-                
 
             print('infer', rep, 'Val MegaMulAdd=', scn.forward_pass_multiplyAdd_count/len(data.val)/1e6,
                   'MegaHidden', scn.forward_pass_hidden_states/len(data.val)/1e6, 'time=', time.time() - start, 's')
-            
+
             predLabels = store.max(1)[1].numpy()
             print(predLabels)
             iou.evaluate(predLabels, data.valLabels)
@@ -99,13 +99,11 @@ def evaluate(save_ply=False, prefix=""):
                 colors = np.array(list(map(
                     lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, predLabels)))
 
-
                 ori_points = []
 
                 for idx, idx_val in enumerate(data.val):
                     # print(len(idx_val[0]))
                     ori_points.extend(idx_val[0])
-
 
                 idx_data = {}
                 for loc, color, ori_point in zip(locs, colors, ori_points):
@@ -117,7 +115,7 @@ def evaluate(save_ply=False, prefix=""):
                         idx_data[idx]['points'] = []
                         idx_data[idx]['colors'] = []
                         idx_data[idx]['ori_points'] = []
-                    
+
                     idx_data[idx]['points'].append(point)
                     idx_data[idx]['colors'].append(color)
                     idx_data[idx]['ori_points'].append(ori_point)
@@ -164,7 +162,7 @@ for epoch in range(training_epoch, final_training_epoch):
     scn.checkpoint_save(unet, exp_name, 'unet', epoch, use_cuda)
 
     if scn.is_power2(epoch) or (epoch % eval_epoch == 0 if eval_epoch else False) or epoch == training_epochs:
-        evaluate(save_ply=scn.is_power2(epoch),
+        evaluate(save_ply=(eval_save_ply and scn.is_power2(epoch)),
                  prefix="epoch_{epoch}_".format(epoch=epoch))
 
 evaluate(save_ply=True)

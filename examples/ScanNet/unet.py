@@ -22,8 +22,9 @@ import torch.nn as nn
 m = 16  # 16 or 32
 residual_blocks = False  # True or False
 block_reps = 1  # Conv block repetition factor: 1 or 2
-eval_epoch = 10
-
+# eval_epoch = 10
+eval_epoch = None
+training_epochs = 1024
 
 use_cuda = torch.cuda.is_available()
 exp_name = 'unet_scale20_m16_rep1_notResidualBlocks'
@@ -134,7 +135,6 @@ def evaluate(save_ply=False, prefix=""):
                         "./ply/{prefix}batch_{rep}_{idx}_.ply".format(prefix=prefix, rep=rep, idx=idx), pcd)
 
 
-training_epochs = 512
 training_epoch = scn.checkpoint_restore(unet, exp_name, 'unet', use_cuda)
 final_training_epoch = training_epochs+1
 optimizer = optim.Adam(unet.parameters())
@@ -163,7 +163,7 @@ for epoch in range(training_epoch, final_training_epoch):
           1e6, 'MegaHidden', scn.forward_pass_hidden_states/len(data.train)/1e6, 'time=', time.time() - start, 's')
     scn.checkpoint_save(unet, exp_name, 'unet', epoch, use_cuda)
 
-    if scn.is_power2(epoch) or epoch % eval_epoch == 0 or epoch == training_epochs:
+    if scn.is_power2(epoch) or (epoch % eval_epoch == 0 if eval_epoch else False) or epoch == training_epochs:
         evaluate(save_ply=scn.is_power2(epoch),
                  prefix="epoch_{epoch}_".format(epoch=epoch))
 

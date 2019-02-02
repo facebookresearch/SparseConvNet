@@ -26,6 +26,9 @@ for x in torch.utils.data.DataLoader(
 print('Training examples:', len(train))
 print('Validation examples:', len(val))
 
+if len(train) == 0 or len(val) == 0:
+    raise ValueError('Please prepare_data.py to generate training files')
+
 #Elastic distortion
 blur0=np.ones((3,1,1)).astype('float32')/3
 blur1=np.ones((1,3,1)).astype('float32')/3

@@ -53,16 +53,13 @@ if use_cuda:
 
 def evaluate(save_ply=False, prefix=""):
     with torch.no_grad():
-        trained_batches = []
-        for i, batch in enumerate(data.train_data_loader):
-            trained_batches.append(batch)
-
         unet.eval()
         store = torch.zeros(data.valOffsets[-1], 20)
         scn.forward_pass_multiplyAdd_count = 0
         scn.forward_pass_hidden_states = 0
         start = time.time()
         for rep in range(1, 1+data.val_reps):
+            locs = None
             for i, batch in enumerate(data.val_data_loader):
                 if use_cuda:
                     batch['x'][1] = batch['x'][1].cuda()
@@ -70,30 +67,59 @@ def evaluate(save_ply=False, prefix=""):
                 predictions = unet(batch['x'])
                 predictions = predictions.cpu()
                 store.index_add_(0, batch['point_ids'], predictions)
+                
+                # print(len(predictions))
+                # print(len(batch['x'][0]))
+                # print('batchchhhhh', i)
 
-                if save_ply:
-                    predLabels = predictions.max(1)[1].numpy()
+                # xyz = data.val[i][0] #from original ply file
+                # print(batch['x'][0].numpy())
+                
+                batch_locs = batch['x'][0].numpy() # from distorted xyz used when training    
 
-                    # xyz = data.val[i][0] #from original ply file
-                    # from distorted xyz used when training
-                    xyz = trained_batches[i]['elastic_locs']
-
-                    label_id_to_color = batch['label_id_to_color']
-                    unknown_color = [1, 1, 1]
-                    colors = list(map(
-                        lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, predLabels))
-
-                    pcd = PointCloud()
-                    pcd.points = Vector3dVector(xyz)
-                    pcd.colors = Vector3dVector(colors)
-                    write_point_cloud(
-                        "./ply/{prefix}batch_{rep}_{i}_.ply".format(prefix=prefix, rep=rep, i=i), pcd)
+                if locs is None:
+                    locs = batch_locs
+                else:
+                    np.concatenate((locs, batch_locs))
+                
+                
 
             print('infer', rep, 'Val MegaMulAdd=', scn.forward_pass_multiplyAdd_count/len(data.val)/1e6,
                   'MegaHidden', scn.forward_pass_hidden_states/len(data.val)/1e6, 'time=', time.time() - start, 's')
-
+            
             predLabels = store.max(1)[1].numpy()
+            print(predLabels)
             iou.evaluate(predLabels, data.valLabels)
+
+            if save_ply:
+                label_id_to_color = batch['label_id_to_color']
+                unknown_color = [1, 1, 1]
+                colors = np.array(list(map(
+                    lambda label_id: label_id_to_color[label_id] if label_id in label_id_to_color else unknown_color, predLabels)))
+
+                idx_data = {}
+
+                for loc, color in zip(locs, colors):
+                    idx = loc[3]
+                    point = loc[0:3]
+
+                    if idx not in idx_data:
+                        idx_data[idx] = {}
+                        idx_data[idx]['points'] = []
+                        idx_data[idx]['colors'] = []
+                    
+                    idx_data[idx]['points'].append(point)
+                    idx_data[idx]['colors'].append(color)
+
+                for idx, datum in idx_data.items():
+                    points = datum['points']
+                    colors = datum['colors']
+
+                    pcd = PointCloud()
+                    pcd.points = Vector3dVector(points)
+                    pcd.colors = Vector3dVector(colors)
+                    write_point_cloud(
+                        "./ply/{prefix}batch_{rep}_{idx}_.ply".format(prefix=prefix, rep=rep, idx=idx), pcd)
 
 
 training_epochs = 512

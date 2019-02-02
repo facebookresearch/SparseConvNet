@@ -11,9 +11,12 @@ import glob, plyfile, numpy as np, multiprocessing as mp, torch
 
 SELECTED_LABEL_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28, 33, 34, 36, 39]
 
-LABEL_ID_TO_CLASS_ID = {}
+LABEL_ID_TO_CLASS_ID = {
+    9: 3 #force 'desk' to be the same class_id as 'table'
+}
 for i, label_id in enumerate(SELECTED_LABEL_IDS):
-    LABEL_ID_TO_CLASS_ID[label_id] = i
+    if label_id not in LABEL_ID_TO_CLASS_ID:
+        LABEL_ID_TO_CLASS_ID[label_id] = i
 UNKNOWN_ID = -100
 
 files=sorted(glob.glob('*/*_vh_clean_2.ply'))

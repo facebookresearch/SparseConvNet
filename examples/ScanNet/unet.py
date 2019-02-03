@@ -24,7 +24,7 @@ residual_blocks = False  # True or False
 block_reps = 1  # Conv block repetition factor: 1 or 2
 # eval_epoch = 10
 eval_epoch = None
-eval_save_ply = True #save ply file when evaluating training
+eval_save_ply = True  # save ply file when evaluating training
 training_epochs = 1024
 
 use_cuda = torch.cuda.is_available()
@@ -34,12 +34,20 @@ exp_name = 'unet_scale20_m16_rep1_notResidualBlocks'
 class Model(nn.Module):
     def __init__(self):
         nn.Module.__init__(self)
+
         self.sparseModel = scn.Sequential().add(
-            scn.InputLayer(data.dimension, data.full_scale, mode=4)).add(
-            scn.SubmanifoldConvolution(data.dimension, 3, m, 3, False)).add(
-            scn.UNet(data.dimension, block_reps, [m, 2*m, 3*m, 4*m, 5*m, 6*m, 7*m], residual_blocks)).add(
-            scn.BatchNormReLU(m)).add(
-            scn.OutputLayer(data.dimension))
+            scn.InputLayer(data.dimension, data.full_scale, mode=4)
+        ).add(
+            scn.SubmanifoldConvolution(data.dimension, 3, m, 3, False)
+        ).add(
+            scn.UNet(data.dimension, block_reps, [
+                     m, 2*m, 3*m, 4*m, 5*m, 6*m, 7*m], residual_blocks)
+        ).add(
+            scn.BatchNormReLU(m)
+        ).add(
+            scn.OutputLayer(data.dimension)
+        )
+
         self.linear = nn.Linear(m, 20)
 
     def forward(self, x):

@@ -1,4 +1,4 @@
-# Copyright 2016-present, Facebook, Inc.
+# Copyright 2g016-present, Facebook, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-style license found in the
@@ -218,8 +218,6 @@ def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2], lea
             x=self.linear(x)
             return x
     """
-    if n_input_planes==-1:
-        n_input_planes=nPlanes[0]
     def block(m, a, b):
         if residual_blocks: #ResNet style blocks
             m.add(scn.ConcatTable()
@@ -234,10 +232,11 @@ def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2], lea
             m.add(scn.Sequential()
                  .add(scn.BatchNormLeakyReLU(a,leakiness=leakiness))
                  .add(scn.SubmanifoldConvolution(dimension, a, b, 3, False)))
-    def U(nPlanes): #Recursive function
+    def U(nPlanes,n_input_planes=-1): #Recursive function
         m = scn.Sequential()
         for i in range(reps):
-            block(m, n_input_planes if i==0 else nPlanes[0], nPlanes[0])
+            block(m, n_input_planes if n_input_planes!=-1 else nPlanes[0], nPlanes[0])
+            n_input_planes=-1
         if len(nPlanes) > 1:
             m.add(
                 scn.ConcatTable().add(
@@ -254,7 +253,7 @@ def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2], lea
             for i in range(reps):
                 block(m, nPlanes[0] * (2 if i == 0 else 1), nPlanes[0])
         return m
-    m = U(nPlanes)
+    m = U(nPlanes,n_input_planes)
     return m
 
 def FullyConvolutionalNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2]):

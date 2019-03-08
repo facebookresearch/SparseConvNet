@@ -104,8 +104,13 @@ public:
   void appendMetadata(Metadata<dimension> &mAdd,
                       /*long*/ at::Tensor spatialSize);
 
+  /* std::vector<at::Tensor> sparsifyCompare(Metadata<dimension> &mReference, */
+  /*                                         Metadata<dimension> &mSparsified,
+   */
+  /*                                         /\*long*\/ at::Tensor spatialSize);
+   */
+
   std::vector<at::Tensor> sparsifyCompare(Metadata<dimension> &mReference,
-                                          Metadata<dimension> &mSparsified,
                                           /*long*/ at::Tensor spatialSize);
 
   // tensor is size[0] x .. x size[dimension-1] x size[dimension]

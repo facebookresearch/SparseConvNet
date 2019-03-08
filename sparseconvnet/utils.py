@@ -145,6 +145,8 @@ def checkpoint_restore(model,exp_name,name2,use_cuda=True,epoch=0):
 
 def is_power2(num):
     return num != 0 and ((num & (num - 1)) == 0)
+def has_only_one_nonzero_digit(num): #https://oeis.org/A037124
+    return num != 0 and (num/10**math.floor(math.log(num,10))).is_integer()
 def checkpoint_save(model,exp_name,name2,epoch, use_cuda=True):
     f=exp_name+'-%09d-'%epoch+name2+'.pth'
     model.cpu()
@@ -157,3 +159,6 @@ def checkpoint_save(model,exp_name,name2,epoch, use_cuda=True):
     if os.path.isfile(f):
         if not is_power2(epoch):
             os.remove(f)
+
+def random_rotation(dimension=3):
+    return torch.qr(torch.randn(dimension,dimension))[0]

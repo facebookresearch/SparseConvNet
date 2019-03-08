@@ -200,7 +200,7 @@ def SparseResNet(dimension, nInputPlanes, layers):
     return m
 
 
-def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2], leakiness=0):
+def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2], leakiness=0, n_input_planes=-1):
     """
     U-Net style network with VGG or ResNet-style blocks.
     For voxel level prediction:
@@ -218,6 +218,8 @@ def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2], lea
             x=self.linear(x)
             return x
     """
+    if n_input_planes==-1:
+        n_input_planes=nPlanes[0]
     def block(m, a, b):
         if residual_blocks: #ResNet style blocks
             m.add(scn.ConcatTable()
@@ -234,13 +236,9 @@ def UNet(dimension, reps, nPlanes, residual_blocks=False, downsample=[2, 2], lea
                  .add(scn.SubmanifoldConvolution(dimension, a, b, 3, False)))
     def U(nPlanes): #Recursive function
         m = scn.Sequential()
-        if len(nPlanes) == 1:
-            for _ in range(reps):
-                block(m, nPlanes[0], nPlanes[0])
-        else:
-            m = scn.Sequential()
-            for _ in range(reps):
-                block(m, nPlanes[0], nPlanes[0])
+        for i in range(reps):
+            block(m, n_input_planes if i==0 else nPlanes[0], nPlanes[0])
+        if len(nPlanes) > 1:
             m.add(
                 scn.ConcatTable().add(
                     scn.Identity()).add(

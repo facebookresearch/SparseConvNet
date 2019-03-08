@@ -256,15 +256,14 @@ void Metadata<dimension>::appendMetadata(Metadata<dimension> &mAdd,
 template <Int dimension>
 std::vector<at::Tensor>
 Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mReference,
-                                     Metadata<dimension> &mSparsified,
                                      /*long*/ at::Tensor spatialSize) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
-  at::Tensor delta = torch::zeros({nActive[p]}, at::kFloat);
+  at::Tensor gt = torch::zeros({nActive[p]}, at::kByte);
   at::Tensor ref_map = torch::empty({mReference.nActive[p]}, at::kLong);
-  float *deltaPtr = delta.data<float>();
+  auto gtPtr = (signed char *)gt.data_ptr(); //<signed char>();
+  // auto gtPtr = gt.data<signed char>();
   auto &sgsReference = mReference.grids[p];
   auto &sgsFull = grids[p];
-  auto &sgsSparsified = mSparsified.grids[p];
   Int batchSize = sgsFull.size();
   Int sample;
 
@@ -272,20 +271,16 @@ Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mReference,
   for (sample = 0; sample < (Int)batchSize; ++sample) {
     auto &sgReference = sgsReference[sample];
     auto &sgFull = sgsFull[sample];
-    auto &sgSparsified = sgsSparsified[sample];
     for (auto const &iter : sgFull.mp) {
-      bool gt = sgReference.mp.find(iter.first) != sgReference.mp.end();
-      bool hot = sgSparsified.mp.find(iter.first) != sgSparsified.mp.end();
-      if (gt)
+      bool gt_ = sgReference.mp.find(iter.first) != sgReference.mp.end();
+      if (gt_) {
         ref_map[sgReference.mp[iter.first] + sgReference.ctr] =
             iter.second + sgFull.ctr;
-      if (gt and not hot)
-        deltaPtr[iter.second + sgFull.ctr] = -1;
-      if (hot and not gt)
-        deltaPtr[iter.second + sgFull.ctr] = +1;
+        gtPtr[iter.second + sgFull.ctr] = +1;
+      }
     }
   }
-  return {delta, ref_map};
+  return {gt, ref_map};
 }
 
 // tensor is size[0] x .. x size[dimension-1] x size[dimension]

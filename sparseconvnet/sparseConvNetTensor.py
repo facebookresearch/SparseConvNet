@@ -22,6 +22,10 @@ class SparseConvNetTensor(object):
         t = self.metadata.getSpatialLocations(spatial_size)
         return t
 
+    def to(self, device):
+        self.features=self.features.to(device)
+        return self
+
     def type(self, t=None):
         if t:
             self.features = self.features.type(t)

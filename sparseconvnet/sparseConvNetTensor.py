@@ -36,10 +36,9 @@ class SparseConvNetTensor(object):
         self.features = self.features.cpu()
         return self
 
-    def set_(self):
-        self.features.set_(self.features.storage_type()())
-        self.metadata.set_()
-        self.spatialSize = None
+    @property
+    def requires_grad(self):
+        return self.features.requires_grad
 
     def __repr__(self):
         sl = self.get_spatial_locations() if self.metadata else None
@@ -50,11 +49,3 @@ class SparseConvNetTensor(object):
             ',batch_locations.shape=' + repr(sl.shape if self.metadata else None) + \
             ',spatial size=' + repr(self.spatial_size) + \
             '>>'
-
-    def to_variable(self, requires_grad=False, volatile=False):
-        "Convert self.features to a variable for use with modern PyTorch interface."
-        self.features = Variable(
-            self.features,
-            requires_grad=requires_grad,
-            volatile=volatile)
-        return self

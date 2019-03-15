@@ -32,11 +32,11 @@ double cuda_Convolution_updateOutput(
   auto _rules =
       m.getRuleBook(inputSize, outputSize, filterSize, filterStride, true);
   Int nActiveOut = m.getNActive(outputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  output_features.resize_({nActiveOut, op});
 
   if (nActiveOut) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    output_features.resize_({nActiveOut, op});
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
     auto w = weight.data<T>();
@@ -67,12 +67,12 @@ void cuda_Convolution_backward(
       m.getRuleBook(inputSize, outputSize, filterSize, filterStride, true);
   Int nActiveIn = m.getNActive(inputSize);
   Int nActiveOut = m.getNActive(outputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  d_input_features.resize_({nActiveIn, ip});
+  d_input_features.zero_();
 
   if (nActiveOut) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    d_input_features.resize_({nActiveIn, ip});
-    d_input_features.zero_();
     auto iF = input_features.data<T>();
     auto diF = d_input_features.data<T>();
     auto doF = d_output_features.data<T>();
@@ -98,11 +98,11 @@ double cuda_SubmanifoldConvolution_updateOutput(
 
   auto _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
   Int nActive = m.getNActive(inputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  output_features.resize_({nActive, op});
 
   if (nActive) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    output_features.resize_({nActive, op});
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
     auto w = weight.data<T>();
@@ -130,12 +130,12 @@ void cuda_SubmanifoldConvolution_backward(
 
   auto _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
   Int nActive = m.getNActive(inputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  d_input_features.resize_({nActive, ip});
+  d_input_features.zero_();
 
   if (nActive) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    d_input_features.resize_({nActive, ip});
-    d_input_features.zero_();
     auto iF = input_features.data<T>();
     auto diF = d_input_features.data<T>();
     auto doF = d_output_features.data<T>();
@@ -160,11 +160,11 @@ double cuda_PermutohedralSubmanifoldConvolution_updateOutput(
 
   auto _rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
   Int nActive = m.getNActive(inputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  output_features.resize_({nActive, op});
 
   if (nActive) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    output_features.resize_({nActive, op});
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
     auto w = weight.data<T>();
@@ -191,12 +191,12 @@ void cuda_PermutohedralSubmanifoldConvolution_backward(
 
   auto _rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
   Int nActive = m.getNActive(inputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  d_input_features.resize_({nActive, ip});
+  d_input_features.zero_();
 
   if (nActive) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    d_input_features.resize_({nActive, ip});
-    d_input_features.zero_();
     auto iF = input_features.data<T>();
     auto diF = d_input_features.data<T>();
     auto doF = d_output_features.data<T>();
@@ -225,10 +225,11 @@ double cuda_FullConvolution_updateOutput(
   auto _rules = mIn.getFullConvolutionRuleBook(inputSize, outputSize,
                                                filterSize, filterStride, mOut);
   Int nActiveOut = mOut.getNActive(outputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  output_features.resize_({nActiveOut, op});
+
   if (nActiveOut) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    output_features.resize_({nActiveOut, op});
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
     auto w = weight.data<T>();
@@ -260,12 +261,12 @@ void cuda_FullConvolution_backward(
                                                filterSize, filterStride, mOut);
   Int nActiveIn = mIn.getNActive(inputSize);
   Int nActiveOut = mOut.getNActive(outputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  d_input_features.resize_({nActiveIn, ip});
+  d_input_features.zero_();
 
   if (nActiveOut) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    d_input_features.resize_({nActiveIn, ip});
-    d_input_features.zero_();
     auto iF = input_features.data<T>();
     auto diF = d_input_features.data<T>();
     auto doF = d_output_features.data<T>();
@@ -292,11 +293,11 @@ double cuda_RandomizedStrideConvolution_updateOutput(
   auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, filterSize,
                                               filterStride, true);
   Int nActiveOut = m.getNActive(outputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  output_features.resize_({nActiveOut, op});
 
   if (nActiveOut) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    output_features.resize_({nActiveOut, op});
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
     auto w = weight.data<T>();
@@ -327,12 +328,12 @@ void cuda_RandomizedStrideConvolution_backward(
                                               filterStride, true);
   Int nActiveIn = m.getNActive(inputSize);
   Int nActiveOut = m.getNActive(outputSize);
+  Int ip = weight.size(1);
+  Int op = weight.size(2);
+  d_input_features.resize_({nActiveIn, ip});
+  d_input_features.zero_();
 
   if (nActiveOut) {
-    Int ip = weight.size(1);
-    Int op = weight.size(2);
-    d_input_features.resize_({nActiveIn, ip});
-    d_input_features.zero_();
     auto iF = input_features.data<T>();
     auto diF = d_input_features.data<T>();
     auto doF = d_output_features.data<T>();

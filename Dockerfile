@@ -39,7 +39,7 @@ RUN conda install -c anaconda pillow scipy future
 
 # Clone Repo
 WORKDIR ~
-RUN git clone https://github.com/facebookresearch/SparseConvNet.git
+RUN git clone https://github.com/nbardy/SparseConvNet.git
 WORKDIR SparseConvNet/
 
 RUN rm -rf build/ dist/ sparseconvnet.egg-info sparseconvnet_SCN*.so

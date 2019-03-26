@@ -49,6 +49,8 @@ p['weight_decay'] = 1e-4
 p['momentum'] = 0.9
 p['check_point'] = False
 p['use_cuda'] = torch.cuda.is_available()
+wandb.init(config=p)
+
 dtype = 'torch.cuda.FloatTensor' if p['use_cuda'] else 'torch.FloatTensor'
 dtypei = 'torch.cuda.LongTensor' if p['use_cuda'] else 'torch.LongTensor'
 if p['use_cuda']:
@@ -139,7 +141,7 @@ for epoch in range(p['epoch'], p['n_epochs'] + 1):
         loss.backward()
         optimizer.step()
     r = iou(stats)
-    print('train epoch',epoch,1,'iou=', r['iou'], 'MegaMulAdd=',scn.forward_pass_multiplyAdd_count/r['nmodels_sum']/1e6, 'MegaHidden',scn.forward_pass_hidden_states/r['nmodels_sum']/1e6,'time=',time.time() - start,'s')
+    wandb.log({'train epoch': epoch, 'iou': r['iou'], 'iou_all': r['iou_all'], 'MegaMulAdd=': scn.forward_pass_multiplyAdd_count/r['nmodels_sum']/1e6, 'MegaHidden': scn.forward_pass_hidden_states/r['nmodels_sum']/1e6, 'time': time.time() - start})
 
     if p['check_point']:
         torch.save(epoch, 'epoch.pth')
@@ -157,8 +159,8 @@ for epoch in range(p['epoch'], p['n_epochs'] + 1):
                 batch['y']=batch['y'].type(dtypei)
                 batch['mask']=batch['mask'].type(dtype)
                 predictions=model(batch['x'])
+                wandb.log({"validation_data": wandb.Object3D(batch['x'][1])})
                 loss = criterion.forward(predictions,batch['y'])
                 store(stats,batch,predictions,loss)
             r = iou(stats)
-            print('valid epoch',epoch,rep,'iou=', r['iou'], 'MegaMulAdd=',scn.forward_pass_multiplyAdd_count/r['nmodels_sum']/1e6, 'MegaHidden',scn.forward_pass_hidden_states/r['nmodels_sum']/1e6,'time=',time.time() - start,'s')
-        print(r['iou_all'])
+	    wandb.log({'train epoch': epoch, 'iou': r['iou'], 'iou_all': r['iou_all'], 'MegaMulAdd=': scn.forward_pass_multiplyAdd_count/r['nmodels_sum']/1e6, 'MegaHidden': scn.forward_pass_hidden_states/r['nmodels_sum']/1e6, 'time': time.time() - start})

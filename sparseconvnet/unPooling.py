@@ -22,14 +22,15 @@ class UnPoolingFunction(Function):
             pool_size,
             pool_stride,
             nFeaturesToDrop):
-        ctx.input_features=input_features
+        ctx.save_for_backward(
+            input_spatial_size,
+            output_spatial_size)
         ctx.input_metadata=input_metadata
-        ctx.input_spatial_size = input_spatial_size
-        ctx.output_spatial_size = output_spatial_size
         ctx.dimension = dimension
         ctx.pool_size = pool_size
         ctx.pool_stride = pool_stride
         ctx.nFeaturesToDrop = nFeaturesToDrop
+        ctx.input_features_shape=input_features.shape
         output_features = input_features.new()
         sparseconvnet.SCN.UnPooling_updateOutput(
             input_spatial_size,
@@ -44,16 +45,16 @@ class UnPoolingFunction(Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-        grad_input=Variable(grad_output.data.new())
+        input_spatial_size,output_spatial_size=ctx.saved_tensors
+        grad_input=torch.zeros(ctx.input_features_shape,device=grad_output.device,dtype=grad_output.dtype)
         sparseconvnet.SCN.UnPooling_updateGradInput(
-            ctx.input_spatial_size,
-            ctx.output_spatial_size,
+            input_spatial_size,
+            output_spatial_size,
             ctx.pool_size,
             ctx.pool_stride,
             ctx.input_metadata,
-            ctx.input_features,
-            grad_input.data,
-            grad_output.data.contiguous(),
+            grad_input,
+            grad_output.contiguous(),
             ctx.nFeaturesToDrop)
         return grad_input, None, None, None, None, None, None, None
 

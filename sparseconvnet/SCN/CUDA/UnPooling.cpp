@@ -40,19 +40,16 @@ void cuda_UnPooling_updateGradInput(
     /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
     /*long*/ at::Tensor poolSize,
     /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
     /*cuda float*/ at::Tensor d_input_features,
     /*cuda float*/ at::Tensor d_output_features, long nFeaturesToDrop) {
 
-  Int nPlanes = input_features.size(1) - nFeaturesToDrop;
+  Int nPlanes = d_input_features.size(1) - nFeaturesToDrop;
   auto _rules =
       m.getRuleBook(outputSize, inputSize, poolSize, poolStride, true);
-  d_input_features.resize_as_(input_features);
-  d_input_features.zero_();
 
   auto diF = d_input_features.data<T>() + nFeaturesToDrop;
   auto doF = d_output_features.data<T>();
 
-  cuda_UnPooling_BackwardPass<T>(diF, doF, nPlanes, input_features.size(1),
+  cuda_UnPooling_BackwardPass<T>(diF, doF, nPlanes, d_input_features.size(1),
                                  d_output_features.size(1), _rules);
 }

@@ -84,3 +84,38 @@ void cpu_AveragePooling_updateGradInput(
                                    _rules.size());
   }
 }
+
+template <typename T>
+void cpu_CopyFeaturesHelper_updateOutput(at::Tensor rules, at::Tensor context,
+                                         at::Tensor Context) {
+  Int nHot = rules.size(0) / 2;
+  Int nPlanes = context.size(1);
+  auto iF = context.data<T>();
+  auto oF = Context.data<T>();
+  auto r = rules.data<Int>();
+  Int outSite;
+#pragma omp parallel for private(outSite)
+  for (outSite = 0; outSite < nHot; outSite++) {
+    Int i = r[2 * outSite + 1] * nPlanes;
+    Int o = r[2 * outSite] * nPlanes;
+    std::memcpy(oF + o, iF + i, nPlanes * sizeof(T));
+  }
+}
+template <typename T>
+void cpu_CopyFeaturesHelper_updateGradInput(at::Tensor rules,
+                                            at::Tensor dcontext,
+                                            at::Tensor dContext) {
+  Int nHot = rules.size(0) / 2;
+  Int nPlanes = dcontext.size(1);
+  auto iF = dcontext.data<T>();
+  auto oF = dContext.data<T>();
+  auto r = rules.data<Int>();
+  Int outSite;
+#pragma omp parallel for private(outSite)
+  for (outSite = 0; outSite < nHot; outSite++) {
+    Int i = r[2 * outSite + 1] * nPlanes;
+    Int o = r[2 * outSite] * nPlanes;
+    for (Int plane = 0; plane < nPlanes; plane++)
+      iF[i + plane] = oF[o + plane];
+  }
+}

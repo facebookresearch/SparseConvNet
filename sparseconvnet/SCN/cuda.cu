@@ -134,3 +134,8 @@ template void bmd_f<float>(float *input_features, float *output_features,
 template void bmd_b<float>(float *input_features, float *d_input_features,
 			   float *d_output_features, float *noise, Int nActive,
 			   Int nPlanes, float alpha);
+
+template void cuda_CopyFeaturesHelper_ForwardPass<float>(
+	 float* context, float* Context,Int* rules, Int nPlanes, Int nHot);
+template void cuda_CopyFeaturesHelper_BackwardPass<float>(
+	 float* dcontext, float* dContext,Int* rules, Int nPlanes, Int nHot);

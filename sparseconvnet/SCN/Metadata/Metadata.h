@@ -158,6 +158,8 @@ public:
   std::vector<at::Tensor>
   compareSparseHelper(Metadata<dimension> &mR,
                       /* long */ at::Tensor spatialSize);
+  at::Tensor copyFeaturesHelper(Metadata<dimension> &mR,
+                                /* long */ at::Tensor spatialSize);
 };
 
 template <typename T> T *OptionalTensorData(at::Tensor tensor);

@@ -94,6 +94,17 @@ def union(pred, gt, label):
     assert pred.size == gt.size, 'Predictions incomplete!'
     return np.sum(np.logical_or(pred.astype('int') == label, gt.astype('int') == label))
 
+def log_point_clouds(x, y, predictions):
+    print(x)
+    print(y)
+    print(predictions);
+    print(x.shape)
+    print(y.shape)
+    print(predictions.shape);
+    wandb.log({"test_data": wandb.Object3D(batch['x'][0].numpy()),
+               "true_labels": wandb.Object3D(predictions.numpy()),
+               "prediction_data": wandb.Object3D(predictions.numpy())})
+
 def iou(stats):
     eps = sys.float_info.epsilon
     categories= sorted(stats.keys())
@@ -159,7 +170,11 @@ for epoch in range(p['epoch'], p['n_epochs'] + 1):
                 batch['y']=batch['y'].type(dtypei)
                 batch['mask']=batch['mask'].type(dtype)
                 predictions=model(batch['x'])
-                wandb.log({"validation_data": wandb.Object3D(batch['x'][1])})
+                # What to log?: 
+                #   1) Input to model
+                #   2) Output from model
+                #   3) Ground truth
+                logPointClouds(batch['x'], batch['y'], predictions)
                 loss = criterion.forward(predictions,batch['y'])
                 store(stats,batch,predictions,loss)
             r = iou(stats)

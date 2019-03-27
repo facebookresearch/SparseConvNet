@@ -259,7 +259,7 @@ Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mGT,
                                      /*long*/ at::Tensor spatialSize) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
   at::Tensor gt = torch::zeros({nActive[p]}, at::kByte);
-  at::Tensor ref_map = torch::/*empty*/ zeros({mGT.nActive[p]}, at::kLong);
+  at::Tensor ref_map = torch::empty({mGT.nActive[p]}, at::kLong);
   long *ref_map_ptr = ref_map.data<long>();
   unsigned char *gt_ptr = gt.data<unsigned char>();
   auto &sgsGT = mGT.grids[p];
@@ -273,10 +273,10 @@ Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mGT,
     auto &sgFull = sgsFull[sample];
     for (auto const &iter : sgGT.mp) {
       auto f = sgFull.mp.find(iter.first);
-      if (f == sgFull.mp.end())
-        std::cout << __FILE__ << ":" << __LINE__ << std::endl;
-      ref_map_ptr[iter.second + sgGT.ctr] = f->second + sgFull.ctr;
-      gt_ptr[f->second + sgFull.ctr] = +1;
+      if (f != sgFull.mp.end()) {
+        ref_map_ptr[iter.second + sgGT.ctr] = f->second + sgFull.ctr;
+        gt_ptr[f->second + sgFull.ctr] = +1;
+      }
     }
   }
   return {gt, ref_map};

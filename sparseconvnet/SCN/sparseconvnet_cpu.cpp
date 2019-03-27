@@ -408,13 +408,12 @@ template <Int Dimension>
 void UnPooling_updateGradInput(at::Tensor inputSize, at::Tensor outputSize,
                                at::Tensor poolSize, at::Tensor poolStride,
                                Metadata<Dimension> &m,
-                               at::Tensor input_features,
                                at::Tensor d_input_features,
                                at::Tensor d_output_features,
                                long nFeaturesToDrop) {
   cpu_UnPooling_updateGradInput<float, Dimension>(
-      inputSize, outputSize, poolSize, poolStride, m, input_features,
-      d_input_features, d_output_features, nFeaturesToDrop);
+      inputSize, outputSize, poolSize, poolStride, m, d_input_features,
+      d_output_features, nFeaturesToDrop);
 }
 
 #define FOO                                                                    \
@@ -560,8 +559,8 @@ void UnPooling_updateGradInput(at::Tensor inputSize, at::Tensor outputSize,
   template void UnPooling_updateGradInput<DIMENSION>(                          \
       at::Tensor inputSize, at::Tensor outputSize, at::Tensor poolSize,        \
       at::Tensor poolStride, Metadata<DIMENSION> & m,                          \
-      at::Tensor input_features, at::Tensor d_input_features,                  \
-      at::Tensor d_output_features, long nFeaturesToDrop);
+      at::Tensor d_input_features, at::Tensor d_output_features,               \
+      long nFeaturesToDrop);
 
 #define DIMENSION 1
 FOO;
@@ -581,3 +580,14 @@ FOO;
 #define DIMENSION 6
 FOO;
 #undef DIMENSION
+
+at::Tensor CopyFeaturesHelper_updateOutput(at::Tensor rules, at::Tensor context,
+                                           at::Tensor Context) {
+  return cpu_CopyFeaturesHelper_updateOutput<float>(rules, context, Context);
+}
+at::Tensor CopyFeaturesHelper_updateGradInput(at::Tensor rules,
+                                              at::Tensor dcontext,
+                                              at::Tensor dContext) {
+  return cpu_CopyFeaturesHelper_updateGradInput<float>(rules, dcontext,
+                                                       dContext);
+}

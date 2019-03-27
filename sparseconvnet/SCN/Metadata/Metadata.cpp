@@ -620,6 +620,29 @@ at::Tensor vvl2t_(std::vector<std::vector<Int>> v) {
   return t;
 }
 
+template <Int dimension>
+at::Tensor
+Metadata<dimension>::copyFeaturesHelper(Metadata<dimension> &mR,
+                                        /* long */ at::Tensor spatialSize) {
+  auto p = LongTensorToPoint<dimension>(spatialSize);
+  auto &sgsL = grids[p];
+  auto &sgsR = mR.grids[p];
+  Int bs = sgsL.size(), sample;
+  std::vector<std::vector<Int>> r(bs);
+#pragma omp parallel for private(sample)
+  for (sample = 0; sample < bs; ++sample) {
+    auto &sgL = sgsL[sample];
+    auto &sgR = sgsR[sample];
+    auto &rs = r[sample];
+    for (auto const &iter : sgL.mp) {
+      if (sgR.mp.find(iter.first) != sgR.mp.end()) {
+        rs.push_back(sgL.mp[iter.first] + sgL.ctr);
+        rs.push_back(sgR.mp[iter.first] + sgR.ctr);
+      }
+    }
+  }
+  return vvl2t_(r);
+}
 template <Int dimension> Int volume(long *point) {
   Int v = 1;
   for (Int i = 0; i < dimension; i++)

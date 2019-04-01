@@ -581,13 +581,11 @@ FOO;
 FOO;
 #undef DIMENSION
 
-at::Tensor CopyFeaturesHelper_updateOutput(at::Tensor rules, at::Tensor context,
-                                           at::Tensor Context) {
-  return cpu_CopyFeaturesHelper_updateOutput<float>(rules, context, Context);
+void CopyFeaturesHelper_updateOutput(at::Tensor rules, at::Tensor context,
+                                     at::Tensor Context) {
+  cpu_CopyFeaturesHelper_updateOutput<float>(rules, context, Context);
 }
-at::Tensor CopyFeaturesHelper_updateGradInput(at::Tensor rules,
-                                              at::Tensor dcontext,
-                                              at::Tensor dContext) {
-  return cpu_CopyFeaturesHelper_updateGradInput<float>(rules, dcontext,
-                                                       dContext);
+void CopyFeaturesHelper_updateGradInput(at::Tensor rules, at::Tensor dcontext,
+                                        at::Tensor dContext) {
+  cpu_CopyFeaturesHelper_updateGradInput<float>(rules, dcontext, dContext);
 }

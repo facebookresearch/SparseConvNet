@@ -51,6 +51,15 @@ template <Int Dimension> void dimension(py::module &m, const char *name) {
                   long)) &
             AveragePooling_updateGradInput,
         "");
+  
+  m.def("GlobalFusion_updateOutput",
+          (double (*)(at::Tensor, at::Tensor, at::Tensor, at::Tensor,
+                      Metadata<Dimension> &, Metadata<Dimension> &,
+                      at::Tensor, at::Tensor, at::Tensor, 
+                      at::Tensor)) & 
+            GlobalFusion_updateOutput,
+        "");
+    
   m.def("Convolution_updateOutput",
         (double (*)(at::Tensor, at::Tensor, at::Tensor, at::Tensor,
                     Metadata<Dimension> &, at::Tensor, at::Tensor, at::Tensor,

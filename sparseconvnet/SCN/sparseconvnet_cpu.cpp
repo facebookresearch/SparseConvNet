@@ -32,6 +32,7 @@ template class Metadata<6>;
 #include "CPU/NetworkInNetwork.cpp"
 #include "CPU/SparseToDense.cpp"
 #include "CPU/UnPooling.cpp"
+#include "CPU/GlobalFusion.cpp"
 
 double AffineReluTrivialConvolution_updateOutput(at::Tensor input_features,
                                                  at::Tensor output_features,
@@ -163,6 +164,24 @@ void AveragePooling_updateGradInput(at::Tensor inputSize, at::Tensor outputSize,
       inputSize, outputSize, poolSize, poolStride, m, input_features,
       d_input_features, d_output_features, nFeaturesToDrop);
 }
+
+template <Int Dimension>
+double GlobalFusion_updateOutput(at::Tensor localInputSize, at::Tensor globalInputSize,
+                                 at::Tensor localBase, at::Tensor globalBase,
+                                 Metadata<Dimension> &local, Metadata<Dimension> &global,
+                                 at::Tensor local_input_features, at::Tensor global_input_features,
+                                 at::Tensor output_features, at::Tensor scale_ratio) {
+    printf("CPU 123\n");
+    return cpu_GlobalFusion_updateOutput<float, Dimension>(
+            localInputSize, globalInputSize,
+            localBase, globalBase,
+            local, global, 
+            local_input_features, global_input_features,
+            output_features, scale_ratio);
+}
+
+
+
 template <Int Dimension>
 double Convolution_updateOutput(at::Tensor inputSize, at::Tensor outputSize,
                                 at::Tensor filterSize, at::Tensor filterStride,
@@ -434,6 +453,12 @@ void UnPooling_updateGradInput(at::Tensor inputSize, at::Tensor outputSize,
       at::Tensor poolStride, Metadata<DIMENSION> & m,                          \
       at::Tensor input_features, at::Tensor d_input_features,                  \
       at::Tensor d_output_features, long nFeaturesToDrop);                     \
+  template double GlobalFusion_updateOutput<DIMENSION>(                        \
+      at::Tensor localInputSize, at::Tensor globalInputSize,                   \
+      at::Tensor localBase, at::Tensor globalBase,                             \
+      Metadata<DIMENSION> &local, Metadata<DIMENSION> &global,                 \
+      at::Tensor local_input_features, at::Tensor global_input_features,       \
+      at::Tensor output_features, at::Tensor scale_ratio);                     \
   template double Convolution_updateOutput<DIMENSION>(                         \
       at::Tensor inputSize, at::Tensor outputSize, at::Tensor filterSize,      \
       at::Tensor filterStride, Metadata<DIMENSION> & m,                        \

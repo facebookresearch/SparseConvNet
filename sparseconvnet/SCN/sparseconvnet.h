@@ -83,6 +83,20 @@ void AveragePooling_updateGradInput(at::Tensor inputSize, at::Tensor outputSize,
                                     at::Tensor d_output_features,
                                     long nFeaturesToDrop);
 template <Int Dimension>
+double GlobalFusion_updateOutput(at::Tensor localInputSize, at::Tensor globalInputSize,
+                                at::Tensor localBase, at::Tensor globalBase,
+                                Metadata<Dimension> &local, Metadata<Dimension> &global,
+                                at::Tensor local_input_features, at::Tensor global_input_features,
+                                at::Tensor output_features, at::Tensor scale_ratio);
+
+template <Int Dimension>
+void GlobalFusion_backward(at::Tensor localInputSize, at::Tensor globalInputSize,
+                            Metadata<Dimension> &local, Metadata<Dimension> &global,
+                            at::Tensor d_local_input_features, at::Tensor d_global_input_featrues,
+                            at::Tensor d_output_features, at::Tensor scale_ratio);
+
+
+template <Int Dimension>
 double Convolution_updateOutput(at::Tensor inputSize, at::Tensor outputSize,
                                 at::Tensor filterSize, at::Tensor filterStride,
                                 Metadata<Dimension> &m,

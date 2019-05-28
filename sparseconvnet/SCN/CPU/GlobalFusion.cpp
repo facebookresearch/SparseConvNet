@@ -3,6 +3,9 @@
 //
 // This source code is licensed under the BSD-style license found in the
 // LICENSE file in the root directory of this source tree.
+#include <torch/torch.h>
+#include <ATen/ATen.h>
+#include <ATen/NativeFunctions.h>
 
 template <typename T, Int Dimension>
 at::Tensor pointToTensor(Point<Dimension> &p) {
@@ -14,7 +17,25 @@ at::Tensor pointToTensor(Point<Dimension> &p) {
     }
     return output;
 }
-
+template <typename T, Int Dimension>
+at::Tensor copyTensor(at::Tensor &p) {
+    auto output = at::empty({Dimension});
+    auto out_ptr = output.data<T>();
+    auto in_ptr = p.data<T>();
+    
+    for (Int i = 0; i < Dimension; i++) {
+        out_ptr[i] = in_ptr[i];
+    }
+    return output;
+}
+template <typename T, Int dimension>
+Point<dimension> TensorToPoint(/*long*/ at::Tensor &t) {
+  Point<dimension> p;
+  T *td = t.data<T>();
+  for (Int i = 0; i < dimension; i++)
+    p[i] = (Int) (td[i]);
+  return p;
+}
 
 template <typename T, Int Dimension>
 double cpu_GlobalFusion_updateOutput(
@@ -38,30 +59,56 @@ double cpu_GlobalFusion_updateOutput(
     for (Int i = 0; i < batchSize; i++) {
         auto local_base = localBase.select(0, i);
         auto global_base = globalBase.select(0, i);
+        local_base = copyTensor<T, Dimension>(local_base);
+        global_base = copyTensor<T, Dimension>(global_base);
         for (auto const &localIter : local_SGs[i].mp) {
             auto local_x = localIter.first;
             auto local_x_idx = localIter.second;
+            fprintf(stderr ,"[Fusion] batch %d, idx %d, (%d, %d, %d)\n", i, local_x_idx, local_x[0], local_x[1], local_x[2]);
 
             // Calc position of x in global
             auto tensor_local_x = pointToTensor<T, Dimension>(local_x);
-            auto tensor_global_x = (tensor_local_x + local_base) * scale_ratio - global_base;
+            std::cout<< tensor_local_x << std::endl;
+            std::cout<< local_base << std::endl;
+            std::cout<< local_base << std::endl;
+            // fprintf(stderr, "dim: %d %d\n", tensor_local_x.dim(), local_base.size(0));
+            auto a = tensor_local_x + local_base;
+            // AT_CHECK(tensor_local_x.size(0) == local_base.size(0), "Base and Location dimension mismatch");
+            fprintf(stderr, "dim: %d %d\n", a.dim(), a.size(0));
+            fprintf(stderr, "dim: %d %d\n", scale_ratio.dim(), scale_ratio.size(0));
+            // AT_CHECK(tensor_local_x.size(0) == scale_ratio.size(0), "Location and scale_ratio dimension mismatch");
+            // auto b = at::empty({1});
+            // b.data<float>()[0] = 10;
+            // fprintf(stderr, "dim: %d \n", b.dim());
+            // fprintf(stderr, "b %d \n", b.dim());
+            std::cout<< a << std::endl;
+            std::cout << "==========" << std::endl;
+            std::cout<< scale_ratio << std::endl;
+            auto b = copyTensor<T, Dimension>(scale_ratio);
+            a = torch::mul(a, b) - global_base;
+
+            // printf("dim: %d %d\n", a.dim(), a.size(0));
+            // a -= global_base;
+            // auto tensor_global_x = (tensor_local_x + local_base) * scale_ratio - global_base;
             flops += 1;
-			tensor_global_x  = tensor_global_x.floor();
-            auto global_x = LongTensorToPoint<Dimension>(tensor_global_x);
-            
+            a = a.floor();
+	// 		tensor_global_x  = tensor_global_x.floor();
+    //         auto global_x = LongTensorToPoint<Dimension>(tensor_global_x);
+            auto global_x = TensorToPoint<T, Dimension>(a);
+    //         
             auto globalIter = global_SGs[i].mp.find(global_x);
             if (globalIter != global_SGs[i].mp.end()) {
-                // x is in global
+    //             // x is in global
                 auto global_x_idx = globalIter->second;
                 output_features.select(0, local_x_idx) = at::cat({
-                        local_input_features.select(0, local_x_idx),
-                        global_input_features.select(0, global_x_idx)
-                    }, 0);
+                       local_input_features.select(0, local_x_idx),
+                       global_input_features.select(0, global_x_idx)
+                   }, 0);
             }
             else {
-                // x is not in global
-                auto tmp = at::empty({global_input_features.size(1)});
-                tmp.zero_();
+    //             // x is not in global
+                auto tmp = torch::zeros({global_input_features.size(1)});
+                // tmp.zero_();
                 output_features.select(0, local_x_idx) = at::cat({
                         local_input_features.select(0, local_x_idx), tmp
                     }, 0);

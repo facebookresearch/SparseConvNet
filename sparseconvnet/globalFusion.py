@@ -23,7 +23,6 @@ class GlobalFusionFunction(Function):
             global_input_metadata,
             global_input_spatial_size,
             global_input_base,
-            output_feature,
             dimension,
             scale_ratio):
         # ctx.local_input_metadata = local_input_metadata
@@ -75,17 +74,17 @@ class GlobalFusionFunction(Function):
 
 class GlobalFusion(Module):
     def __init__(self, dimension, scale_ratio):
-        super(MaxPooling, self).__init__()
+        # super(Module, self).__init__()
+        Module.__init__(self)
         self.dimension = dimension
-        self.scale_ratio = toLongTensor(dimension, scale_ratio)
+        # self.scale_ratio = toLongTensor(dimension, scale_ratio)
+        self.scale_ratio = torch.Tensor([scale_ratio] * dimension)
+        print(self)
 
     def forward(self, local_input, global_input, local_base, global_base):
         output = SparseConvNetTensor()
         output.metadata = local_input.metadata
         output.spatial_size = local_input.spatial_size
-        (input.spatial_size - self.pool_size) / self.pool_stride + 1
-        # assert ((output.spatial_size - 1) * self.pool_stride +
-        #         self.pool_size == input.spatial_size).all()
         output.features = GlobalFusionFunction.apply(
             local_input.features,
             local_input.metadata,
@@ -95,7 +94,6 @@ class GlobalFusion(Module):
             global_input.metadata,
             global_input.spatial_size,
             global_base,
-            output.feature,
             self.dimension,
             self.scale_ratio)
         return output
@@ -106,8 +104,8 @@ class GlobalFusion(Module):
 
     def __repr__(self):
         s = 'GlobalFusion scale=('
-        for i in self.size_scale:
-            s = s + ',' + str(i.item())
-        s = s + ')'
+        for i in self.scale_ratio[:-1]:
+            s = s + str(i.item()) + ','
+        s = s + str(self.scale_ratio[-1].item()) + ')'
 
         return s

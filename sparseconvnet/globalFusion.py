@@ -25,9 +25,11 @@ class GlobalFusionFunction(Function):
             global_input_base,
             dimension,
             scale_ratio):
-        # ctx.local_input_metadata = local_input_metadata
-        # ctx.global_input_metadata = global_input_metadata
-        # ctx.dimension = dimension
+
+        ctx.local_input_metadata = local_input_metadata
+        ctx.global_input_metadata = global_input_metadata
+        ctx.dimension = dimension
+
         output_features = local_input_features.new()
         sparseconvnet.SCN.GlobalFusion_updateOutput(
             local_input_spatial_size,
@@ -40,36 +42,37 @@ class GlobalFusionFunction(Function):
             global_input_features,
             output_features,
             scale_ratio)
-        # ctx.save_for_backward(
-        #     input_features,
-        #     output_features,
-        #     input_spatial_size,
-        #     output_spatial_size,
-        #     pool_size,
-        #     pool_stride)
+
+        ctx.save_for_backward(
+            local_input_spatial_size,
+            global_input_spatial_size,
+            local_input_base,
+            global_input_base,
+            scale_ratio)
         return output_features
 
     @staticmethod
     def backward(ctx, grad_output):
-        # input_features,\
-        #     output_features,\
-        #     input_spatial_size,\
-        #     output_spatial_size,\
-        #     pool_size,\
-        #     pool_stride = ctx.saved_tensors
-        # grad_input = grad_output.new()
-        # sparseconvnet.SCN.MaxPooling_updateGradInput(
-        #     input_spatial_size,
-        #     output_spatial_size,
-        #     pool_size,
-        #     pool_stride,
-        #     ctx.input_metadata,
-        #     input_features,
-        #     grad_input,
-        #     output_features,
-        #     grad_output,
-        #     ctx.nFeaturesToDrop)
-        return None, None, None, None, None, None, None, None, None, None, None
+        local_spatial_size,\
+            global_spatial_size,\
+            local_base,\
+            global_base,\
+            scale_ratio = ctx.saved_tensors
+
+        local_grad_input = grad_output.new()
+        global_grad_input = grad_output.new()
+        sparseconvnet.SCN.GlobalFusion_backward(
+            local_spatial_size,
+            global_spatial_size,
+            local_base,
+            global_base,
+            ctx.local_metadata,
+            ctx.global_metadata,
+            local_grad_input,
+            global_grad_input,
+            grad_output,
+            ctx.scale_ratio)
+        return local_grad_input, None, None, None, global_grad_input, None, None, None, None, None
 
 
 class GlobalFusion(Module):

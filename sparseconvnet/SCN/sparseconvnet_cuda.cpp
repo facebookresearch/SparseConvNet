@@ -252,13 +252,26 @@ double GlobalFusion_updateOutput(at::Tensor localInputSize, at::Tensor globalInp
                                  Metadata<Dimension> &local, Metadata<Dimension> &global,
                                  at::Tensor local_input_features, at::Tensor global_input_features,
                                  at::Tensor output_features, at::Tensor scale_ratio) {
-    printf("123\n");
     return cpu_GlobalFusion_updateOutput<float, Dimension>(
             localInputSize, globalInputSize,
             localBase, globalBase,
             local, global,
             local_input_features, global_input_features,
             output_features, scale_ratio);
+}
+
+template <Int Dimension>
+double GlobalFusion_backward(at::Tensor localInputSize, at::Tensor globalInputSize,
+        at::Tensor localBase, at::Tensor globalBase,
+        Metadata<Dimension> &local, Metadata<Dimension> &global,
+        at::Tensor local_grad, at::Tensor global_grad,
+        at::Tensor output_grad, at::Tensor scale_ratio) {
+    return cpu_GlobalFusion_backward<float, Dimension>(
+            localInputSize, globalInputSize,
+            localBase, globalBase,
+            local, global,
+            local_grad, global_grad,
+            output_grad, scale_ratio);
 }
 
 template <Int Dimension>
@@ -672,6 +685,12 @@ void UnPooling_updateGradInput(at::Tensor inputSize, at::Tensor outputSize,
       Metadata<DIMENSION> &local, Metadata<DIMENSION> &global,                 \
       at::Tensor local_input_features, at::Tensor global_input_features,       \
       at::Tensor output_features, at::Tensor scale_ratio);                     \
+  template double GlobalFusion_backward<DIMENSION>(                            \
+      at::Tensor localInputSize, at::Tensor globalInputSize,                   \
+      at::Tensor localBase, at::Tensor globalBase,                             \
+      Metadata<DIMENSION> &local, Metadata<DIMENSION> &global,                 \
+      at::Tensor local_grad, at::Tensor global_grad,                           \
+      at::Tensor output_grad, at::Tensor scale_ratio);                         \
   template double Convolution_updateOutput<DIMENSION>(                         \
       at::Tensor inputSize, at::Tensor outputSize, at::Tensor filterSize,      \
       at::Tensor filterStride, Metadata<DIMENSION> & m,                        \

@@ -88,13 +88,12 @@ double GlobalFusion_updateOutput(at::Tensor localInputSize, at::Tensor globalInp
                                 Metadata<Dimension> &local, Metadata<Dimension> &global,
                                 at::Tensor local_input_features, at::Tensor global_input_features,
                                 at::Tensor output_features, at::Tensor scale_ratio);
-
 template <Int Dimension>
-void GlobalFusion_backward(at::Tensor localInputSize, at::Tensor globalInputSize,
+double GlobalFusion_backward(at::Tensor localInputSize, at::Tensor globalInputSize,
+                            at::Tensor localBase, at::Tensor globalBase,
                             Metadata<Dimension> &local, Metadata<Dimension> &global,
-                            at::Tensor d_local_input_features, at::Tensor d_global_input_featrues,
-                            at::Tensor d_output_features, at::Tensor scale_ratio);
-
+                            at::Tensor local_grad, at::Tensor global_grad,
+                            at::Tensor output_grad, at::Tensor scale_ratio);
 
 template <Int Dimension>
 double Convolution_updateOutput(at::Tensor inputSize, at::Tensor outputSize,

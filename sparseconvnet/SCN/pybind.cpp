@@ -59,6 +59,14 @@ template <Int Dimension> void dimension(py::module &m, const char *name) {
                       at::Tensor)) & 
             GlobalFusion_updateOutput,
         "");
+
+   m.def("GlobalFusion_backward",
+          (double (*)(at::Tensor, at::Tensor, at::Tensor, at::Tensor,
+                      Metadata<Dimension> &, Metadata<Dimension> &,
+                      at::Tensor, at::Tensor, at::Tensor, 
+                      at::Tensor)) & 
+            GlobalFusion_backward,
+        "");
     
   m.def("Convolution_updateOutput",
         (double (*)(at::Tensor, at::Tensor, at::Tensor, at::Tensor,

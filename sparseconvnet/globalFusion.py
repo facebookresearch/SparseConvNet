@@ -26,8 +26,9 @@ class GlobalFusionFunction(Function):
             dimension,
             scale_ratio):
 
-        ctx.local_input_metadata = local_input_metadata
-        ctx.global_input_metadata = global_input_metadata
+        ctx.local_metadata = local_input_metadata
+        ctx.global_metadata = global_input_metadata
+        ctx.scale_ratio = scale_ratio
         ctx.dimension = dimension
 
         output_features = local_input_features.new()
@@ -48,6 +49,8 @@ class GlobalFusionFunction(Function):
             global_input_spatial_size,
             local_input_base,
             global_input_base,
+            local_input_features,
+            global_input_features,
             scale_ratio)
         return output_features
 
@@ -57,10 +60,13 @@ class GlobalFusionFunction(Function):
             global_spatial_size,\
             local_base,\
             global_base,\
+            local_features,\
+            global_features,\
             scale_ratio = ctx.saved_tensors
 
-        local_grad_input = grad_output.new()
-        global_grad_input = grad_output.new()
+        local_grad_input = local_features.clone().zero_()
+        # local_grad_input.resize([local_features.size(0), local_features.size(1)])
+        global_grad_input = global_features.clone().zero_()
         sparseconvnet.SCN.GlobalFusion_backward(
             local_spatial_size,
             global_spatial_size,

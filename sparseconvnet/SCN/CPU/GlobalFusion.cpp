@@ -47,7 +47,6 @@ double cpu_GlobalFusion_updateOutput(
     Int nActive = local.getNActive(localInputSize);
     output_features.resize_({nActive, local_input_features.size(1) + global_input_features.size(1)});
     output_features.zero_();
-    std::cout << output_features << std::endl;
     double flops = 0;
 
     auto local_iS = LongTensorToPoint<Dimension>(localInputSize);
@@ -65,20 +64,15 @@ double cpu_GlobalFusion_updateOutput(
         for (auto const &localIter : local_SGs[i].mp) {
             auto local_x = localIter.first;
             auto local_x_idx = localIter.second;
-            fprintf(stderr ,"[Fusion] batch %d, idx %d, (%d, %d, %d)\n", i, local_x_idx, local_x[0], local_x[1], local_x[2]);
+            // fprintf(stderr ,"[Fusion] batch %d, idx %d, (%d, %d, %d)\n", i, local_x_idx, local_x[0], local_x[1], local_x[2]);
 
             // Calc position of x in global
             auto tensor_local_x = pointToTensor<T, Dimension>(local_x);
-            std::cout << tensor_local_x << std::endl;
-            std::cout << local_base << std::endl;
             auto a = tensor_local_x + local_base;
             AT_CHECK(tensor_local_x.size(0) == local_base.size(0), "Base and Location dimension mismatch");
             AT_CHECK(tensor_local_x.size(0) == scale_ratio.size(0), "Location and scale_ratio dimension mismatch");
             AT_CHECK(global_base.size(0) == local_base.size(0), "Global and local base dimension mismatch");
             // auto b = copyTensor<T, Dimension>(scale_ratio);
-            std::cout << a << std::endl;
-            std::cout << scale_ratio << std::endl;
-            std::cout << global_base << std::endl;
             a = torch::div(a, scale_ratio) - global_base;
 
             // tensor_global_x = (tensor_local_x + local_base) * scale_ratio - global_base;
@@ -89,8 +83,6 @@ double cpu_GlobalFusion_updateOutput(
             if (globalIter != global_SGs[i].mp.end()) {
                 // x is in global
                 auto global_x_idx = globalIter->second;
-                std::cout << local_input_features.select(0, local_x_idx) << std::endl;
-                std::cout << global_input_features.select(0, global_x_idx) << std::endl;
                 output_features.select(0, local_x_idx) = torch::cat({
                        local_input_features.select(0, local_x_idx),
                        global_input_features.select(0, global_x_idx)
@@ -150,7 +142,7 @@ double cpu_GlobalFusion_backward(
         for (auto const &localIter : local_SGs[i].mp) {
             auto local_x = localIter.first;         // Local Point x
             auto local_x_idx = localIter.second;    // Local Point x's index
-            fprintf(stderr ,"[Fusion] batch %d, idx %d, (%d, %d, %d)\n", i, local_x_idx, local_x[0], local_x[1], local_x[2]);
+            // fprintf(stderr ,"[Fusion] batch %d, idx %d, (%d, %d, %d)\n", i, local_x_idx, local_x[0], local_x[1], local_x[2]);
             
             // Assign gradient to local
             local_input_grad.select(0, local_x_idx) = \
@@ -158,8 +150,6 @@ double cpu_GlobalFusion_backward(
 
             // Calc position of x in global
             auto tensor_local_x = pointToTensor<T, Dimension>(local_x);
-            std::cout << tensor_local_x << std::endl;
-            std::cout << local_base << std::endl;
             auto a = tensor_local_x + local_base;
             AT_CHECK(tensor_local_x.size(0) == local_base.size(0), "Base and Location dimension mismatch");
             AT_CHECK(tensor_local_x.size(0) == scale_ratio.size(0), "Location and scale_ratio dimension mismatch");

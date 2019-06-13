@@ -4,7 +4,7 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch
+import torch, torch.utils.checkpoint
 
 class Sequential(torch.nn.Sequential):
     def input_spatial_size(self, out_size):
@@ -13,6 +13,15 @@ class Sequential(torch.nn.Sequential):
         return out_size
 
     def add(self, module):
+        self._modules[str(len(self._modules))] = module
+        return self
+    
+    def insert(self, index, module):
+        for i in range(len(self._modules), index, -1):
+            self._modules[str(i)] = self._modules[str(i - 1)]
+        self._modules[str(index)] = module
+        
+    def append(self, module):
         self._modules[str(len(self._modules))] = module
         return self
 
@@ -44,3 +53,9 @@ class Sequential(torch.nn.Sequential):
             else:
                 input = module(input)
         return input
+
+class CheckpointedSequential(Sequential):
+    def forward(self, x):
+        def run(x):
+            return Sequential.forward(self,x)
+        return torch.utils.checkpoint.checkpoint(run, x)

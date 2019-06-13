@@ -24,9 +24,9 @@ Higher dimensional input is more likely to be sparse because of the 'curse of di
 
   Dimension|Name in 'torch.nn'|Use cases
   :--:|:--:|:--:
-  1|TemporalConvolution| Text, audio
-  2|SpatialConvolution|Lines in 2D space, e.g. handwriting
-  3|VolumetricConvolution|Lines and surfaces in 3D space or (2+1)D space-time
+  1|Conv1d| Text, audio
+  2|Conv2d|Lines in 2D space, e.g. handwriting
+  3|Conv3d|Lines and surfaces in 3D space or (2+1)D space-time
   4| - |Lines, etc,  in (3+1)D space-time
 
 We use the term 'submanifold' to refer to input data that is sparse because it has a lower effective dimension than the space in which it lives, for example a one-dimensional curve in 2+ dimensional space, or a two-dimensional surface in 3+ dimensional space.
@@ -137,7 +137,7 @@ apt-get install unrar
 ```
 
 ## License
-SparseConvNet is Attribution-NonCommercial 4.0 International licensed, as found in the LICENSE file.
+SparseConvNet is BSD licensed, as found in the LICENSE file.
 
 ## Links
 1. [ICDAR 2013 Chinese Handwriting Recognition Competition 2013](http://www.nlpr.ia.ac.cn/events/CHRcompetition2013/competition/Home.html) First place in task 3, with test error of 2.61%. Human performance on the test set was 4.81%. [Report](http://www.nlpr.ia.ac.cn/events/CHRcompetition2013/competition/ICDAR%202013%20CHR%20competition.pdf)

@@ -12,13 +12,13 @@ template <typename T>
 double dConvolution_forward2(T *inFeatures, T *outFeatures, T *w,
                              RuleBook _rules, Int input_nPlanes,
                              Int input_stride, Int output_nPlanes,
-                             Int output_stride);
+                             Int output_stride, Int nGroups);
 
 template <typename T>
 void dConvolution_backward_dW2(T *inFeatures, T *dInFeatures, T *dOutFeatures,
                                T *w, T *dw, RuleBook _rules, Int input_nPlanes,
                                Int input_stride, Int output_nPlanes,
-                               Int output_stride);
+                               Int output_stride, Int nGroups);
 
 template <typename T, Int Dimension>
 double cuda_Convolution_updateOutput(
@@ -32,9 +32,10 @@ double cuda_Convolution_updateOutput(
   auto _rules =
       m.getRuleBook(inputSize, outputSize, filterSize, filterStride, true);
   Int nActiveOut = m.getNActive(outputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  output_features.resize_({nActiveOut, op});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  output_features.resize_({nActiveOut, op * nGroups});
 
   if (nActiveOut) {
     auto iF = input_features.data<T>();
@@ -46,7 +47,8 @@ double cuda_Convolution_updateOutput(
     else
       output_features.zero_();
 
-    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip, op, op);
+    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip * nGroups, op,
+                                    op * nGroups, nGroups);
   } else {
     return 0;
   }
@@ -67,9 +69,10 @@ void cuda_Convolution_backward(
       m.getRuleBook(inputSize, outputSize, filterSize, filterStride, true);
   Int nActiveIn = m.getNActive(inputSize);
   Int nActiveOut = m.getNActive(outputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  d_input_features.resize_({nActiveIn, ip});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  d_input_features.resize_({nActiveIn, ip * nGroups});
   d_input_features.zero_();
 
   if (nActiveOut) {
@@ -79,7 +82,8 @@ void cuda_Convolution_backward(
     auto w = weight.data<T>();
     auto dw = d_weight.data<T>();
 
-    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip, op, op);
+    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
+                                 op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
@@ -98,9 +102,10 @@ double cuda_SubmanifoldConvolution_updateOutput(
 
   auto _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
   Int nActive = m.getNActive(inputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  output_features.resize_({nActive, op});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  output_features.resize_({nActive, op * nGroups});
 
   if (nActive) {
     auto iF = input_features.data<T>();
@@ -112,7 +117,8 @@ double cuda_SubmanifoldConvolution_updateOutput(
     else
       output_features.zero_();
 
-    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip, op, op);
+    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip * nGroups, op,
+                                    op * nGroups, nGroups);
   } else {
     return 0;
   }
@@ -130,9 +136,10 @@ void cuda_SubmanifoldConvolution_backward(
 
   auto _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
   Int nActive = m.getNActive(inputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  d_input_features.resize_({nActive, ip});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  d_input_features.resize_({nActive, ip * nGroups});
   d_input_features.zero_();
 
   if (nActive) {
@@ -142,7 +149,8 @@ void cuda_SubmanifoldConvolution_backward(
     auto w = weight.data<T>();
     auto dw = d_weight.data<T>();
 
-    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip, op, op);
+    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
+                                 op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
@@ -160,9 +168,10 @@ double cuda_PermutohedralSubmanifoldConvolution_updateOutput(
 
   auto _rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
   Int nActive = m.getNActive(inputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  output_features.resize_({nActive, op});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  output_features.resize_({nActive, op * nGroups});
 
   if (nActive) {
     auto iF = input_features.data<T>();
@@ -174,7 +183,8 @@ double cuda_PermutohedralSubmanifoldConvolution_updateOutput(
     else
       output_features.zero_();
 
-    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip, op, op);
+    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip * nGroups, op,
+                                    op * nGroups, nGroups);
   } else {
     return 0;
   }
@@ -191,9 +201,10 @@ void cuda_PermutohedralSubmanifoldConvolution_backward(
 
   auto _rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
   Int nActive = m.getNActive(inputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  d_input_features.resize_({nActive, ip});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  d_input_features.resize_({nActive, ip * nGroups});
   d_input_features.zero_();
 
   if (nActive) {
@@ -203,7 +214,8 @@ void cuda_PermutohedralSubmanifoldConvolution_backward(
     auto w = weight.data<T>();
     auto dw = d_weight.data<T>();
 
-    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip, op, op);
+    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
+                                 op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
@@ -225,9 +237,10 @@ double cuda_FullConvolution_updateOutput(
   auto _rules = mIn.getFullConvolutionRuleBook(inputSize, outputSize,
                                                filterSize, filterStride, mOut);
   Int nActiveOut = mOut.getNActive(outputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  output_features.resize_({nActiveOut, op});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  output_features.resize_({nActiveOut, op * nGroups});
 
   if (nActiveOut) {
     auto iF = input_features.data<T>();
@@ -239,7 +252,8 @@ double cuda_FullConvolution_updateOutput(
     else
       output_features.zero_();
 
-    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip, op, op);
+    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip * nGroups, op,
+                                    op * nGroups, nGroups);
   } else {
     return 0;
   }
@@ -261,9 +275,10 @@ void cuda_FullConvolution_backward(
                                                filterSize, filterStride, mOut);
   Int nActiveIn = mIn.getNActive(inputSize);
   Int nActiveOut = mOut.getNActive(outputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  d_input_features.resize_({nActiveIn, ip});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  d_input_features.resize_({nActiveIn, ip * nGroups});
   d_input_features.zero_();
 
   if (nActiveOut) {
@@ -273,7 +288,8 @@ void cuda_FullConvolution_backward(
     auto w = weight.data<T>();
     auto dw = d_weight.data<T>();
 
-    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip, op, op);
+    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
+                                 op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
@@ -293,9 +309,10 @@ double cuda_RandomizedStrideConvolution_updateOutput(
   auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, filterSize,
                                               filterStride, true);
   Int nActiveOut = m.getNActive(outputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  output_features.resize_({nActiveOut, op});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  output_features.resize_({nActiveOut, op * nGroups});
 
   if (nActiveOut) {
     auto iF = input_features.data<T>();
@@ -307,7 +324,8 @@ double cuda_RandomizedStrideConvolution_updateOutput(
     else
       output_features.zero_();
 
-    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip, op, op);
+    return dConvolution_forward2<T>(iF, oF, w, _rules, ip, ip * nGroups, op,
+                                    op * nGroups, nGroups);
   } else {
     return 0;
   }
@@ -328,9 +346,10 @@ void cuda_RandomizedStrideConvolution_backward(
                                               filterStride, true);
   Int nActiveIn = m.getNActive(inputSize);
   Int nActiveOut = m.getNActive(outputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  d_input_features.resize_({nActiveIn, ip});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  d_input_features.resize_({nActiveIn, ip * nGroups});
   d_input_features.zero_();
 
   if (nActiveOut) {
@@ -340,7 +359,8 @@ void cuda_RandomizedStrideConvolution_backward(
     auto w = weight.data<T>();
     auto dw = d_weight.data<T>();
 
-    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip, op, op);
+    dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
+                                 op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();

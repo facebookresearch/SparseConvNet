@@ -11,17 +11,18 @@ from .utils import *
 from .sparseConvNetTensor import SparseConvNetTensor
 
 class Deconvolution(Module):
-    def __init__(self, dimension, nIn, nOut, filter_size, filter_stride, bias):
+    def __init__(self, dimension, nIn, nOut, filter_size, filter_stride, bias, groups=1):
         Module.__init__(self)
         self.dimension = dimension
+        self.groups = groups
         self.nIn = nIn
         self.nOut = nOut
         self.filter_size = toLongTensor(dimension, filter_size)
         self.filter_volume = self.filter_size.prod().item()
         self.filter_stride = toLongTensor(dimension, filter_stride)
-        std = (2.0 / nIn / self.filter_volume)**0.5
+        std = (2.0 * groups / nIn / self.filter_volume)**0.5
         self.weight = Parameter(torch.Tensor(
-            self.filter_volume, nIn, nOut).normal_(
+            self.filter_volume, groups, nIn//groups, nOut//groups).normal_(
             0,
             std))
         if bias:

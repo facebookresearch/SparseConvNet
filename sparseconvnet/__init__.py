@@ -25,10 +25,10 @@ from .networkInNetwork import NetworkInNetwork
 from .permutohedralSubmanifoldConvolution import PermutohedralSubmanifoldConvolution, permutohedral_basis
 from .randomizedStrideConvolution import RandomizedStrideConvolution
 from .randomizedStrideMaxPooling import RandomizedStrideMaxPooling
-from .sequential import Sequential
+from .sequential import Sequential, CheckpointedSequential
 from .sparseConvNetTensor import SparseConvNetTensor
 from .sparseToDense import SparseToDense
-from .sparsify import Sparsify
+from .sparsify import Sparsify, SparsifyFCS
 from .spectral_norm import spectral_norm
 from .submanifoldConvolution import SubmanifoldConvolution, ValidConvolution
 from .tables import *

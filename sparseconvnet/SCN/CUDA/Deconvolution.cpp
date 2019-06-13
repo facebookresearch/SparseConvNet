@@ -8,13 +8,14 @@ template <typename T>
 double dDeconvolution_forward2(T *inFeatures, T *outFeatures, T *w,
                                RuleBook _rules, Int input_nPlanes,
                                Int input_stride, Int output_nPlanes,
-                               Int output_stride);
+                               Int output_stride, Int nGroups);
 
 template <typename T>
 void dDeconvolution_backward_dW2(T *inFeatures, T *dInFeatures, T *dOutFeatures,
                                  T *w, T *dw, RuleBook _rules,
                                  Int input_nPlanes, Int input_stride,
-                                 Int output_nPlanes, Int output_stride);
+                                 Int output_nPlanes, Int output_stride,
+                                 Int nGroups);
 
 template <typename T, Int Dimension>
 double cuda_Deconvolution_updateOutput(
@@ -28,9 +29,10 @@ double cuda_Deconvolution_updateOutput(
   auto _rules =
       m.getRuleBook(outputSize, inputSize, filterSize, filterStride, true);
   Int nActiveOut = m.getNActive(outputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  output_features.resize_({nActiveOut, op});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  output_features.resize_({nActiveOut, op * nGroups});
 
   if (nActiveOut) {
     auto iF = input_features.data<T>();
@@ -42,7 +44,8 @@ double cuda_Deconvolution_updateOutput(
     else
       output_features.zero_();
 
-    return dDeconvolution_forward2<T>(iF, oF, w, _rules, ip, ip, op, op);
+    return dDeconvolution_forward2<T>(iF, oF, w, _rules, ip, ip * nGroups, op,
+                                      op * nGroups, nGroups);
   } else {
     return 0;
   }
@@ -63,9 +66,10 @@ void cuda_Deconvolution_backward(
       m.getRuleBook(outputSize, inputSize, filterSize, filterStride, true);
   Int nActiveIn = m.getNActive(inputSize);
   Int nActiveOut = m.getNActive(outputSize);
-  Int ip = weight.size(1);
-  Int op = weight.size(2);
-  d_input_features.resize_({nActiveIn, ip});
+  Int nGroups = weight.size(1);
+  Int ip = weight.size(2);
+  Int op = weight.size(3);
+  d_input_features.resize_({nActiveIn, ip * nGroups});
   d_input_features.zero_();
 
   if (nActiveOut) {
@@ -75,7 +79,8 @@ void cuda_Deconvolution_backward(
     auto w = weight.data<T>();
     auto dw = d_weight.data<T>();
 
-    dDeconvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip, op, op);
+    dDeconvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip,
+                                   ip * nGroups, op, op * nGroups, nGroups);
     if (d_bias.numel()) {
       auto db = d_bias.data<T>();
       Convolution_bp_bias(doF, db, op, nActiveOut);

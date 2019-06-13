@@ -80,13 +80,16 @@ class Sparsify(Module):
             self.net = Sequential(NetworkInNetwork(nIn,1,True),Sigmoid())
         else:
             self.net = NetworkInNetwork(nIn,1,True)
+        self.threshold=0.5 if activation else 0
     def forward(self,input):
         if input.features.numel():
             output = SparseConvNetTensor()
             output.spatial_size = input.spatial_size
             output.metadata = Metadata(self.dimension)
             output.mask = self.net(input).features.view(-1)
-            active = output.mask>(0.5 if self.activation else 0)
+            if self.threshold<0:
+                print(output.mask.mean(),output.mask.std())
+            active = output.mask>self.threshold
             output.features=input.features[active]
             active=active.cpu()
             input.metadata.sparsifyMetadata(

@@ -49,6 +49,11 @@ void Convolution_bp_bias(T *d_oF, T *d_b, Int nPlanes, Int nActive) {
   }
 }
 
+
+// .._nPlanes == planes per nGroup
+// weight = nGroups x input_nPlanes x output_nPlanes
+//        = nGroups x M*K           x N*K
+
 template <typename T, Int K, Int V>
 __global__ void
 dConvolution_KMxKN_forwardA(T *inFeatures, T *outFeatures, T *w, Int *rules,
@@ -57,7 +62,7 @@ dConvolution_KMxKN_forwardA(T *inFeatures, T *outFeatures, T *w, Int *rules,
   // nHot must be a multiple of K!!
 
   // Input x Weight -> Output
-  // blockDim=(K,K/V,1), gridDim=(nBlocks,N,1) Volkov-blocks
+  // blockDim=(K,K/V,1), gridDim=(nBlocks,N,nGroups) Volkov-blocks
   // K is a multiple of V,
 
   // nHot x KM -> nHot x KN - parallel over N,nHot - loop over M
@@ -65,8 +70,10 @@ dConvolution_KMxKN_forwardA(T *inFeatures, T *outFeatures, T *w, Int *rules,
   Int M = input_nPlanes / K;
   // N = gridDim.y == output_nPlanes/K
   Int n = blockIdx.y;
-  outFeatures += n * K;
-  w += n * K;
+  Int g = blockIdx.z;
+  inFeatures += g * input_nPlanes;
+  outFeatures += n * K + g * output_nPlanes;
+  w += n * K + g * input_nPlanes * output_nPlanes;
 
   TACC O[V];
   __shared__ T W[K][K];
@@ -125,7 +132,7 @@ dConvolution_KMxKN_forwardB(T *inFeatures, T *outFeatures, T *w, Int *rules,
 			    Int nHot, Int input_nPlanes, Int input_stride,
 			    Int output_nPlanes, Int output_stride) {
   // Input x Weight -> Output
-  // blockDim=(K,K/V,1), gridDim=(nBlocks,N,1) Volkov-blocks
+  // blockDim=(K,K/V,1), gridDim=(nBlocks,N,nGroups) Volkov-blocks
   // K is a multiple of V,
 
   // nHot x KM -> nHot x KN - parallel over N,nHot - loop over M
@@ -133,8 +140,10 @@ dConvolution_KMxKN_forwardB(T *inFeatures, T *outFeatures, T *w, Int *rules,
   Int M = input_nPlanes / K;
   // N = gridDim.y == output_nPlanes/K
   Int n = blockIdx.y;
-  outFeatures += n * K;
-  w += n * K;
+  Int g = blockIdx.z;
+  inFeatures += g * input_nPlanes;
+  outFeatures += n * K + g * output_nPlanes;
+  w += n * K + g * input_nPlanes * output_nPlanes;
 
   TACC O[V];
   __shared__ T W[K][K];
@@ -199,13 +208,13 @@ dConvolution_KMxKN_forwardB(T *inFeatures, T *outFeatures, T *w, Int *rules,
       Int o = (nHot / K) * K;                                                  \
       if (o >= K)                                                              \
 	dConvolution_KMxKN_forwardA<                                           \
-	    T, K, V><<<dim3(std::min(o / K, (Int)512), output_nPlanes / K),    \
+	    T, K, V><<<dim3(std::min(o / K, (Int)512), output_nPlanes / K, nGroups),    \
 		       dim3(K, K / V)>>>(inFeatures, outFeatures, w, rules, o, \
 					 input_nPlanes, input_stride,          \
 					 output_nPlanes, output_stride);       \
       if (nHot > o)                                                            \
 	dConvolution_KMxKN_forwardB<                                           \
-	    T, K, V><<<dim3(1, output_nPlanes / K), dim3(K, K / V)>>>(         \
+	    T, K, V><<<dim3(1, output_nPlanes / K, nGroups), dim3(K, K / V )>>>(         \
 	    inFeatures, outFeatures, w, rules + 2 * o, nHot - o,               \
 	    input_nPlanes, input_stride, output_nPlanes, output_stride);       \
       return;                                                                  \
@@ -215,7 +224,7 @@ dConvolution_KMxKN_forwardB(T *inFeatures, T *outFeatures, T *w, Int *rules,
 template <typename T>
 void dConvolution_forward(T *inFeatures, T *outFeatures, T *w, Int *rules,
 			  Int nHot, Int input_nPlanes, Int input_stride,
-			  Int output_nPlanes, Int output_stride) {
+			  Int output_nPlanes, Int output_stride, Int nGroups) {
   FOO(T, 64, 16)
   FOO(T, 32, 8)
   FOO(T, 16, 4)
@@ -226,7 +235,7 @@ template <>
 void dConvolution_forward<double>(double *inFeatures, double *outFeatures,
 				  double *w, Int *rules, Int nHot,
 				  Int input_nPlanes, Int input_stride,
-				  Int output_nPlanes, Int output_stride) {
+				  Int output_nPlanes, Int output_stride, Int nGroups) {
   FOO(double, 32, 8)
   FOO(double, 16, 4)
   FOO(double, 8, 2)
@@ -236,7 +245,7 @@ void dConvolution_forward<double>(double *inFeatures, double *outFeatures,
 
 // dOutput x W^T -> dInput and
 // Input^T x dOutput -> dW
-// blockDim=(K,K/V,1), gridDim=(nBlocks,M,1)
+// blockDim=(K,K/V,1), gridDim=(nBlocks,M,nGroups)
 template <typename T, Int K, Int V>
 __global__ void
 dConvolution_KMxKN_backward_dW_A(T *inFeatures, T *dInFeatures, T *dOutFeatures,
@@ -246,10 +255,12 @@ dConvolution_KMxKN_backward_dW_A(T *inFeatures, T *dInFeatures, T *dOutFeatures,
   // M = gridDim.y == input_nPlanes / K
   Int N = output_nPlanes / K;
   Int m = blockIdx.y;
-  inFeatures += m * K;
-  dInFeatures += m * K;
-  w += m * K * output_nPlanes;
-  dw += m * K * output_nPlanes;
+  Int g = blockIdx.z;
+  inFeatures += m * K + g * input_nPlanes;
+  dInFeatures += m * K + g * input_nPlanes;
+  dOutFeatures += g * output_nPlanes;
+  w += m * K * output_nPlanes+ g * input_nPlanes * output_nPlanes;
+  dw += m * K * output_nPlanes+ g * input_nPlanes * output_nPlanes;
 
   TACC dI[V];
   TACC dW[V];
@@ -313,7 +324,7 @@ dConvolution_KMxKN_backward_dW_A(T *inFeatures, T *dInFeatures, T *dOutFeatures,
 
 // dOutput x W^T -> dInput and
 // Input^T x dOutput -> dW
-// blockDim=(K,K/V,1), gridDim=(nBlocks,M,1)
+// blockDim=(K,K/V,1), gridDim=(nBlocks,M,nGroups)
 template <typename T, Int K, Int V>
 __global__ void
 dConvolution_KMxKN_backward_dW_B(T *inFeatures, T *dInFeatures, T *dOutFeatures,
@@ -323,10 +334,12 @@ dConvolution_KMxKN_backward_dW_B(T *inFeatures, T *dInFeatures, T *dOutFeatures,
   // M = gridDim.y == input_nPlanes / K
   Int N = output_nPlanes / K;
   Int m = blockIdx.y;
-  inFeatures += m * K;
-  dInFeatures += m * K;
-  w += m * K * output_nPlanes;
-  dw += m * K * output_nPlanes;
+  Int g = blockIdx.z;
+  inFeatures += m * K + g * input_nPlanes;
+  dInFeatures += m * K + g * input_nPlanes;
+  dOutFeatures += g * output_nPlanes;
+  w += m * K * output_nPlanes+ g * input_nPlanes * output_nPlanes;
+  dw += m * K * output_nPlanes+ g * input_nPlanes * output_nPlanes;
 
   TACC dI[V];
   TACC dW[V];
@@ -402,13 +415,13 @@ dConvolution_KMxKN_backward_dW_B(T *inFeatures, T *dInFeatures, T *dOutFeatures,
       Int o = (nHot / K) * K;                                                  \
       if (o >= K)                                                              \
 	dConvolution_KMxKN_backward_dW_A<                                      \
-	    T, K, V><<<dim3(std::min(o / K, (Int)512), input_nPlanes / K),     \
+	    T, K, V><<<dim3(std::min(o / K, (Int)512), input_nPlanes / K, nGroups),     \
 		       dim3(K, K / V)>>>(                                      \
 	    inFeatures, dInFeatures, dOutFeatures, w, dw, rules, o,            \
 	    input_nPlanes, input_stride, output_nPlanes, output_stride);       \
       if (nHot > o)                                                            \
 	dConvolution_KMxKN_backward_dW_B<                                      \
-	    T, K, V><<<dim3(1, input_nPlanes / K), dim3(K, K / V)>>>(          \
+	    T, K, V><<<dim3(1, input_nPlanes / K, nGroups), dim3(K, K / V)>>>(          \
 	    inFeatures, dInFeatures, dOutFeatures, w, dw, rules + 2 * o,       \
 	    nHot - o, input_nPlanes, input_stride, output_nPlanes,             \
 	    output_stride);                                                    \
@@ -420,7 +433,7 @@ template <typename T>
 void dConvolution_backward_dW(T *inFeatures, T *dInFeatures, T *dOutFeatures,
 			      T *w, T *dw, Int *rules, Int nHot,
 			      Int input_nPlanes, Int input_stride,
-			      Int output_nPlanes, Int output_stride) {
+			      Int output_nPlanes, Int output_stride, Int nGroups) {
   FOO(T, 32, 8)
   FOO(T, 16, 4)
   FOO(T, 8, 2)
@@ -434,7 +447,7 @@ dConvolution_KMxKN_forward2(T *inFeatures, T *outFeatures, T *w, Int *rules,
 			    Int nHot, Int input_nPlanes, Int input_stride,
 			    Int output_nPlanes, Int output_stride) {
   // Input x Weight -> Output
-  // blockDim=(K,K/V,1), gridDim=(nBlocks,N,1) Volkov-blocks
+  // blockDim=(K,K/V,1), gridDim=(nBlocks,N,nGroups) Volkov-blocks
   // K is a multiple of V,
 
   // nHot x input_nplanes<=KM -> nHot x output_nPlanes<=KN
@@ -443,8 +456,10 @@ dConvolution_KMxKN_forward2(T *inFeatures, T *outFeatures, T *w, Int *rules,
   Int M = (input_nPlanes + K - 1) / K;
   // N = gridDim.y ~ output_nPlanes/K
   Int n = blockIdx.y;
-  outFeatures += n * K;
-  w += n * K;
+  Int g = blockIdx.z;
+  inFeatures += g * input_nPlanes;
+  outFeatures += n * K + g * output_nPlanes;
+  w += n * K + g * input_nPlanes * output_nPlanes;
   Int KO = min(K, output_nPlanes - K * n);
 
   TACC O[V];
@@ -507,7 +522,7 @@ dConvolution_KMxKN_forward2(T *inFeatures, T *outFeatures, T *w, Int *rules,
 
 // dOutput x W^T -> dInput and
 // Input^T x dOutput -> dW
-// blockDim=(K,K/V,1), gridDim=(nBlocks,M,1)
+// blockDim=(K,K/V,1), gridDim=(nBlocks,M,nGroups)
 template <typename T, Int K, Int V>
 __global__ void
 dConvolution_KMxKN_backward_dW2(T *inFeatures, T *dInFeatures, T *dOutFeatures,
@@ -517,10 +532,12 @@ dConvolution_KMxKN_backward_dW2(T *inFeatures, T *dInFeatures, T *dOutFeatures,
   // M = gridDim.y == input_nPlanes / K
   Int N = (output_nPlanes + K - 1) / K;
   Int m = blockIdx.y;
-  inFeatures += m * K;
-  dInFeatures += m * K;
-  w += m * K * output_nPlanes;
-  dw += m * K * output_nPlanes;
+  Int g = blockIdx.z;
+  inFeatures += m * K + g * input_nPlanes;
+  dInFeatures += m * K + g * input_nPlanes;
+  dOutFeatures += g * output_nPlanes;
+  w += m * K * output_nPlanes+ g * input_nPlanes * output_nPlanes;
+  dw += m * K * output_nPlanes+ g * input_nPlanes * output_nPlanes;
   Int KI = min(K, input_nPlanes - K * m);
 
   TACC dI[V];
@@ -602,8 +619,8 @@ template <typename T>
 double dConvolution_forward2(T *inFeatures, T *outFeatures, T *w,
 			     RuleBook _rules, Int input_nPlanes,
 			     Int input_stride, Int output_nPlanes,
-			     Int output_stride) {
-  Int c = input_nPlanes * output_nPlanes;
+			     Int output_stride, Int nGroups) {
+  Int c = input_nPlanes * output_nPlanes * nGroups;
   double flops = 0;
   if (input_nPlanes % 8 != 0 or output_nPlanes % 8 != 0) {
     const int K = 16;
@@ -611,14 +628,14 @@ double dConvolution_forward2(T *inFeatures, T *outFeatures, T *w,
     RULEBOOKITERATOR(
 	(dConvolution_KMxKN_forward2<
 	    T, K,
-	    V><<<dim3(128, (output_nPlanes + K - 1) / K), dim3(K, K / V)>>>(
+	    V><<<dim3(128, (output_nPlanes + K - 1) / K, nGroups), dim3(K, K / V)>>>(
 	    inFeatures, outFeatures, w, rbB, nHotB, input_nPlanes, input_stride,
 	    output_nPlanes, output_stride));
 	, w += c; flops += nHotB * c;)
   } else {
     RULEBOOKITERATOR(dConvolution_forward(inFeatures, outFeatures, w, rbB,
 					  nHotB, input_nPlanes, input_stride,
-					  output_nPlanes, output_stride);
+					  output_nPlanes, output_stride, nGroups);
 		     , w += c; flops += nHotB * c;)
   }
   return flops;
@@ -628,15 +645,15 @@ template <typename T>
 void dConvolution_backward_dW2(T *inFeatures, T *dInFeatures, T *dOutFeatures,
 			       T *w, T *dw, RuleBook _rules, Int input_nPlanes,
 			       Int input_stride, Int output_nPlanes,
-			       Int output_stride) {
-  Int c = input_nPlanes * output_nPlanes;
+			       Int output_stride, Int nGroups) {
+  Int c = input_nPlanes * output_nPlanes * nGroups;
   if (input_nPlanes % 8 != 0 or output_nPlanes % 8 != 0) {
     const int K = 16;
     const int V = 4;
     RULEBOOKITERATOR(
 	(dConvolution_KMxKN_backward_dW2<
 	    T, K,
-	    V><<<dim3(128, (input_nPlanes + K - 1) / K), dim3(K, K / V)>>>(
+	    V><<<dim3(128, (input_nPlanes + K - 1) / K, nGroups), dim3(K, K / V)>>>(
 	    inFeatures, dInFeatures, dOutFeatures, w, dw, rbB, nHotB,
 	    input_nPlanes, input_stride, output_nPlanes, output_stride));
 	, w += c; dw += c;)
@@ -644,7 +661,7 @@ void dConvolution_backward_dW2(T *inFeatures, T *dInFeatures, T *dOutFeatures,
     RULEBOOKITERATOR(dConvolution_backward_dW(inFeatures, dInFeatures,
 					      dOutFeatures, w, dw, rbB, nHotB,
 					      input_nPlanes, input_stride,
-					      output_nPlanes, output_stride);
+					      output_nPlanes, output_stride, nGroups);
 		     , w += c; dw += c;)
   }
 }

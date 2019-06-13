@@ -41,7 +41,9 @@ class BatchNormalization(Module):
             self.bias = Parameter(torch.Tensor(nPlanes).fill_(0))
 
     def forward(self, input):
-        assert input.features.nelement() == 0 or input.features.size(1) == self.nPlanes, (self.nPlanes, input.features.shape)
+        if input.features.nelement() == 0:
+            return input
+        assert input.features.size(1) == self.nPlanes, (self.nPlanes, input.features.shape)
         output = SparseConvNetTensor()
         output.metadata = input.metadata
         output.spatial_size = input.spatial_size

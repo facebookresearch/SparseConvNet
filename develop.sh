@@ -6,5 +6,8 @@
 # LICENSE file in the root directory of this source tree.
 
 rm -rf build/ dist/ sparseconvnet.egg-info sparseconvnet_SCN*.so
+conda install google-sparsehash -c bioconda
+conda install -c anaconda pillow
+conda install scipy
 python setup.py develop
 python examples/hello-world.py

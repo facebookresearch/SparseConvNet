@@ -8,6 +8,7 @@
 scale=20  #Voxel size = 1/scale
 val_reps=1 # Number of test views, 1 or more
 batch_size=32
+elastic_deformation=False
 
 import torch, numpy as np, glob, math, torch.utils.data, scipy.ndimage, multiprocessing as mp
 
@@ -19,11 +20,11 @@ VALID_CLASS_IDS = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 2
 
 train,val=[],[]
 for x in torch.utils.data.DataLoader(
-      glob.glob('train/*.pth'),
+        glob.glob('train/*.pth')[::10],
         collate_fn=lambda x: torch.load(x[0]), num_workers=mp.cpu_count()):
     train.append(x)
 for x in torch.utils.data.DataLoader(
-      glob.glob('val/*.pth'),
+        glob.glob('val/*.pth')[::10],
         collate_fn=lambda x: torch.load(x[0]), num_workers=mp.cpu_count()):
     val.append(x)
 print('Training examples:', len(train))
@@ -60,8 +61,9 @@ def trainMerge(tbl):
         theta=np.random.rand()*2*math.pi
         m=np.matmul(m,[[math.cos(theta),math.sin(theta),0],[-math.sin(theta),math.cos(theta),0],[0,0,1]])
         a=np.matmul(a,m)
-        a=elastic(a,6*scale//50,40*scale/50)
-        a=elastic(a,20*scale//50,160*scale/50)
+        if elastic_deformation:
+            a=elastic(a,6*scale//50,40*scale/50)
+            a=elastic(a,20*scale//50,160*scale/50)
         m=a.min(0)
         M=a.max(0)
         q=M-m

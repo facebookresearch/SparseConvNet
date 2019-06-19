@@ -8,6 +8,9 @@ import torch, os
 from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
 from setuptools import setup, find_packages
 
+if torch.cuda.is_available():
+    assert torch.matmul(torch.ones(2097153,2).cuda(),torch.ones(2,2).cuda()).min().item()==2, 'Please upgrade from CUDA 9.0 to CUDA 10.0+'
+
 this_dir = os.path.dirname(os.path.realpath(__file__))
 torch_dir = os.path.dirname(torch.__file__)
 conda_include_dir = '/'.join(torch_dir.split('/')[:-4]) + '/include'

@@ -124,7 +124,9 @@ python VGGplus.py
 Tested with CUDA 10.0, Ubuntu 18.04, Python 3.6 with [Conda](https://www.anaconda.com/) and PyTorch 1.1.
 
 ```
-conda install pytorch-nightly -c pytorch # See https://pytorch.org/get-started/locally/
+conda install pytorch torchvision cudatoolkit=10.0 -c pytorch # See https://pytorch.org/get-started/locally/
+conda install google-sparsehash -c bioconda
+conda install -c anaconda pillow
 git clone git@github.com:facebookresearch/SparseConvNet.git
 cd SparseConvNet/
 bash develop.sh
@@ -148,6 +150,7 @@ SparseConvNet is BSD licensed, as found in the LICENSE file.
 8. [Workshop on Learning to See from 3D Data, 2017](https://shapenet.cs.stanford.edu/iccv17workshop/) First place in the [semantic segmentation](https://shapenet.cs.stanford.edu/iccv17/) competition. [Report](https://arxiv.org/pdf/1710.06104)
 9. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets, CVPR 2018
 10. [ScanNet 3D semantic label benchmark 2018](http://kaldir.vc.in.tum.de/scannet_benchmark/semantic_label_3d) 0.726 average IOU.
+11. [https://github.com/StanfordVL/MinkowskiEngine] MinkowskiEngine is an alternative implementation of SparseConvNet.
 
 ## Citations
 

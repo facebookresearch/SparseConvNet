@@ -15,16 +15,16 @@ import torch, numpy as np, glob, math, torch.utils.data, scipy.ndimage, multipro
 dimension=3
 full_scale=4096 #Input field size
 
-# VALID_CLAS_IDS have been mapped to the range {0,1,...,19}
-VALID_CLASS_IDS = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28, 33, 34, 36, 39])
+# Class IDs have been mapped to the range {0,1,...,19}
+# NYU_CLASS_IDS = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28, 33, 34, 36, 39])
 
 train,val=[],[]
 for x in torch.utils.data.DataLoader(
-        glob.glob('train/*.pth')[::10],
+        glob.glob('train/*.pth'),
         collate_fn=lambda x: torch.load(x[0]), num_workers=mp.cpu_count()):
     train.append(x)
 for x in torch.utils.data.DataLoader(
-        glob.glob('val/*.pth')[::10],
+        glob.glob('val/*.pth'),
         collate_fn=lambda x: torch.load(x[0]), num_workers=mp.cpu_count()):
     val.append(x)
 print('Training examples:', len(train))

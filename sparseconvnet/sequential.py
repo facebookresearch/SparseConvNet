@@ -58,4 +58,7 @@ class CheckpointedSequential(Sequential):
     def forward(self, x):
         def run(x):
             return Sequential.forward(self,x)
-        return torch.utils.checkpoint.checkpoint(run, x)
+        if hasattr(x,'metadata'):
+            return checkpoint101(run, x)
+        else:
+            return torch.utils.checkpoint.checkpoint(run, x)

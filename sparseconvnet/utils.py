@@ -212,7 +212,7 @@ class checkpointFunction(torch.autograd.Function):
         ctx.x_metadata=x_metadata
         with torch.no_grad():
             y = run_function(
-                scn.SparseConvNetTensor
+                SparseConvNetTensor
                 (x_features, x_metadata, x_spatial_size))
         return y.features
     @staticmethod
@@ -222,7 +222,7 @@ class checkpointFunction(torch.autograd.Function):
         x_features.requires_grad = True
         with torch.enable_grad():
             y = ctx.run_function(
-                scn.SparseConvNetTensor
+                SparseConvNetTensor
                 (x_features, ctx.x_metadata, x_spatial_size))
         torch.autograd.backward(y.features, grad_y_features,retain_graph=False)
         return None, x_features.grad, None, None
@@ -230,7 +230,7 @@ class checkpointFunction(torch.autograd.Function):
 def checkpoint101(run_function, x, down=1):
     f=checkpointFunction.apply(run_function, x.features, x.metadata, x.spatial_size)
     s=x.spatial_size//down
-    return scn.SparseConvNetTensor(f, x.metadata, s)
+    return SparseConvNetTensor(f, x.metadata, s)
 
 def matplotlib_cubes(ax, positions,colors):
     from mpl_toolkits.mplot3d import Axes3D

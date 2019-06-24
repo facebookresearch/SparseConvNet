@@ -27,7 +27,7 @@ def get_iou(label_id, confusion):
     # false positives
     fp = np.longlong(confusion[label_id, :].sum()) - tp
     # false negatives
-    fn = np.longlong(confusion[:, label_id].sum())
+    fn = np.longlong(confusion[:, label_id].sum()) - tp
 
     denom = (tp + fp + fn)
     if denom == 0:

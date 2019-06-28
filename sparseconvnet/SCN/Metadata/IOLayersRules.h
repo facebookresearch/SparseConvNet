@@ -66,10 +66,8 @@ void inputLayerRules(SparseGrids<dimension> &SGs, RuleBook &rules, long *coords,
       for (Int j = 0; j < dimension; j++)
         p[j] = coords[j];
       coords += dimension;
-      auto iter = sg.mp.find(p);
-      if (iter == sg.mp.end()) {
-        sg.mp[p] = nActive++;
-        outputRows.resize(nActive);
+      if (sg.mp.insert(make_pair(p, nActive)).second) {
+        outputRows.resize(++nActive);
       }
       outputRows[sg.mp[p]].push_back(i);
     }
@@ -83,11 +81,9 @@ void inputLayerRules(SparseGrids<dimension> &SGs, RuleBook &rules, long *coords,
       if (idx + 1 >= (Int)SGs.size())
         SGs.resize(idx + 1);
       auto &sg = SGs[idx];
-      auto iter = sg.mp.find(p);
-      if (iter == sg.mp.end()) {
-        sg.mp[p] = nActive++;
-        outputRows.resize(nActive);
-      }
+      if (sg.mp.insert(make_pair(p, nActive)).second) {
+        outputRows.resize(++nActive);
+      } 
       outputRows[sg.mp[p]].push_back(i);
     }
   }
@@ -186,9 +182,8 @@ void blRules(SparseGrids<dimension> &SGs, RuleBook &rules, long *coords,
           for (Int j = 0; j < dimension; ++j)
             p[j] = *c++;
           if (p[0] >= 0) {
-            auto iter = sg.mp.find(p);
-            if (iter == sg.mp.end()) {
-              sg.mp[p] = nAct++;
+            if (sg.mp.insert(make_pair(p, nAct)).second) {
+              nAct++;
               ors.push_back(i);
             } else {
               ors[sg.mp[p]] = i;
@@ -201,9 +196,8 @@ void blRules(SparseGrids<dimension> &SGs, RuleBook &rules, long *coords,
           for (Int j = 0; j < dimension; ++j)
             p[j] = *c++;
           if (p[0] >= 0) {
-            auto iter = sg.mp.find(p);
-            if (iter == sg.mp.end()) {
-              sg.mp[p] = nAct++;
+            if (sg.mp.insert(make_pair(p, nAct)).second) {
+              nAct++;
               ors.push_back(i);
             }
           }
@@ -254,9 +248,8 @@ void blRules(SparseGrids<dimension> &SGs, RuleBook &rules, long *coords,
         for (Int j = 0; j < dimension; ++j)
           p[j] = *c++;
         if (p[0] >= 0) {
-          auto iter = sg.mp.find(p);
-          if (iter == sg.mp.end()) {
-            sg.mp[p] = nAct++;
+          if (sg.mp.insert(make_pair(p, nAct)).second) {
+            nAct++;
             ors.resize(nAct);
           }
           ors[sg.mp[p]].push_back(i);

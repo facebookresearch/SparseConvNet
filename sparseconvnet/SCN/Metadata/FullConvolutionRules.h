@@ -21,13 +21,14 @@ void FullConvolution_InputSgToRulesAndOutputSg(
         InputRegionCalculator<dimension>(inIter.first, size, stride);
     for (auto j : outRegion) {
       Int rulesOffset = outRegion.offset(j);
-      auto outIter = outputGrid.mp.find(j);
-      if (outIter == outputGrid.mp.end()) {
-        outIter =
-            outputGrid.mp.insert(std::make_pair(j, outputGrid.ctr++)).first;
+      auto mapVal = outputGrid.mp.insert(std::make_pair(j, 0));
+
+      if (mapVal.second) {
+        mapVal.first->second = outputGrid.ctr++;
       }
+      
       rules[rulesOffset].push_back(inIter.second + inputGrid.ctr);
-      rules[rulesOffset].push_back(outIter->second);
+      rules[rulesOffset].push_back(mapVal.first->second);
     }
   }
 }

@@ -32,14 +32,15 @@ void addPointToSparseGridMapAndFeatures(SparseGridMap<dimension> &mp,
                                         long nPlanes,
                                         /*float*/ at::Tensor features,
                                         float *vec, bool overwrite) {
-  auto iter = mp.find(p);
-  if (iter == mp.end()) {
-    iter = mp.insert(std::make_pair(p, nActive++)).first;
+  
+  auto mapVal = mp.insert(std::make_pair(p, nActive));
+  if (mapVal.second) {
+    nActive++;
     features.resize_({(int)nActive, nPlanes});
     std::memcpy(features.data<float>() + (nActive - 1) * nPlanes, vec,
                 sizeof(float) * nPlanes);
   } else if (overwrite) {
-    std::memcpy(features.data<float>() + iter->second * nPlanes, vec,
+    std::memcpy(features.data<float>() + mapVal.first->second * nPlanes, vec,
                 sizeof(float) * nPlanes);
   }
 }

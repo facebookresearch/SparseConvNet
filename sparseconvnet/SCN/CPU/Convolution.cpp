@@ -5,6 +5,7 @@
 // LICENSE file in the root directory of this source tree.
 
 // rows x groups x planes -> groups x rows x planes
+
 template <typename T>
 at::Tensor rule_index_select(at::Tensor src, Int nRules, Int *rules,
                              Int groups) {
@@ -122,7 +123,7 @@ double cpu_SubmanifoldConvolution_updateOutput(
     /*float*/ at::Tensor output_features,
     /*float*/ at::Tensor weight,
     /*float*/ at::Tensor bias) {
-  auto _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
+  auto& _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
   Int nActive = m.getNActive(inputSize);
   output_features.resize_({nActive, weight.size(1) * weight.size(3)});
   if (bias.numel() and nActive)
@@ -135,7 +136,7 @@ double cpu_SubmanifoldConvolution_updateOutput(
   auto ip = weight.size(2);
   auto op = weight.size(3);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    auto& r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       flops += nRules * ip * op * groups;

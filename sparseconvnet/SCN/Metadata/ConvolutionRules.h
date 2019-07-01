@@ -19,6 +19,23 @@ void Convolution_InputSgToRulesAndOutputSg(SparseGrid<dimension> &inputGrid,
   for (auto const &inIter : inputGrid.mp) {
     auto outRegion = OutputRegionCalculator<dimension>(
         inIter.first, size, stride, outputSpatialSize);
+
+#if defined(DICT_CONTAINER_HASH)
+    outputGrid.mp.populateBlock(
+        outRegion, [&](std::pair<Point<dimension>, Int> &data) {
+          if (data.second == -1) {
+            data.second = outputGrid.ctr++;
+          }
+
+          auto inRegion =
+              InputRegionCalculator<dimension>(data.first, size, stride);
+          Int rulesOffset = inRegion.offset(inIter.first);
+          rules[rulesOffset].push_back(inIter.second + inputGrid.ctr);
+          rules[rulesOffset].push_back(data.second);
+        });
+#endif
+
+#if !defined(DICT_CONTAINER_HASH)
     for (auto j : outRegion) {
       auto inRegion = InputRegionCalculator<dimension>(j, size, stride);
       Int rulesOffset = inRegion.offset(inIter.first);
@@ -31,6 +48,7 @@ void Convolution_InputSgToRulesAndOutputSg(SparseGrid<dimension> &inputGrid,
       rules[rulesOffset].push_back(inIter.second + inputGrid.ctr);
       rules[rulesOffset].push_back(mapVal.first->second);
     }
+#endif
   }
 }
 

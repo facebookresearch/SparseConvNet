@@ -6,25 +6,52 @@
 
 #ifndef Metadata_H
 #define Metadata_H
-#include "32bits.h"
+
+#include "ContainerMap.h"
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <google/dense_hash_map>
-#include <iostream>
 #include <limits>
+#include <memory>
 #include <numeric>
 #include <random>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "KdTreeAdaptor.h"
 
+#define DICT_GOOGLE_HASH
+
+#if defined(DICT_GOOGLE_HASH)
 template <Int dimension>
 using SparseGridMap =
     google::dense_hash_map<Point<dimension>, Int, IntArrayHash<dimension>,
                            std::equal_to<Point<dimension>>>;
+#endif
+
+#if defined(DICT_STANDARD_HASH)
+template <Int dimension>
+using SparseGridMap =
+    std::unordered_map<Point<dimension>, Int, IntArrayHash<dimension>>;
+#endif
+
+#if defined(DICT_CONTAINER_HASH)
+template <Int dimension> using SparseGridMap = ContainerMap<dimension>;
+#endif
+
+#if defined(DICT_BOOST_VECTOR)
+#include <boost/container/flat_map.hpp>
+template <Int dimension>
+using SparseGridMap = boost::container::flat_map<Point<dimension>, Int>;
+#endif
+
+#if defined(DICT_KD_TREE)
+template <Int dimension> using SparseGridMap = KdTreeContainer<dimension>;
+#endif
+
 template <Int dimension> class SparseGrid {
 public:
   Int ctr;

@@ -7,6 +7,7 @@
 #ifndef RECTANGULARREGIONS_H
 #define RECTANGULARREGIONS_H
 
+#include "32bits.h"
 
 // For iterating over the rectangular region with corners lb and ub.
 // The .end() method and operator!= are designed to allow range based for
@@ -17,8 +18,10 @@ template <Int dimension> class RectangularRegion {
 public:
   Point<dimension> lb;
   Point<dimension> ub;
+
   RectangularRegion(Point<dimension> &lb, Point<dimension> &ub)
       : lb(lb), ub(ub) {}
+
   RectangularRegionIterator<dimension> begin() {
     return RectangularRegionIterator<dimension>(*this, lb);
   }
@@ -27,14 +30,24 @@ public:
     // Otherwise it would need to represent a point just outside the region
     return RectangularRegionIterator<dimension>(*this, ub);
   }
-  Int
-  offset(const Point<dimension> &p) { // Enumerate the points inside the region
+  Int offset(const Point<dimension> &p)
+      const { // Enumerate the points inside the region
     Int of = 0, m = 1;
     for (Int i = dimension - 1; i >= 0; i--) {
       of += m * (p[i] - lb[i]);
       m *= ub[i] - lb[i] + 1;
     }
     return of;
+  }
+
+  bool contains(const Point<dimension> &p) const {
+    for (int i = 0; i < dimension; ++i) {
+      if (p[i] < lb[i] || p[i] > ub[i]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 };
 
@@ -69,7 +82,8 @@ public:
 
     return *this;
   }
-  Point<dimension> &operator*() { return point; }
+
+  const Point<dimension> &operator*() { return point; }
 };
 
 // Only to be used for checking the end point of range based for loops.

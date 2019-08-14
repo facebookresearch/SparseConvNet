@@ -31,9 +31,17 @@ template <typename T>
 void cuda_SparseToDense_ForwardPass(T *input_features, T *output_features,
                                     Int nPlanes, Int spatialVolume,
                                     RuleBook _rules) {
-  RULEBOOKITERATOR((SparseToDense_fp<T, 32, 32><<<32, dim3(32, 32)>>>(
-      input_features, output_features, nPlanes, spatialVolume, rbB, nHotB));
-                   , output_features += nPlanes * spatialVolume;)
+
+  auto application = [&](Int *rbB, Int nHotB, cudaStream_t &stream) -> void {
+    SparseToDense_fp<T, 32, 32><<<32, dim3(32, 32), 0, stream>>>(
+        input_features, output_features, nPlanes, spatialVolume, rbB, nHotB);
+  };
+
+  auto command = [&](Int nHotB) -> void {
+    output_features += nPlanes * spatialVolume;
+  };
+
+  iterateRuleBookSeq(_rules, application, command);
 }
 
 // NTX must be >=2 so r is filled properly
@@ -63,7 +71,15 @@ template <typename T>
 void cuda_SparseToDense_BackwardPass(T *d_input_features, T *d_output_features,
                                      Int nPlanes, Int spatialVolume,
                                      RuleBook _rules) {
-  RULEBOOKITERATOR((SparseToDense_bp<T, 32, 32><<<32, dim3(32, 32)>>>(
-      d_input_features, d_output_features, nPlanes, spatialVolume, rbB, nHotB));
-                   , d_output_features += nPlanes * spatialVolume;)
+
+  auto application = [&](Int *rbB, Int nHotB, cudaStream_t &stream) -> void {
+    SparseToDense_bp<T, 32, 32><<<32, dim3(32, 32), 0, stream>>>(
+      d_input_features, d_output_features, nPlanes, spatialVolume, rbB, nHotB);
+  };
+
+  auto command = [&](Int nHotB) -> void {
+    d_output_features += nPlanes * spatialVolume;
+  };
+
+  iterateRuleBookSeq(_rules, application, command);
 }

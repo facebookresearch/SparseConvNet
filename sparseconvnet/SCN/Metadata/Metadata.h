@@ -7,6 +7,7 @@
 #ifndef Metadata_H
 #define Metadata_H
 #include "32bits.h"
+#include "tbb/scalable_allocator.h"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -22,9 +23,9 @@
 #include <vector>
 
 template <Int dimension>
-using SparseGridMap =
-    google::dense_hash_map<Point<dimension>, Int, IntArrayHash<dimension>,
-                           std::equal_to<Point<dimension>>>;
+using SparseGridMap = google::dense_hash_map<Point<dimension>, Int, IntArrayHash<dimension>,
+    std::equal_to<Point<dimension>>, tbb::scalable_allocator<std::pair<Point<dimension>, Int>>>;
+
 template <Int dimension> class SparseGrid {
 public:
   Int ctr;
@@ -32,7 +33,7 @@ public:
   SparseGrid();
 };
 template <Int dimension> using SparseGrids = std::vector<SparseGrid<dimension>>;
-using RuleBook = std::vector<std::vector<Int>>;
+using RuleBook = std::vector<std::vector<Int, tbb::scalable_allocator<Int>>>;
 
 template <Int dimension>
 void addPointToSparseGridMapAndFeatures(SparseGridMap<dimension> &mp,

@@ -819,3 +819,5 @@ void CopyFeaturesHelper_updateGradInput(at::Tensor &rules, at::Tensor &dcontext,
   else
     cpu_CopyFeaturesHelper_updateGradInput<float>(rules, dcontext, dContext);
 }
+
+bool is_cuda_build() {return true;}

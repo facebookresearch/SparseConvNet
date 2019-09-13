@@ -232,4 +232,5 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         &CopyFeaturesHelper_updateGradInput, "");
 
   m.def("n_rulebook_bits", []() { return 8 * sizeof(Int); }, "");
+  m.def("is_cuda_build", &is_cuda_build, "");
 }

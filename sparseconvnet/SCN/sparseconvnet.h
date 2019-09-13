@@ -237,3 +237,4 @@ void CopyFeaturesHelper_updateOutput(at::Tensor &rules, at::Tensor &context,
                                      at::Tensor &Context);
 void CopyFeaturesHelper_updateGradInput(at::Tensor &rules, at::Tensor &dcontext,
                                         at::Tensor &dContext);
+bool is_cuda_build();

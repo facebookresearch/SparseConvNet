@@ -7,8 +7,14 @@
 import torch
 import sparseconvnet as scn
 
-# Use the GPU if there is one, otherwise CPU
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+
+# Use the GPU if there is one and sparseconvnet can use it, otherwise CPU
+use_cuda = torch.cuda.is_available() and scn.SCN.is_cuda_build()
+device = 'cuda:0' if use_cuda else 'cpu'
+if use_cuda:
+    print("Using CUDA.")
+else:
+    print("Not using CUDA.")
 
 model = scn.Sequential().add(
     scn.SparseVggNet(2, 1,

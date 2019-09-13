@@ -6,8 +6,8 @@
 
 // rows x groups x planes -> groups x rows x planes
 template <typename T>
-at::Tensor rule_index_select(at::Tensor src, Int nRules, Int *rules,
-                             Int groups) {
+at::Tensor rule_index_select(at::Tensor &src, Int nRules, const Int *rules,
+                              Int groups) {
   auto planes = src.size(1) / groups;
   auto target = at::empty({groups, nRules, planes}, src.options());
   auto s_ptr = src.data<T>();
@@ -26,8 +26,8 @@ at::Tensor rule_index_select(at::Tensor src, Int nRules, Int *rules,
 // groups x rows x planes -> rows x groups x planes
 
 template <typename T>
-void rule_index_add_(at::Tensor target, at::Tensor src, Int nRules, Int *rules,
-                     Int groups) {
+void rule_index_add_(at::Tensor &target, at::Tensor &src, Int nRules,
+                     const Int *rules, Int groups) {
   auto planes = target.size(1) / groups;
   auto s_ptr = src.data<T>();
   auto t_ptr = target.data<T>();
@@ -44,13 +44,13 @@ void rule_index_add_(at::Tensor target, at::Tensor src, Int nRules, Int *rules,
 
 template <typename T, Int Dimension>
 double cpu_Convolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features, /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor bias) {
-  auto _rules =
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features, /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &bias) {
+  const auto &_rules =
       m.getRuleBook(inputSize, outputSize, filterSize, filterStride, true);
   Int nActive = m.getNActive(outputSize);
   output_features.resize_({nActive, weight.size(1) * weight.size(3)});
@@ -64,7 +64,7 @@ double cpu_Convolution_updateOutput(
   auto ip = weight.size(2);
   auto op = weight.size(3);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       flops += nRules * ip * op * groups;
@@ -80,15 +80,15 @@ double cpu_Convolution_updateOutput(
 
 template <typename T, Int Dimension>
 void cpu_Convolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features,
-    /*float*/ at::Tensor d_output_features, /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor d_weight, /*float*/ at::Tensor d_bias) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &d_output_features, /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &d_weight, /*float*/ at::Tensor &d_bias) {
 
-  auto _rules =
+  const auto &_rules =
       m.getRuleBook(inputSize, outputSize, filterSize, filterStride, true);
   Int nActive = m.getNActive(inputSize);
   d_input_features.resize_as_(input_features);
@@ -98,7 +98,7 @@ void cpu_Convolution_backward(
   if (nActive and d_bias.numel())
     at::sum_out(d_bias, d_output_features, {0}, false);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       auto w = weight.select(0, i);
@@ -116,13 +116,13 @@ void cpu_Convolution_backward(
 
 template <typename T, Int Dimension>
 double cpu_SubmanifoldConvolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor filterSize,
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &filterSize,
     Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features,
-    /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor bias) {
-  auto _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features,
+    /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &bias) {
+  const auto &_rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
   Int nActive = m.getNActive(inputSize);
   output_features.resize_({nActive, weight.size(1) * weight.size(3)});
   if (bias.numel() and nActive)
@@ -135,7 +135,7 @@ double cpu_SubmanifoldConvolution_updateOutput(
   auto ip = weight.size(2);
   auto op = weight.size(3);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       flops += nRules * ip * op * groups;
@@ -151,15 +151,15 @@ double cpu_SubmanifoldConvolution_updateOutput(
 
 template <typename T, Int Dimension>
 void cpu_SubmanifoldConvolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor filterSize,
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &filterSize,
     Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features,
-    /*float*/ at::Tensor d_output_features, /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor d_weight,
-    /*float*/ at::Tensor d_bias) {
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &d_output_features, /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &d_weight,
+    /*float*/ at::Tensor &d_bias) {
 
-  auto _rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
+  const auto &_rules = m.getSubmanifoldRuleBook(inputSize, filterSize, true);
   Int nActive = m.getNActive(inputSize);
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
@@ -168,7 +168,7 @@ void cpu_SubmanifoldConvolution_backward(
   if (nActive and d_bias.numel())
     at::sum_out(d_bias, d_output_features, {0}, false);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       auto w = weight.select(0, i);
@@ -186,12 +186,12 @@ void cpu_SubmanifoldConvolution_backward(
 
 template <typename T, Int Dimension>
 double cpu_PermutohedralSubmanifoldConvolution_updateOutput(
-    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features,
-    /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor bias) {
-  auto _rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
+    /*long*/ at::Tensor &inputSize, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features,
+    /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &bias) {
+  const auto &_rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
   Int nActive = m.getNActive(inputSize);
   output_features.resize_({nActive, weight.size(1) * weight.size(3)});
   if (bias.numel() and nActive)
@@ -204,7 +204,7 @@ double cpu_PermutohedralSubmanifoldConvolution_updateOutput(
   auto ip = weight.size(2);
   auto op = weight.size(3);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       flops += nRules * ip * op * groups;
@@ -220,14 +220,14 @@ double cpu_PermutohedralSubmanifoldConvolution_updateOutput(
 
 template <typename T, Int Dimension>
 void cpu_PermutohedralSubmanifoldConvolution_backward(
-    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features,
-    /*float*/ at::Tensor d_output_features, /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor d_weight,
-    /*float*/ at::Tensor d_bias) {
+    /*long*/ at::Tensor &inputSize, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &d_output_features, /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &d_weight,
+    /*float*/ at::Tensor &d_bias) {
 
-  auto _rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
+  const auto &_rules = m.getPermutohedralSubmanifoldRuleBook(inputSize, true);
   Int nActive = m.getNActive(inputSize);
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
@@ -236,7 +236,7 @@ void cpu_PermutohedralSubmanifoldConvolution_backward(
   if (nActive and d_bias.numel())
     at::sum_out(d_bias, d_output_features, {0}, false);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       auto w = weight.select(0, i);
@@ -254,15 +254,15 @@ void cpu_PermutohedralSubmanifoldConvolution_backward(
 
 template <typename T, Int Dimension>
 double cpu_FullConvolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &mIn,
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &mIn,
     Metadata<Dimension> &mOut,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features,
-    /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor bias) {
-  auto _rules = mIn.getFullConvolutionRuleBook(inputSize, outputSize,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features,
+    /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &bias) {
+  const auto &_rules = mIn.getFullConvolutionRuleBook(inputSize, outputSize,
                                                filterSize, filterStride, mOut);
   Int nActive = mOut.getNActive(outputSize);
   output_features.resize_({nActive, weight.size(1) * weight.size(3)});
@@ -276,7 +276,7 @@ double cpu_FullConvolution_updateOutput(
   auto ip = weight.size(2);
   auto op = weight.size(3);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       flops += nRules * ip * op * groups;
@@ -292,17 +292,17 @@ double cpu_FullConvolution_updateOutput(
 
 template <typename T, Int Dimension>
 void cpu_FullConvolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &mIn,
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &mIn,
     Metadata<Dimension> &mOut,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features,
-    /*float*/ at::Tensor d_output_features, /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor d_weight,
-    /*float*/ at::Tensor d_bias) {
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &d_output_features, /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &d_weight,
+    /*float*/ at::Tensor &d_bias) {
 
-  auto _rules = mIn.getFullConvolutionRuleBook(inputSize, outputSize,
+  const auto &_rules = mIn.getFullConvolutionRuleBook(inputSize, outputSize,
                                                filterSize, filterStride, mOut);
   Int nActive = mOut.getNActive(inputSize);
   d_input_features.resize_as_(input_features);
@@ -312,7 +312,7 @@ void cpu_FullConvolution_backward(
   if (nActive and d_bias.numel())
     at::sum_out(d_bias, d_output_features, {0}, false);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       auto w = weight.select(0, i);
@@ -330,13 +330,13 @@ void cpu_FullConvolution_backward(
 
 template <typename T, Int Dimension>
 double cpu_RandomizedStrideConvolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features, /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor bias) {
-  auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, filterSize,
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features, /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &bias) {
+  const auto &_rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, filterSize,
                                               filterStride, true);
   Int nActive = m.getNActive(outputSize);
   output_features.resize_({nActive, weight.size(1) * weight.size(3)});
@@ -350,7 +350,7 @@ double cpu_RandomizedStrideConvolution_updateOutput(
   auto ip = weight.size(2);
   auto op = weight.size(3);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       flops += nRules * ip * op * groups;
@@ -366,15 +366,15 @@ double cpu_RandomizedStrideConvolution_updateOutput(
 
 template <typename T, Int Dimension>
 void cpu_RandomizedStrideConvolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features,
-    /*float*/ at::Tensor d_output_features, /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor d_weight, /*float*/ at::Tensor d_bias) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &d_output_features, /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &d_weight, /*float*/ at::Tensor &d_bias) {
 
-  auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, filterSize,
+  const auto &_rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, filterSize,
                                               filterStride, true);
   Int nActive = m.getNActive(inputSize);
   d_input_features.resize_as_(input_features);
@@ -384,7 +384,7 @@ void cpu_RandomizedStrideConvolution_backward(
   if (nActive and d_bias.numel())
     at::sum_out(d_bias, d_output_features, {0}, false);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       auto w = weight.select(0, i);

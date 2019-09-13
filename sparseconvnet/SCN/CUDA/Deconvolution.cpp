@@ -19,14 +19,14 @@ void dDeconvolution_backward_dW2(T *inFeatures, T *dInFeatures, T *dOutFeatures,
 
 template <typename T, Int Dimension>
 double cuda_Deconvolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, /*cuda float*/ at::Tensor weight,
-    /*cuda float*/ at::Tensor bias) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &m,
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &output_features, /*cuda float*/ at::Tensor &weight,
+    /*cuda float*/ at::Tensor &bias) {
 
-  auto _rules =
+  const auto &_rules =
       m.getRuleBook(outputSize, inputSize, filterSize, filterStride, true);
   Int nActiveOut = m.getNActive(outputSize);
   Int nGroups = weight.size(1);
@@ -53,16 +53,16 @@ double cuda_Deconvolution_updateOutput(
 
 template <typename T, Int Dimension>
 void cuda_Deconvolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features,
-    /*cuda float*/ at::Tensor weight, /*cuda float*/ at::Tensor d_weight,
-    /*cuda float*/ at::Tensor d_bias) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &m,
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &d_input_features,
+    /*cuda float*/ at::Tensor &d_output_features,
+    /*cuda float*/ at::Tensor &weight, /*cuda float*/ at::Tensor &d_weight,
+    /*cuda float*/ at::Tensor &d_bias) {
 
-  auto _rules =
+  const auto &_rules =
       m.getRuleBook(outputSize, inputSize, filterSize, filterStride, true);
   Int nActiveIn = m.getNActive(inputSize);
   Int nActiveOut = m.getNActive(outputSize);

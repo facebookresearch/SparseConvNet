@@ -24,11 +24,11 @@ void dAffineReluTrivialConvolution_backward_dW(
 
 template <typename T>
 double cuda_AffineReluTrivialConvolution_updateOutput(
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features,
-    /*cuda float*/ at::Tensor affineWeight,
-    /*cuda float*/ at::Tensor affineBias,
-    /*cuda float*/ at::Tensor convWeight) {
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &output_features,
+    /*cuda float*/ at::Tensor &affineWeight,
+    /*cuda float*/ at::Tensor &affineBias,
+    /*cuda float*/ at::Tensor &convWeight) {
 
   output_features.resize_({input_features.size(0), convWeight.size(1)});
   dAffineReluTrivialConvolution_forward<T>(
@@ -42,15 +42,15 @@ double cuda_AffineReluTrivialConvolution_updateOutput(
 
 template <typename T>
 void cuda_AffineReluTrivialConvolution_backward(
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features,
-    /*cuda float*/ at::Tensor affineWeight,
-    /*cuda float*/ at::Tensor d_affineWeight,
-    /*cuda float*/ at::Tensor affineBias,
-    /*cuda float*/ at::Tensor d_affineBias,
-    /*cuda float*/ at::Tensor convWeight,
-    /*cuda float*/ at::Tensor d_convWeight, bool additiveGrad) {
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &d_input_features,
+    /*cuda float*/ at::Tensor &d_output_features,
+    /*cuda float*/ at::Tensor &affineWeight,
+    /*cuda float*/ at::Tensor &d_affineWeight,
+    /*cuda float*/ at::Tensor &affineBias,
+    /*cuda float*/ at::Tensor &d_affineBias,
+    /*cuda float*/ at::Tensor &convWeight,
+    /*cuda float*/ at::Tensor &d_convWeight, bool additiveGrad) {
 
   d_input_features.resize_as_(input_features);
   dAffineReluTrivialConvolution_backward_dW<T>(

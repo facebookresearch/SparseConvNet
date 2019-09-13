@@ -13,8 +13,8 @@ void bmd_b(T *input_features, T *d_input_features, T *d_output_features,
 
 template <typename T>
 void cuda_BatchwiseMultiplicativeDropout_updateOutput(
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, /*cuda float*/ at::Tensor noise,
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &output_features, /*cuda float*/ at::Tensor &noise,
     T alpha) {
   output_features.resize_as_(input_features);
   auto nActive = input_features.size(0);
@@ -25,10 +25,10 @@ void cuda_BatchwiseMultiplicativeDropout_updateOutput(
 
 template <typename T>
 void cuda_BatchwiseMultiplicativeDropout_updateGradInput(
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features,
-    /*cuda float*/ at::Tensor noise, T alpha) {
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &d_input_features,
+    /*cuda float*/ at::Tensor &d_output_features,
+    /*cuda float*/ at::Tensor &noise, T alpha) {
   d_input_features.resize_as_(d_output_features);
   auto nActive = input_features.size(0);
   auto nPlanes = input_features.size(1);

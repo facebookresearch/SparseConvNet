@@ -12,7 +12,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstdint>
-#include <google/dense_hash_map>
+#include "sparsehash/dense_hash_map"
 #include <iostream>
 #include <limits>
 #include <numeric>

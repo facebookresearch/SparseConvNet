@@ -27,15 +27,16 @@ def permutohedral_basis(dimension):
     return a, ai
 
 class PermutohedralSubmanifoldConvolution(Module):
-    def __init__(self, dimension, nIn, nOut, bias):
+    def __init__(self, dimension, nIn, nOut, bias, groups=1):
         Module.__init__(self)
         self.dimension = dimension
+        self.groups=groups
         self.nIn = nIn
         self.nOut = nOut
         self.filter_volume = dimension**2 + dimension + 1
         std = (2.0 / nIn / self.filter_volume)**0.5
         self.weight = Parameter(torch.Tensor(
-            self.filter_volume, nIn, nOut
+            self.filter_volume, groups, nIn//groups, nOut//groups
         ).normal_(0, std))
         if bias:
             self.bias = Parameter(torch.Tensor(nOut).zero_())

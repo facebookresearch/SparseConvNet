@@ -15,7 +15,6 @@ void Convolution_InputSgToRulesAndOutputSg(SparseGrid<dimension> &inputGrid,
                                            long *stride, long *inputSpatialSize,
                                            long *outputSpatialSize) {
   rules.resize(volume<dimension>(size));
-
   for (auto const &inIter : inputGrid.mp) {
     auto outRegion = OutputRegionCalculator<dimension>(
         inIter.first, size, stride, outputSpatialSize);

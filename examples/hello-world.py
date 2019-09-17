@@ -7,8 +7,14 @@
 import torch
 import sparseconvnet as scn
 
-# Use the GPU if there is one, otherwise CPU
-use_cuda = torch.cuda.is_available()
+
+# Use the GPU if there is one and sparseconvnet can use it, otherwise CPU
+use_cuda = torch.cuda.is_available() and scn.SCN.is_cuda_build()
+device = 'cuda:0' if use_cuda else 'cpu'
+if use_cuda:
+    print("Using CUDA.")
+else:
+    print("Not using CUDA.")
 
 model = scn.Sequential().add(
     scn.SparseVggNet(2, 1,
@@ -21,48 +27,41 @@ model = scn.Sequential().add(
     scn.BatchNormReLU(32)
 ).add(
     scn.SparseToDense(2, 32)
-)
-if use_cuda:
-    model.cuda()
+).to(device)
 
 # output will be 10x10
 inputSpatialSize = model.input_spatial_size(torch.LongTensor([10, 10]))
-input = scn.InputBatch(2, inputSpatialSize)
+input_layer = scn.InputLayer(2, inputSpatialSize)
 
-msg = [
-    " X   X  XXX  X    X    XX     X       X   XX   XXX   X    XXX   ",
-    " X   X  X    X    X   X  X    X       X  X  X  X  X  X    X  X  ",
-    " XXXXX  XX   X    X   X  X    X   X   X  X  X  XXX   X    X   X ",
-    " X   X  X    X    X   X  X     X X X X   X  X  X  X  X    X  X  ",
-    " X   X  XXX  XXX  XXX  XX       X   X     XX   X  X  XXX  XXX   "]
+msgs = [[" X   X  XXX  X    X    XX     X       X   XX   XXX   X    XXX   ",
+         " X   X  X    X    X   X  X    X       X  X  X  X  X  X    X  X  ",
+         " XXXXX  XX   X    X   X  X    X   X   X  X  X  XXX   X    X   X ",
+         " X   X  X    X    X   X  X     X X X X   X  X  X  X  X    X  X  ",
+         " X   X  XXX  XXX  XXX  XX       X   X     XX   X  X  XXX  XXX   "],
 
-# Add a sample using set_location
-input.add_sample()
-for y, line in enumerate(msg):
-    for x, c in enumerate(line):
-        if c == 'X':
-            location = torch.LongTensor([y, x])
-            featureVector = torch.FloatTensor([1])
-            input.set_location(location, featureVector, 0)
+        [" XXX              XXXXX      x   x     x  xxxxx  xxx ",
+         " X  X  X   XXX       X       x   x x   x  x     x  x ",
+         " XXX                X        x   xxxx  x  xxxx   xxx ",
+         " X     X   XXX       X       x     x   x      x    x ",
+         " X     X          XXXX   x   x     x   x  xxxx     x ",]]
 
-# Add a sample using set_locations
-input.add_sample()
+
+# Create Nx3 and Nx1 vectors to encode the messages above:
 locations = []
 features = []
-for y, line in enumerate(msg):
-    for x, c in enumerate(line):
-        if c == 'X':
-            locations.append([y, x])
-            features.append([1])
+for batchIdx, msg in enumerate(msgs):
+    for y, line in enumerate(msg):
+        for x, c in enumerate(line):
+            if c == 'X':
+                locations.append([y, x, batchIdx])
+                features.append([1])
 locations = torch.LongTensor(locations)
-features = torch.FloatTensor(features)
-input.set_locations(locations, features, 0)
+features = torch.FloatTensor(features).to(device)
 
-model.train()
-if use_cuda:
-    input.cuda()
+input = input_layer([locations,features])
+print('Input SparseConvNetTensor:', input)
 output = model(input)
 
 # Output is 2x32x10x10: our minibatch has 2 samples, the network has 32 output
 # feature planes, and 10x10 is the spatial size of the output.
-print(output.shape, output.type())
+print('Output SparseConvNetTensor:', output)

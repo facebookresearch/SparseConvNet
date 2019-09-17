@@ -22,7 +22,7 @@ template <Int dimension> SparseGrid<dimension>::SparseGrid() : ctr(0) {
   mp.set_empty_key(empty_key);
 }
 
-template <typename T> T *OptionalTensorData(at::Tensor tensor) {
+template <typename T> T *OptionalTensorData(at::Tensor &tensor) {
   return tensor.numel() ? tensor.data<T>() : nullptr;
 }
 
@@ -30,9 +30,9 @@ template <Int dimension>
 void addPointToSparseGridMapAndFeatures(SparseGridMap<dimension> &mp,
                                         Point<dimension> p, Int &nActive,
                                         long nPlanes,
-                                        /*float*/ at::Tensor features,
+                                        /*float*/ at::Tensor &features,
                                         float *vec, bool overwrite) {
-  
+
   auto mapVal = mp.insert(std::make_pair(p, nActive));
   if (mapVal.second) {
     nActive++;
@@ -65,16 +65,17 @@ template <Int dimension> void Metadata<dimension>::clear() {
   blLayerRuleBook.clear();
 }
 template <Int dimension>
-Int Metadata<dimension>::getNActive(/*long*/ at::Tensor spatialSize) {
+Int Metadata<dimension>::getNActive(/*long*/ at::Tensor &spatialSize) {
   return nActive[LongTensorToPoint<dimension>(spatialSize)];
 };
 template <Int dimension>
 SparseGrids<dimension> &
-Metadata<dimension>::getSparseGrid(/*long*/ at::Tensor spatialSize) {
+Metadata<dimension>::getSparseGrid(/*long*/ at::Tensor &spatialSize) {
   return grids[LongTensorToPoint<dimension>(spatialSize)];
 };
 template <Int dimension>
-void Metadata<dimension>::setInputSpatialSize(/*long*/ at::Tensor spatialSize) {
+void Metadata<dimension>::setInputSpatialSize(
+    /*long*/ at::Tensor &spatialSize) {
   inputSpatialSize = LongTensorToPoint<dimension>(spatialSize);
   inputSGs = &grids[inputSpatialSize];
   inputNActive = &nActive[inputSpatialSize];
@@ -85,10 +86,10 @@ template <Int dimension> void Metadata<dimension>::batchAddSample() {
   inputSG = &inputSGs->back();
 }
 template <Int dimension>
-void Metadata<dimension>::setInputSpatialLocation(/*float*/ at::Tensor features,
-                                                  /*long*/ at::Tensor location,
-                                                  /*float*/ at::Tensor vec,
-                                                  bool overwrite) {
+void Metadata<dimension>::setInputSpatialLocation(
+    /*float*/ at::Tensor &features,
+    /*long*/ at::Tensor &location,
+    /*float*/ at::Tensor &vec, bool overwrite) {
   auto p = LongTensorToPoint<dimension>(location);
   SparseGridMap<dimension> &mp = inputSG->mp;
   Int &nActive = *inputNActive;
@@ -98,9 +99,9 @@ void Metadata<dimension>::setInputSpatialLocation(/*float*/ at::Tensor features,
 }
 template <Int dimension>
 void Metadata<dimension>::setInputSpatialLocations(
-    /*float*/ at::Tensor features,
-    /*long*/ at::Tensor locations,
-    /*float*/ at::Tensor vecs, bool overwrite) {
+    /*float*/ at::Tensor &features,
+    /*long*/ at::Tensor &locations,
+    /*float*/ at::Tensor &vecs, bool overwrite) {
   /* assert(locations.ndimension() == 2 and "locations must be 2
    * dimensional!"); */
   /* assert(vecs.ndimension() == 2 and "vecs must be 2 dimensional!"); */
@@ -147,7 +148,7 @@ void Metadata<dimension>::setInputSpatialLocations(
 
 template <Int dimension>
 at::Tensor
-Metadata<dimension>::getSpatialLocations(/*long*/ at::Tensor spatialSize) {
+Metadata<dimension>::getSpatialLocations(/*long*/ at::Tensor &spatialSize) {
   Int nActive = getNActive(spatialSize);
   auto &SGs = getSparseGrid(spatialSize);
   Int batchSize = SGs.size();
@@ -169,8 +170,8 @@ Metadata<dimension>::getSpatialLocations(/*long*/ at::Tensor spatialSize) {
 }
 template <Int dimension>
 void Metadata<dimension>::createMetadataForDenseToSparse(
-    /*long*/ at::Tensor spatialSize,
-    /*long*/ at::Tensor nz_, long batchSize) {
+    /*long*/ at::Tensor &spatialSize,
+    /*long*/ at::Tensor &nz_, long batchSize) {
   clear();
   setInputSpatialSize(spatialSize);
   inputSGs->resize(batchSize);
@@ -208,9 +209,9 @@ void Metadata<dimension>::createMetadataForDenseToSparse(
 
 template <Int dimension>
 void Metadata<dimension>::sparsifyMetadata(Metadata<dimension> &mOut,
-                                           /*long*/ at::Tensor spatialSize,
-                                           /*byte*/ at::Tensor filter,
-                                           /*long*/ at::Tensor cuSum) {
+                                           /*long*/ at::Tensor &spatialSize,
+                                           /*byte*/ at::Tensor &filter,
+                                           /*long*/ at::Tensor &cuSum) {
   // Create a new SparseGrids with fewer entries.
   mOut.clear();
   auto p = LongTensorToPoint<dimension>(spatialSize);
@@ -240,7 +241,7 @@ void Metadata<dimension>::sparsifyMetadata(Metadata<dimension> &mOut,
 
 template <Int dimension>
 void Metadata<dimension>::appendMetadata(Metadata<dimension> &mAdd,
-                                         /*long*/ at::Tensor spatialSize) {
+                                         /*long*/ at::Tensor &spatialSize) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
   auto &sgs1 = grids[p];
   auto &sgs2 = mAdd.grids[p];
@@ -257,7 +258,7 @@ void Metadata<dimension>::appendMetadata(Metadata<dimension> &mAdd,
 template <Int dimension>
 std::vector<at::Tensor>
 Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mGT,
-                                     /*long*/ at::Tensor spatialSize) {
+                                     /*long*/ at::Tensor &spatialSize) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
   at::Tensor gt = torch::zeros({nActive[p]}, at::kByte);
   at::Tensor ref_map = torch::empty({mGT.nActive[p]}, at::kLong);
@@ -288,10 +289,10 @@ Metadata<dimension>::sparsifyCompare(Metadata<dimension> &mGT,
 // size[dimension] == #feature planes
 template <Int dimension>
 void Metadata<dimension>::addSampleFromThresholdedTensor(
-    /*float*/ at::Tensor features_,
-    /*float*/ at::Tensor tensor_,
-    /*long*/ at::Tensor offset_,
-    /*long*/ at::Tensor spatialSize_, float threshold) {
+    /*float*/ at::Tensor &features_,
+    /*float*/ at::Tensor &tensor_,
+    /*long*/ at::Tensor &offset_,
+    /*long*/ at::Tensor &spatialSize_, float threshold) {
 
   auto &nActive = *inputNActive;
   auto &SGs = *inputSGs;
@@ -404,8 +405,8 @@ template <Int dimension> void Metadata<dimension>::generateRuleBooks2s2() {
 }
 
 template <Int dimension>
-void Metadata<dimension>::inputLayer(/*long*/ at::Tensor spatialSize,
-                                     /*long*/ at::Tensor coords, Int batchSize,
+void Metadata<dimension>::inputLayer(/*long*/ at::Tensor &spatialSize,
+                                     /*long*/ at::Tensor &coords, Int batchSize,
                                      Int mode) {
   assert(spatialSize.ndimension() == 1);
   assert(spatialSize.size(0) == dimension);
@@ -417,8 +418,8 @@ void Metadata<dimension>::inputLayer(/*long*/ at::Tensor spatialSize,
                              *inputNActive);
 }
 template <Int dimension>
-void Metadata<dimension>::blLayer(/*long*/ at::Tensor spatialSize,
-                                  /*long*/ at::Tensor coords, Int mode) {
+void Metadata<dimension>::blLayer(/*long*/ at::Tensor &spatialSize,
+                                  /*long*/ at::Tensor &coords, Int mode) {
   assert(spatialSize.ndimension() == 1);
   assert(spatialSize.size(0) == dimension);
   assert(coords.ndimension() == 3);
@@ -429,8 +430,8 @@ void Metadata<dimension>::blLayer(/*long*/ at::Tensor spatialSize,
 }
 template <Int dimension>
 RuleBook &Metadata<dimension>::getSubmanifoldRuleBook(
-    /*long*/ at::Tensor spatialSize,
-    /*long*/ at::Tensor size, bool openMP) {
+    /*long*/ at::Tensor &spatialSize,
+    /*long*/ at::Tensor &size, bool openMP) {
   auto p = TwoLongTensorsToPoint<dimension>(spatialSize, size);
   auto &rb = submanifoldRuleBooks[p];
   if (rb.empty()) {
@@ -444,7 +445,7 @@ RuleBook &Metadata<dimension>::getSubmanifoldRuleBook(
 }
 template <Int dimension>
 RuleBook &Metadata<dimension>::getPermutohedralSubmanifoldRuleBook(
-    /*long*/ at::Tensor spatialSize, bool openMP) {
+    /*long*/ at::Tensor &spatialSize, bool openMP) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
   auto &rb = permutohedralRuleBooks[p];
   if (rb.empty()) {
@@ -458,7 +459,7 @@ RuleBook &Metadata<dimension>::getPermutohedralSubmanifoldRuleBook(
 }
 template <Int dimension>
 RuleBook &Metadata<dimension>::getActivePoolingRuleBook(
-    /*long*/ at::Tensor spatialSize) {
+    /*long*/ at::Tensor &spatialSize) {
   auto spatialSz = LongTensorToPoint<dimension>(spatialSize);
   auto &SGs = grids[spatialSz];
   auto &rb = activePoolingRuleBooks[spatialSz];
@@ -468,7 +469,7 @@ RuleBook &Metadata<dimension>::getActivePoolingRuleBook(
 }
 template <Int dimension>
 RuleBook &Metadata<dimension>::getSparseToDenseRuleBook(
-    /*long*/ at::Tensor spatialSize, bool openMP) {
+    /*long*/ at::Tensor &spatialSize, bool openMP) {
   auto ss = LongTensorToPoint<dimension>(spatialSize);
   auto &SGs = grids[ss];
   auto &rb = sparseToDenseRuleBooks[ss];
@@ -484,10 +485,10 @@ RuleBook &Metadata<dimension>::getSparseToDenseRuleBook(
 }
 template <Int dimension>
 RuleBook &Metadata<dimension>::getRuleBook(
-    /*long*/ at::Tensor inputSpatialSize,
-    /*long*/ at::Tensor outputSpatialSize,
-    /*long*/ at::Tensor size,
-    /*long*/ at::Tensor stride, bool openMP) {
+    /*long*/ at::Tensor &inputSpatialSize,
+    /*long*/ at::Tensor &outputSpatialSize,
+    /*long*/ at::Tensor &size,
+    /*long*/ at::Tensor &stride, bool openMP) {
   auto p = ThreeLongTensorsToPoint<dimension>(inputSpatialSize, size, stride);
   auto &rb = ruleBooks[p];
   if (rb.empty()) {
@@ -511,10 +512,10 @@ RuleBook &Metadata<dimension>::getRuleBook(
 }
 template <Int dimension>
 RuleBook &Metadata<dimension>::getFullConvolutionRuleBook(
-    /*long*/ at::Tensor inputSpatialSize,
-    /*long*/ at::Tensor outputSpatialSize,
-    /*long*/ at::Tensor size,
-    /*long*/ at::Tensor stride, Metadata<dimension> &newM) {
+    /*long*/ at::Tensor &inputSpatialSize,
+    /*long*/ at::Tensor &outputSpatialSize,
+    /*long*/ at::Tensor &size,
+    /*long*/ at::Tensor &stride, Metadata<dimension> &newM) {
   auto &rb = newM.fullConvolutionRuleBook;
   if (rb.empty()) {
     newM.clear();
@@ -533,10 +534,10 @@ RuleBook &Metadata<dimension>::getFullConvolutionRuleBook(
 
 template <Int dimension>
 RuleBook &Metadata<dimension>::getRandomizedStrideRuleBook(
-    /*long*/ at::Tensor inputSpatialSize,
-    /*long*/ at::Tensor outputSpatialSize,
-    /*long*/ at::Tensor size,
-    /*long*/ at::Tensor stride, bool openMP) {
+    /*long*/ at::Tensor &inputSpatialSize,
+    /*long*/ at::Tensor &outputSpatialSize,
+    /*long*/ at::Tensor &size,
+    /*long*/ at::Tensor &stride, bool openMP) {
   auto p = ThreeLongTensorsToPoint<dimension>(inputSpatialSize, size, stride);
   auto &rb = ruleBooks[p];
   if (rb.empty()) {
@@ -577,7 +578,7 @@ at::Tensor vvl2t(std::vector<std::vector<long>> v) {
 template <Int dimension>
 std::vector<at::Tensor>
 Metadata<dimension>::compareSparseHelper(Metadata<dimension> &mR,
-                                         /* long */ at::Tensor spatialSize) {
+                                         /* long */ at::Tensor &spatialSize) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
   auto &sgsL = grids[p];
   auto &sgsR = mR.grids[p];
@@ -624,7 +625,7 @@ at::Tensor vvl2t_(std::vector<std::vector<Int>> v) {
 template <Int dimension>
 at::Tensor
 Metadata<dimension>::copyFeaturesHelper(Metadata<dimension> &mR,
-                                        /* long */ at::Tensor spatialSize) {
+                                        /* long */ at::Tensor &spatialSize) {
   auto p = LongTensorToPoint<dimension>(spatialSize);
   auto &sgsL = grids[p];
   auto &sgsR = mR.grids[p];

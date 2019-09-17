@@ -15,9 +15,9 @@ void cuda_SparseToDense_BackwardPass(T *d_input_features, T *d_output_features,
 
 template <typename T, Int Dimension>
 void cuda_SparseToDense_updateOutput(
-    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, long nPlanes) {
+    /*long*/ at::Tensor &inputSize, Metadata<Dimension> &m,
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &output_features, long nPlanes) {
 
   {
     std::array<long, Dimension + 2> sz;
@@ -30,7 +30,7 @@ void cuda_SparseToDense_updateOutput(
     output_features.zero_();
   }
   if (input_features.ndimension() == 2) {
-    auto _rules = m.getSparseToDenseRuleBook(inputSize, true);
+    const auto &_rules = m.getSparseToDenseRuleBook(inputSize, true);
     Int _nPlanes = input_features.size(1);
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
@@ -40,16 +40,16 @@ void cuda_SparseToDense_updateOutput(
 }
 template <typename T, Int Dimension>
 void cuda_SparseToDense_updateGradInput(
-    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features) {
+    /*long*/ at::Tensor &inputSize, Metadata<Dimension> &m,
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &d_input_features,
+    /*cuda float*/ at::Tensor &d_output_features) {
 
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
 
   if (input_features.ndimension() == 2) {
-    auto _rules = m.getSparseToDenseRuleBook(inputSize, true);
+    const auto &_rules = m.getSparseToDenseRuleBook(inputSize, true);
     long spatialVolume = inputSize.prod().data<long>()[0];
     Int _nPlanes = d_input_features.size(1);
     auto diF = d_input_features.data<T>();

@@ -6,13 +6,13 @@
 
 template <typename T, Int Dimension>
 double cpu_Deconvolution_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features, /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor bias) {
-  auto _rules =
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features, /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &bias) {
+  const auto &_rules =
       m.getRuleBook(outputSize, inputSize, filterSize, filterStride, true);
   Int nActive = m.getNActive(outputSize);
   output_features.resize_({nActive, weight.size(1) * weight.size(3)});
@@ -26,7 +26,7 @@ double cpu_Deconvolution_updateOutput(
   auto ip = weight.size(2);
   auto op = weight.size(3);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       flops += nRules * ip * op * groups;
@@ -42,15 +42,15 @@ double cpu_Deconvolution_updateOutput(
 
 template <typename T, Int Dimension>
 void cpu_Deconvolution_backward(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor filterSize,
-    /*long*/ at::Tensor filterStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features,
-    /*float*/ at::Tensor d_output_features, /*float*/ at::Tensor weight,
-    /*float*/ at::Tensor d_weight, /*float*/ at::Tensor d_bias) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &filterSize,
+    /*long*/ at::Tensor &filterStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &d_output_features, /*float*/ at::Tensor &weight,
+    /*float*/ at::Tensor &d_weight, /*float*/ at::Tensor &d_bias) {
 
-  auto _rules =
+  const auto &_rules =
       m.getRuleBook(outputSize, inputSize, filterSize, filterStride, true);
   Int nActive = m.getNActive(inputSize);
   d_input_features.resize_as_(input_features);
@@ -60,7 +60,7 @@ void cpu_Deconvolution_backward(
   if (nActive and d_bias.numel())
     at::sum_out(d_bias, d_output_features, {0}, false);
   for (Int i = 0; i < (Int)_rules.size(); ++i) {
-    auto r = _rules[i];
+    const auto &r = _rules[i];
     Int nRules = r.size() / 2;
     if (nRules) {
       auto w = weight.select(0, i);

@@ -7,9 +7,9 @@
 // Helper function to draw pen strokes with
 // nPlanes = 3, feature vector = (1,dx,dy)
 void cpu_float_DrawCurve_2(Metadata<2> &m,
-                           /*float*/ at::Tensor features,
-                           /*float*/ at::Tensor stroke) {
-  at::Tensor location = at::zeros(at::CPU(at::kLong), {2});
+                           /*float*/ at::Tensor &features,
+                           /*float*/ at::Tensor &stroke) {
+  at::Tensor &location = at::zeros(at::CPU(at::kLong), {2});
   auto location_ = location.data<long>();
 
   auto vec = at::zeros(at::CPU(at::kFloat), {3});

@@ -5,7 +5,7 @@
 #include "RectangularRegions.h"
 #include <algorithm>
 #include <cmath>
-#include <google/dense_hash_map>
+#include "sparsehash/dense_hash_map"
 #include <memory>
 
 template <Int dimension> class ContainerMapIterator;

@@ -16,10 +16,10 @@ void InputLayer_bp(T *d_input_features, T *d_output_features, Int nRows,
 
 template <typename T, Int Dimension>
 void cuda_InputLayer_updateOutput(Metadata<Dimension> &m,
-                                  /*long*/ at::Tensor spatialSize,
-                                  /*long*/ at::Tensor input_coords,
-                                  /*cuda float*/ at::Tensor input_features,
-                                  /*cuda float*/ at::Tensor output_features,
+                                  /*long*/ at::Tensor &spatialSize,
+                                  /*long*/ at::Tensor &input_coords,
+                                  /*cuda float*/ at::Tensor &input_features,
+                                  /*cuda float*/ at::Tensor &output_features,
                                   long batchSize, long mode) {
 
   m.inputLayer(spatialSize, input_coords, batchSize, mode);
@@ -44,8 +44,8 @@ void cuda_InputLayer_updateOutput(Metadata<Dimension> &m,
 template <typename T, Int Dimension>
 void cuda_InputLayer_updateGradInput(
     Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features) {
+    /*cuda float*/ at::Tensor &d_input_features,
+    /*cuda float*/ at::Tensor &d_output_features) {
 
   auto &rules = m.inputLayerRuleBook;
   Int nPlanes = d_output_features.size(1);
@@ -69,8 +69,8 @@ void cuda_InputLayer_updateGradInput(
 
 template <typename T, Int Dimension>
 void cuda_OutputLayer_updateOutput(Metadata<Dimension> &m,
-                                   /*cuda float*/ at::Tensor input_features,
-                                   /*cuda float*/ at::Tensor output_features) {
+                                   /*cuda float*/ at::Tensor &input_features,
+                                   /*cuda float*/ at::Tensor &output_features) {
 
   auto &rules = m.inputLayerRuleBook;
   Int nPlanes = input_features.size(1);
@@ -93,8 +93,8 @@ void cuda_OutputLayer_updateOutput(Metadata<Dimension> &m,
 template <typename T, Int Dimension>
 void cuda_OutputLayer_updateGradInput(
     Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features) {
+    /*cuda float*/ at::Tensor &d_input_features,
+    /*cuda float*/ at::Tensor &d_output_features) {
 
   auto &rules = m.inputLayerRuleBook;
   Int nPlanes = d_output_features.size(1);
@@ -118,10 +118,10 @@ void cuda_OutputLayer_updateGradInput(
 
 template <typename T, Int Dimension>
 void cuda_BLInputLayer_updateOutput(Metadata<Dimension> &m,
-                                    /*long*/ at::Tensor spatialSize,
-                                    /*long*/ at::Tensor input_coords,
-                                    /*cuda float*/ at::Tensor input_features,
-                                    /*cuda float*/ at::Tensor output_features,
+                                    /*long*/ at::Tensor &spatialSize,
+                                    /*long*/ at::Tensor &input_coords,
+                                    /*cuda float*/ at::Tensor &input_features,
+                                    /*cuda float*/ at::Tensor &output_features,
                                     long mode) {
 
   m.blLayer(spatialSize, input_coords, mode);
@@ -148,8 +148,8 @@ void cuda_BLInputLayer_updateOutput(Metadata<Dimension> &m,
 template <typename T, Int Dimension>
 void cuda_BLInputLayer_updateGradInput(
     Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features) {
+    /*cuda float*/ at::Tensor &d_input_features,
+    /*cuda float*/ at::Tensor &d_output_features) {
 
   auto &rules = m.blLayerRuleBook;
   Int nPlanes = d_output_features.size(1);
@@ -176,8 +176,8 @@ void cuda_BLInputLayer_updateGradInput(
 template <typename T, Int Dimension>
 void cuda_BLOutputLayer_updateOutput(
     Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features) {
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &output_features) {
 
   auto &rules = m.blLayerRuleBook;
   Int nPlanes = input_features.size(1);
@@ -201,8 +201,8 @@ void cuda_BLOutputLayer_updateOutput(
 template <typename T, Int Dimension>
 void cuda_BLOutputLayer_updateGradInput(
     Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features) {
+    /*cuda float*/ at::Tensor &d_input_features,
+    /*cuda float*/ at::Tensor &d_output_features) {
 
   auto &rules = m.blLayerRuleBook;
   Int nPlanes = d_output_features.size(2);

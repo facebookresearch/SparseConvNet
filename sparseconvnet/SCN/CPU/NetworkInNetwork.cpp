@@ -5,10 +5,10 @@
 // LICENSE file in the root directory of this source tree.
 
 template <typename T>
-double cpu_NetworkInNetwork_updateOutput(/*float*/ at::Tensor input_features,
-                                         /*float*/ at::Tensor output_features,
-                                         /*float*/ at::Tensor weight,
-                                         /*float*/ at::Tensor bias) {
+double cpu_NetworkInNetwork_updateOutput(/*float*/ at::Tensor &input_features,
+                                         /*float*/ at::Tensor &output_features,
+                                         /*float*/ at::Tensor &weight,
+                                         /*float*/ at::Tensor &bias) {
   auto nActive = input_features.size(0);
   auto input_nPlanes = weight.size(0);
   auto output_nPlanes = weight.size(1);
@@ -23,9 +23,9 @@ double cpu_NetworkInNetwork_updateOutput(/*float*/ at::Tensor input_features,
 }
 template <typename T>
 void cpu_NetworkInNetwork_updateGradInput(
-    /*float*/ at::Tensor d_input_features,
-    /*float*/ at::Tensor d_output_features,
-    /*float*/ at::Tensor weight) {
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &d_output_features,
+    /*float*/ at::Tensor &weight) {
 
   int nActive = d_output_features.size(0);
   d_input_features.resize_({nActive, weight.size(0)});
@@ -35,9 +35,9 @@ void cpu_NetworkInNetwork_updateGradInput(
 }
 template <typename T>
 void cpu_NetworkInNetwork_accGradParameters(
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_output_features,
-    /*float*/ at::Tensor d_weight, /*float*/ at::Tensor d_bias) {
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_output_features,
+    /*float*/ at::Tensor &d_weight, /*float*/ at::Tensor &d_bias) {
   auto nActive = input_features.size(0);
   if (nActive and d_bias.numel())
     at::sum_out(d_bias, d_output_features, {0}, false);

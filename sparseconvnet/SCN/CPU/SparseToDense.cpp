@@ -6,7 +6,7 @@
 
 template <typename T>
 void SparseToDense_ForwardPass(T *input_features, T *output_features,
-                               Int nPlanes, Int spatialVolume, Int *rules,
+                               Int nPlanes, Int spatialVolume, const Int *rules,
                                int nHot) {
   Int outSite;
 #pragma omp parallel for private(outSite)
@@ -20,7 +20,7 @@ void SparseToDense_ForwardPass(T *input_features, T *output_features,
 
 template <typename T>
 void SparseToDense_BackwardPass(T *d_input_features, T *d_output_features,
-                                Int nPlanes, Int spatialVolume, Int *rules,
+                                Int nPlanes, Int spatialVolume, const Int *rules,
                                 int nHot) {
   Int outSite;
 #pragma omp parallel for private(outSite)
@@ -34,9 +34,9 @@ void SparseToDense_BackwardPass(T *d_input_features, T *d_output_features,
 
 template <typename T, Int Dimension>
 void cpu_SparseToDense_updateOutput(
-    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features, long nPlanes) {
+    /*long*/ at::Tensor &inputSize, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features, long nPlanes) {
 
   {
     std::array<long, Dimension + 2> sz;
@@ -49,7 +49,7 @@ void cpu_SparseToDense_updateOutput(
     output_features.zero_();
   }
   if (input_features.ndimension() == 2) {
-    auto _rules = m.getSparseToDenseRuleBook(inputSize, true);
+    const auto &_rules = m.getSparseToDenseRuleBook(inputSize, true);
     Int _nPlanes = input_features.size(1);
     auto iF = input_features.data<T>();
     auto oF = output_features.data<T>();
@@ -64,15 +64,15 @@ void cpu_SparseToDense_updateOutput(
 }
 template <typename T, Int Dimension>
 void cpu_SparseToDense_updateGradInput(
-    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features,
-    /*float*/ at::Tensor d_output_features) {
+    /*long*/ at::Tensor &inputSize, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &d_output_features) {
 
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
   if (input_features.ndimension() == 2) {
-    auto _rules = m.getSparseToDenseRuleBook(inputSize, true);
+    const auto &_rules = m.getSparseToDenseRuleBook(inputSize, true);
     long spatialVolume = inputSize.prod().data<long>()[0];
     Int _nPlanes = d_input_features.size(1);
     auto diF = d_input_features.data<T>();

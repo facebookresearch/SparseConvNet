@@ -23,12 +23,12 @@
 template void ActivePooling_ForwardPass<float>(float *input_features,
 					       float *output_features,
 					       Int batchSize, Int maxActive,
-					       Int nPlanes, Int *rules,
+					       Int nPlanes, const Int *rules,
 					       bool average);
 template void ActivePooling_BackwardPass<float>(float *d_input_features,
 						float *d_output_features,
 						Int batchSize, Int maxActive,
-						Int nPlanes, Int *rules,
+						Int nPlanes, const Int *rules,
 						bool average);
 
 template void dAffineReluTrivialConvolution_forward<float>(

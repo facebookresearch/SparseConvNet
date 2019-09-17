@@ -18,14 +18,14 @@ void cuda_AveragePooling_BackwardPass(T *d_input_features, T *d_output_features,
 
 template <typename T, Int Dimension>
 void cuda_AveragePooling_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor output_features, long nFeaturesToDrop) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &poolSize,
+    /*long*/ at::Tensor &poolStride, Metadata<Dimension> &m,
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &output_features, long nFeaturesToDrop) {
 
   Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules =
+  const auto &_rules =
       m.getRuleBook(inputSize, outputSize, poolSize, poolStride, true);
   Int nActive = m.getNActive(outputSize);
   output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
@@ -40,15 +40,15 @@ void cuda_AveragePooling_updateOutput(
 
 template <typename T, Int Dimension>
 void cuda_AveragePooling_updateGradInput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*cuda float*/ at::Tensor input_features,
-    /*cuda float*/ at::Tensor d_input_features,
-    /*cuda float*/ at::Tensor d_output_features, long nFeaturesToDrop) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &poolSize,
+    /*long*/ at::Tensor &poolStride, Metadata<Dimension> &m,
+    /*cuda float*/ at::Tensor &input_features,
+    /*cuda float*/ at::Tensor &d_input_features,
+    /*cuda float*/ at::Tensor &d_output_features, long nFeaturesToDrop) {
 
   Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules =
+  const auto &_rules =
       m.getRuleBook(inputSize, outputSize, poolSize, poolStride, true);
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
@@ -70,8 +70,8 @@ void cuda_CopyFeaturesHelper_BackwardPass(T *d_input_features,
                                           Int nPlanes, Int nHot);
 
 template <typename T>
-void cuda_CopyFeaturesHelper_updateOutput(at::Tensor rules, at::Tensor context,
-                                          at::Tensor Context) {
+void cuda_CopyFeaturesHelper_updateOutput(at::Tensor &rules, at::Tensor &context,
+                                          at::Tensor &Context) {
 
   Int nPlanes = context.size(1);
   Int nHot = rules.size(0) / 2;
@@ -80,9 +80,9 @@ void cuda_CopyFeaturesHelper_updateOutput(at::Tensor rules, at::Tensor context,
 }
 
 template <typename T>
-void cuda_CopyFeaturesHelper_updateGradInput(at::Tensor rules,
-                                             at::Tensor dcontext,
-                                             at::Tensor dContext) {
+void cuda_CopyFeaturesHelper_updateGradInput(at::Tensor &rules,
+                                             at::Tensor &dcontext,
+                                             at::Tensor &dContext) {
 
   Int nPlanes = dcontext.size(1);
   Int nHot = rules.size(0) / 2;

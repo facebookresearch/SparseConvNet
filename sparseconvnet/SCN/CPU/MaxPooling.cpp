@@ -6,7 +6,7 @@
 
 template <typename T>
 void MaxPooling_ForwardPass(T *input_features, T *output_features, Int nPlanes,
-                            Int input_stride, Int output_stride, Int *rules,
+                            Int input_stride, Int output_stride, const Int *rules,
                             Int nHot) {
   Int outSite;
 #pragma omp parallel for private(outSite)
@@ -22,7 +22,7 @@ template <typename T>
 void MaxPooling_BackwardPass(T *input_features, T *d_input_features,
                              T *output_features, T *d_output_features,
                              Int nPlanes, Int input_stride, Int output_stride,
-                             Int *rules, Int nHot) {
+                             const Int *rules, Int nHot) {
   Int outSite;
 #pragma omp parallel for private(outSite)
   for (outSite = 0; outSite < nHot; outSite++) {
@@ -36,14 +36,14 @@ void MaxPooling_BackwardPass(T *input_features, T *d_input_features,
 
 template <typename T, Int Dimension>
 void cpu_MaxPooling_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features, long nFeaturesToDrop) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &poolSize,
+    /*long*/ at::Tensor &poolStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features, long nFeaturesToDrop) {
 
   Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules =
+  const auto &_rules =
       m.getRuleBook(inputSize, outputSize, poolSize, poolStride, true);
   Int nActive = m.getNActive(outputSize);
   output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
@@ -60,15 +60,16 @@ void cpu_MaxPooling_updateOutput(
 }
 template <typename T, Int Dimension>
 void cpu_MaxPooling_updateGradInput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features, /*float*/ at::Tensor output_features,
-    /*float*/ at::Tensor d_output_features, long nFeaturesToDrop) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &poolSize,
+    /*long*/ at::Tensor &poolStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &output_features,
+    /*float*/ at::Tensor &d_output_features, long nFeaturesToDrop) {
 
   Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules =
+  const auto &_rules =
       m.getRuleBook(inputSize, outputSize, poolSize, poolStride, true);
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
@@ -87,14 +88,14 @@ void cpu_MaxPooling_updateGradInput(
 }
 template <typename T, Int Dimension>
 void cpu_RandomizedStrideMaxPooling_updateOutput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features, long nFeaturesToDrop) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &poolSize,
+    /*long*/ at::Tensor &poolStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features, long nFeaturesToDrop) {
 
   Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, poolSize,
+  const auto &_rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, poolSize,
                                               poolStride, true);
   Int nActive = m.getNActive(outputSize);
   output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
@@ -111,15 +112,16 @@ void cpu_RandomizedStrideMaxPooling_updateOutput(
 }
 template <typename T, Int Dimension>
 void cpu_RandomizedStrideMaxPooling_updateGradInput(
-    /*long*/ at::Tensor inputSize, /*long*/ at::Tensor outputSize,
-    /*long*/ at::Tensor poolSize,
-    /*long*/ at::Tensor poolStride, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features, /*float*/ at::Tensor output_features,
-    /*float*/ at::Tensor d_output_features, long nFeaturesToDrop) {
+    /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
+    /*long*/ at::Tensor &poolSize,
+    /*long*/ at::Tensor &poolStride, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &output_features,
+    /*float*/ at::Tensor &d_output_features, long nFeaturesToDrop) {
 
   Int nPlanes = input_features.size(1) - nFeaturesToDrop;
-  auto _rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, poolSize,
+  const auto &_rules = m.getRandomizedStrideRuleBook(inputSize, outputSize, poolSize,
                                               poolStride, true);
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();

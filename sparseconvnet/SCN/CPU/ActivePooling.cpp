@@ -8,12 +8,12 @@
 template <typename T>
 void ActivePooling_ForwardPass(T *input_features, T *output_features,
                                Int batchSize, Int maxActive, Int nPlanes,
-                               RuleBook &rules, bool average) {
+                               const RuleBook &rules, bool average) {
   Int outSite;
 #pragma omp parallel for private(outSite)
   for (outSite = 0; outSite < batchSize; outSite++) {
     T *out = &output_features[outSite * nPlanes];
-    Int *r = &rules[0][outSite * (maxActive + 1)];
+    const Int *r = &rules[0][outSite * (maxActive + 1)];
     Int nActive = *r++;
     T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     while (nActive-- > 0) {
@@ -26,12 +26,12 @@ void ActivePooling_ForwardPass(T *input_features, T *output_features,
 template <typename T>
 void ActivePooling_BackwardPass(T *d_input_features, T *d_output_features,
                                 Int batchSize, Int maxActive, Int nPlanes,
-                                RuleBook &rules, bool average) {
+                                const RuleBook &rules, bool average) {
   Int outSite;
 #pragma omp parallel for private(outSite)
   for (outSite = 0; outSite < batchSize; outSite++) {
     T *out = &d_output_features[outSite * nPlanes];
-    Int *r = &rules[0][outSite * (maxActive + 1)];
+    const Int *r = &rules[0][outSite * (maxActive + 1)];
     Int nActive = *r++;
     T multiplier = (average and nActive > 0) ? (T)1 / nActive : (T)1;
     while (nActive-- > 0) {
@@ -44,12 +44,12 @@ void ActivePooling_BackwardPass(T *d_input_features, T *d_output_features,
 
 template <typename T, Int Dimension>
 void cpu_ActivePooling_updateOutput(
-    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor output_features, bool average) {
+    /*long*/ at::Tensor &inputSize, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &output_features, bool average) {
 
   Int nPlanes = input_features.size(1);
-  auto _rules = m.getActivePoolingRuleBook(inputSize);
+  const auto &_rules = m.getActivePoolingRuleBook(inputSize);
   Int batchSize = _rules[1][0];
   Int maxActive = _rules[1][1];
   output_features.resize_({batchSize, nPlanes});
@@ -62,13 +62,13 @@ void cpu_ActivePooling_updateOutput(
 
 template <typename T, Int Dimension>
 void cpu_ActivePooling_updateGradInput(
-    /*long*/ at::Tensor inputSize, Metadata<Dimension> &m,
-    /*float*/ at::Tensor input_features,
-    /*float*/ at::Tensor d_input_features,
-    /*float*/ at::Tensor d_output_features, bool average) {
+    /*long*/ at::Tensor &inputSize, Metadata<Dimension> &m,
+    /*float*/ at::Tensor &input_features,
+    /*float*/ at::Tensor &d_input_features,
+    /*float*/ at::Tensor &d_output_features, bool average) {
 
   Int nPlanes = input_features.size(1);
-  auto _rules = m.getActivePoolingRuleBook(inputSize);
+  const auto &_rules = m.getActivePoolingRuleBook(inputSize);
   Int batchSize = _rules[1][0];
   Int maxActive = _rules[1][1];
   d_input_features.resize_as_(input_features);

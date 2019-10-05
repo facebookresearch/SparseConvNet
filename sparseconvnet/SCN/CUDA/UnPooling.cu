@@ -33,11 +33,16 @@ template <typename T>
 void cuda_UnPooling_ForwardPass(T *input_features, T *output_features,
                                 Int nPlanes, Int input_stride,
                                 Int output_stride, RuleBook _rules) {
-  RULEBOOKITERATOR((UnPooling_fp<T, 32, 32><<<32, dim3(32, 32)>>>(
-      input_features, output_features, nPlanes, input_stride, output_stride,
-      rbB, nHotB));
-                   , )
+
+  auto application = [&](Int *rbB, Int nHotB, cudaStream_t &stream) -> void {
+    UnPooling_fp<T, 32, 32><<<32, dim3(32, 32), 0, stream>>>(
+        input_features, output_features, nPlanes, input_stride, output_stride,
+        rbB, nHotB);
+  };
+
+  iterateRuleBookSeq(_rules, application);
 }
+
 template <typename T, Int NTX, Int NTY>
 __global__ void UnPooling_bp(T *d_input_features, T *d_output_features,
                              Int nPlanes, Int input_stride, Int output_stride,
@@ -64,8 +69,12 @@ template <typename T>
 void cuda_UnPooling_BackwardPass(T *d_input_features, T *d_output_features,
                                  Int nPlanes, Int input_stride,
                                  Int output_stride, RuleBook _rules) {
-  RULEBOOKITERATOR((UnPooling_bp<T, 32, 32><<<32, dim3(32, 32)>>>(
-      d_input_features, d_output_features, nPlanes, input_stride, output_stride,
-      rbB, nHotB));
-                   , )
+
+  auto application = [&](Int *rbB, Int nHotB, cudaStream_t &stream) -> void {
+    UnPooling_bp<T, 32, 32><<<32, dim3(32, 32), 0, stream>>>(
+        d_input_features, d_output_features, nPlanes, input_stride,
+        output_stride, rbB, nHotB);
+  };
+
+  iterateRuleBookSeq(_rules, application);
 }

@@ -55,8 +55,8 @@ void cpu_ActivePooling_updateOutput(
   output_features.resize_({batchSize, nPlanes});
   output_features.zero_();
 
-  ActivePooling_ForwardPass<T>(input_features.data<T>(),
-                               output_features.data<T>(), batchSize, maxActive,
+  ActivePooling_ForwardPass<T>(input_features.data_ptr<T>(),
+                               output_features.data_ptr<T>(), batchSize, maxActive,
                                nPlanes, _rules, average);
 }
 
@@ -74,7 +74,7 @@ void cpu_ActivePooling_updateGradInput(
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
 
-  ActivePooling_BackwardPass<T>(d_input_features.data<T>(),
-                                d_output_features.data<T>(), batchSize,
+  ActivePooling_BackwardPass<T>(d_input_features.data_ptr<T>(),
+                                d_output_features.data_ptr<T>(), batchSize,
                                 maxActive, nPlanes, _rules, average);
 }

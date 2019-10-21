@@ -22,6 +22,11 @@ class SparseConvNetTensor(object):
         t = self.metadata.getSpatialLocations(spatial_size)
         return t
 
+    def batch_size(self):
+        "Batch size"
+        t = self.metadata.getBatchSize(self.spatial_size)
+        return t
+
     def to(self, device):
         self.features=self.features.to(device)
         return self
@@ -40,6 +45,9 @@ class SparseConvNetTensor(object):
         self.features = self.features.cpu()
         return self
 
+    def detach():
+        return SparseConvNetTensor(self.features.detach(), self.metadata, self.spatial_size)
+    
     @property
     def requires_grad(self):
         return self.features.requires_grad

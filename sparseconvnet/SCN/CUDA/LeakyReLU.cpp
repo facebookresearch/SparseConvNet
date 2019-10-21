@@ -16,7 +16,7 @@ void cuda_LeakyReLU_updateOutput(/*cuda float*/ at::Tensor &input_features,
                                  T alpha) {
   output_features.resize_as_(input_features);
   auto n = input_features.numel();
-  LeakyReLU_fp<T>(input_features.data<T>(), output_features.data<T>(), n,
+  LeakyReLU_fp<T>(input_features.data_ptr<T>(), output_features.data_ptr<T>(), n,
                   alpha);
 }
 
@@ -27,6 +27,6 @@ void cuda_LeakyReLU_updateGradInput(
     /*cuda float*/ at::Tensor &d_output_features, T alpha) {
   d_input_features.resize_as_(d_output_features);
   auto n = d_input_features.numel();
-  LeakyReLU_bp<T>(input_features.data<T>(), d_input_features.data<T>(),
-                  d_output_features.data<T>(), n, alpha);
+  LeakyReLU_bp<T>(input_features.data_ptr<T>(), d_input_features.data_ptr<T>(),
+                  d_output_features.data_ptr<T>(), n, alpha);
 }

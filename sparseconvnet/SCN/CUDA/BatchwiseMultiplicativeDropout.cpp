@@ -19,7 +19,7 @@ void cuda_BatchwiseMultiplicativeDropout_updateOutput(
   output_features.resize_as_(input_features);
   auto nActive = input_features.size(0);
   auto nPlanes = input_features.size(1);
-  bmd_f(input_features.data<T>(), output_features.data<T>(), noise.data<T>(),
+  bmd_f(input_features.data_ptr<T>(), output_features.data_ptr<T>(), noise.data_ptr<T>(),
         nActive, nPlanes, alpha);
 }
 
@@ -32,6 +32,6 @@ void cuda_BatchwiseMultiplicativeDropout_updateGradInput(
   d_input_features.resize_as_(d_output_features);
   auto nActive = input_features.size(0);
   auto nPlanes = input_features.size(1);
-  bmd_b(input_features.data<T>(), d_input_features.data<T>(),
-        d_output_features.data<T>(), noise.data<T>(), nActive, nPlanes, alpha);
+  bmd_b(input_features.data_ptr<T>(), d_input_features.data_ptr<T>(),
+        d_output_features.data_ptr<T>(), noise.data_ptr<T>(), nActive, nPlanes, alpha);
 }

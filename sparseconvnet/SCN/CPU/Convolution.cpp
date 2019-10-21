@@ -10,8 +10,8 @@ at::Tensor rule_index_select(at::Tensor &src, Int nRules, const Int *rules,
                               Int groups) {
   auto planes = src.size(1) / groups;
   auto target = at::empty({groups, nRules, planes}, src.options());
-  auto s_ptr = src.data<T>();
-  auto t_ptr = target.data<T>();
+  auto s_ptr = src.data_ptr<T>();
+  auto t_ptr = target.data_ptr<T>();
 #pragma omp parallel for
   for (Int i = 0; i < nRules; ++i) {
     for (Int g = 0; g < groups; ++g) {
@@ -29,8 +29,8 @@ template <typename T>
 void rule_index_add_(at::Tensor &target, at::Tensor &src, Int nRules,
                      const Int *rules, Int groups) {
   auto planes = target.size(1) / groups;
-  auto s_ptr = src.data<T>();
-  auto t_ptr = target.data<T>();
+  auto s_ptr = src.data_ptr<T>();
+  auto t_ptr = target.data_ptr<T>();
 #pragma omp parallel for
   for (Int i = 0; i < nRules; ++i) {
     for (Int g = 0; g < groups; ++g) {

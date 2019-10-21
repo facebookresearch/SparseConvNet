@@ -24,7 +24,7 @@ void ActivePooling_ForwardPass(T *input_features, T *output_features,
 			       const Int *rules, bool average) {
 
   auto rulesBuffer = at::empty({1<<22}, at::CUDA(at_kINT));
-  Int *rb = rulesBuffer.data<Int>();
+  Int *rb = rulesBuffer.data_ptr<Int>();
   Int rowBatchSize = std::min((Int)32768, (1 << 22) / (maxActive + 1));
   assert(rowBatchSize > 0);
   Int kernelBlockDim = std::min(nPlanes, (Int)32);
@@ -59,7 +59,7 @@ void ActivePooling_BackwardPass(T *d_input_features, T *d_output_features,
 				Int batchSize, Int maxActive, Int nPlanes,
 				const Int *rules, bool average) {
   auto rulesBuffer = at::empty({1<<22}, at::CUDA(at_kINT));
-  Int *rb = rulesBuffer.data<Int>();
+  Int *rb = rulesBuffer.data_ptr<Int>();
   Int rowBatchSize = std::min((Int)32768, (1 << 22) / (maxActive + 1));
   assert(rowBatchSize > 0);
   Int kernelBlockDim = std::min(nPlanes, (Int)32);

@@ -34,9 +34,9 @@ void cuda_InputLayer_updateOutput(Metadata<Dimension> &m,
     output_features.resize_({*m.inputNActive, nPlanes});
     output_features.zero_();
     auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    Int *rb = rulesBuffer.data_ptr<Int>();
     InputLayer_fp<T>(iF, oF, nRows, maxActive, nPlanes, &rules[1][0], rb,
                      mode == 4);
   }
@@ -59,9 +59,9 @@ void cuda_InputLayer_updateGradInput(
     d_input_features.resize_({rules[0][2], nPlanes});
     d_input_features.zero_();
     auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
+    Int *rb = rulesBuffer.data_ptr<Int>();
     InputLayer_bp(diF, doF, nRows, maxActive, nPlanes, &rules[1][0], rb,
                   mode == 4);
   }
@@ -84,9 +84,9 @@ void cuda_OutputLayer_updateOutput(Metadata<Dimension> &m,
     output_features.resize_({rules[0][2], nPlanes});
     output_features.zero_();
     auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    Int *rb = rulesBuffer.data_ptr<Int>();
     InputLayer_bp(oF, iF, nRows, maxActive, nPlanes, &rules[1][0], rb, false);
   }
 }
@@ -108,9 +108,9 @@ void cuda_OutputLayer_updateGradInput(
     d_input_features.resize_({nRows, nPlanes});
     d_input_features.zero_();
     auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
+    Int *rb = rulesBuffer.data_ptr<Int>();
     InputLayer_fp<T>(doF, diF, nRows, maxActive, nPlanes, &rules[1][0], rb,
                      false);
   }
@@ -138,9 +138,9 @@ void cuda_BLInputLayer_updateOutput(Metadata<Dimension> &m,
     output_features.resize_({*m.inputNActive, nPlanes});
   } else {
     auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    Int *rb = rulesBuffer.data_ptr<Int>();
     InputLayer_fp<T>(iF, oF, nRows, maxActive, nPlanes, &rules[1][0], rb,
                      mode == 4);
   }
@@ -165,9 +165,9 @@ void cuda_BLInputLayer_updateGradInput(
     d_input_features.resize_({rules[0][2], rules[0][3], nPlanes});
     d_input_features.zero_();
     auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
+    Int *rb = rulesBuffer.data_ptr<Int>();
     InputLayer_bp(diF, doF, nRows, maxActive, nPlanes, &rules[1][0], rb,
                   mode == 4);
   }
@@ -192,9 +192,9 @@ void cuda_BLOutputLayer_updateOutput(
     output_features.resize_({rules[0][2], rules[0][3], nPlanes});
     output_features.zero_();
     auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    Int *rb = rulesBuffer.data_ptr<Int>();
     InputLayer_bp(oF, iF, nRows, maxActive, nPlanes, &rules[1][0], rb, false);
   }
 }
@@ -217,9 +217,9 @@ void cuda_BLOutputLayer_updateGradInput(
     d_input_features.resize_({nRows, nPlanes});
     d_input_features.zero_();
     auto rulesBuffer = at::empty({(int)rules[1].size()}, at::CUDA(at_kINT));
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    Int *rb = rulesBuffer.data<Int>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
+    Int *rb = rulesBuffer.data_ptr<Int>();
     InputLayer_fp<T>(doF, diF, nRows, maxActive, nPlanes, &rules[1][0], rb,
                      false);
   }

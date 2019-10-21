@@ -19,6 +19,7 @@ template <Int Dimension> void dimension(py::module &m, const char *name) {
       .def("setInputSpatialLocations",
            &Metadata<Dimension>::setInputSpatialLocations)
       .def("getSpatialLocations", &Metadata<Dimension>::getSpatialLocations)
+      .def("getBatchSize", &Metadata<Dimension>::getBatchSize)
       .def("createMetadataForDenseToSparse",
            &Metadata<Dimension>::createMetadataForDenseToSparse)
       .def("sparsifyMetadata", &Metadata<Dimension>::sparsifyMetadata)

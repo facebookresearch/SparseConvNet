@@ -38,12 +38,12 @@ double cuda_Convolution_updateOutput(
   output_features.resize_({nActiveOut, op * nGroups});
 
   if (nActiveOut) {
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    auto w = weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
 
     if (bias.numel())
-      Convolution_fp_bias(oF, bias.data<T>(), op, nActiveOut);
+      Convolution_fp_bias(oF, bias.data_ptr<T>(), op, nActiveOut);
     else
       output_features.zero_();
 
@@ -76,17 +76,17 @@ void cuda_Convolution_backward(
   d_input_features.zero_();
 
   if (nActiveOut) {
-    auto iF = input_features.data<T>();
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    auto w = weight.data<T>();
-    auto dw = d_weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
+    auto dw = d_weight.data_ptr<T>();
 
     dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
                                  op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
-      auto db = d_bias.data<T>();
+      auto db = d_bias.data_ptr<T>();
       Convolution_bp_bias(doF, db, op, nActiveOut);
     }
   }
@@ -108,12 +108,12 @@ double cuda_SubmanifoldConvolution_updateOutput(
   output_features.resize_({nActive, op * nGroups});
 
   if (nActive) {
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    auto w = weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
 
     if (bias.numel())
-      Convolution_fp_bias(oF, bias.data<T>(), op, nActive);
+      Convolution_fp_bias(oF, bias.data_ptr<T>(), op, nActive);
     else
       output_features.zero_();
 
@@ -143,17 +143,17 @@ void cuda_SubmanifoldConvolution_backward(
   d_input_features.zero_();
 
   if (nActive) {
-    auto iF = input_features.data<T>();
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    auto w = weight.data<T>();
-    auto dw = d_weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
+    auto dw = d_weight.data_ptr<T>();
 
     dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
                                  op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
-      auto db = d_bias.data<T>();
+      auto db = d_bias.data_ptr<T>();
       Convolution_bp_bias(doF, db, op, nActive);
     }
   }
@@ -174,12 +174,12 @@ double cuda_PermutohedralSubmanifoldConvolution_updateOutput(
   output_features.resize_({nActive, op * nGroups});
 
   if (nActive) {
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    auto w = weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
 
     if (bias.numel())
-      Convolution_fp_bias(oF, bias.data<T>(), op, nActive);
+      Convolution_fp_bias(oF, bias.data_ptr<T>(), op, nActive);
     else
       output_features.zero_();
 
@@ -208,17 +208,17 @@ void cuda_PermutohedralSubmanifoldConvolution_backward(
   d_input_features.zero_();
 
   if (nActive) {
-    auto iF = input_features.data<T>();
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    auto w = weight.data<T>();
-    auto dw = d_weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
+    auto dw = d_weight.data_ptr<T>();
 
     dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
                                  op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
-      auto db = d_bias.data<T>();
+      auto db = d_bias.data_ptr<T>();
       Convolution_bp_bias(doF, db, op, nActive);
     }
   }
@@ -243,12 +243,12 @@ double cuda_FullConvolution_updateOutput(
   output_features.resize_({nActiveOut, op * nGroups});
 
   if (nActiveOut) {
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    auto w = weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
 
     if (bias.numel())
-      Convolution_fp_bias(oF, bias.data<T>(), op, nActiveOut);
+      Convolution_fp_bias(oF, bias.data_ptr<T>(), op, nActiveOut);
     else
       output_features.zero_();
 
@@ -282,17 +282,17 @@ void cuda_FullConvolution_backward(
   d_input_features.zero_();
 
   if (nActiveOut) {
-    auto iF = input_features.data<T>();
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    auto w = weight.data<T>();
-    auto dw = d_weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
+    auto dw = d_weight.data_ptr<T>();
 
     dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
                                  op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
-      auto db = d_bias.data<T>();
+      auto db = d_bias.data_ptr<T>();
       Convolution_bp_bias(doF, db, op, nActiveOut);
     }
   }
@@ -315,12 +315,12 @@ double cuda_RandomizedStrideConvolution_updateOutput(
   output_features.resize_({nActiveOut, op * nGroups});
 
   if (nActiveOut) {
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    auto w = weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
 
     if (bias.numel())
-      Convolution_fp_bias(oF, bias.data<T>(), op, nActiveOut);
+      Convolution_fp_bias(oF, bias.data_ptr<T>(), op, nActiveOut);
     else
       output_features.zero_();
 
@@ -353,17 +353,17 @@ void cuda_RandomizedStrideConvolution_backward(
   d_input_features.zero_();
 
   if (nActiveOut) {
-    auto iF = input_features.data<T>();
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
-    auto w = weight.data<T>();
-    auto dw = d_weight.data<T>();
+    auto iF = input_features.data_ptr<T>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
+    auto w = weight.data_ptr<T>();
+    auto dw = d_weight.data_ptr<T>();
 
     dConvolution_backward_dW2<T>(iF, diF, doF, w, dw, _rules, ip, ip * nGroups,
                                  op, op * nGroups, nGroups);
 
     if (d_bias.numel()) {
-      auto db = d_bias.data<T>();
+      auto db = d_bias.data_ptr<T>();
       Convolution_bp_bias(doF, db, op, nActiveOut);
     }
   }

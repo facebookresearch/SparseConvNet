@@ -17,7 +17,7 @@ template <Int dimension> using Point = std::array<Int, dimension>;
 template <Int dimension>
 Point<dimension> LongTensorToPoint(/*long*/ at::Tensor &t) {
   Point<dimension> p;
-  long *td = t.data<long>();
+  long *td = t.data_ptr<long>();
   for (Int i = 0; i < dimension; i++)
     p[i] = td[i];
   return p;
@@ -27,10 +27,10 @@ Point<2 * dimension> TwoLongTensorsToPoint(/*long*/ at::Tensor &t0,
                                            /*long*/ at::Tensor &t1) {
   Point<2 * dimension> p;
   long *td;
-  td = t0.data<long>();
+  td = t0.data_ptr<long>();
   for (Int i = 0; i < dimension; i++)
     p[i] = td[i];
-  td = t1.data<long>();
+  td = t1.data_ptr<long>();
   for (Int i = 0; i < dimension; i++)
     p[i + dimension] = td[i];
   return p;
@@ -41,13 +41,13 @@ Point<3 * dimension> ThreeLongTensorsToPoint(/*long*/ at::Tensor &t0,
                                              /*long*/ at::Tensor &t2) {
   Point<3 * dimension> p;
   long *td;
-  td = t0.data<long>();
+  td = t0.data_ptr<long>();
   for (Int i = 0; i < dimension; i++)
     p[i] = td[i];
-  td = t1.data<long>();
+  td = t1.data_ptr<long>();
   for (Int i = 0; i < dimension; i++)
     p[i + dimension] = td[i];
-  td = t2.data<long>();
+  td = t2.data_ptr<long>();
   for (Int i = 0; i < dimension; i++)
     p[i + 2 * dimension] = td[i];
   return p;

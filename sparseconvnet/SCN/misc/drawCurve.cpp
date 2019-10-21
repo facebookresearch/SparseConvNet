@@ -10,13 +10,13 @@ void cpu_float_DrawCurve_2(Metadata<2> &m,
                            /*float*/ at::Tensor &features,
                            /*float*/ at::Tensor &stroke) {
   at::Tensor &location = at::zeros(at::CPU(at::kLong), {2});
-  auto location_ = location.data<long>();
+  auto location_ = location.data_ptr<long>();
 
   auto vec = at::zeros(at::CPU(at::kFloat), {3});
-  auto vec_ = vec.data<float>();
+  auto vec_ = vec.data_ptr<float>();
 
   int n = stroke.size(0) - 1;
-  float *s = stroke.data<float>(); // stroke is a [n+1,2] array
+  float *s = stroke.data_ptr<float>(); // stroke is a [n+1,2] array
   long idx = 0;
   float x1, y1, x2, y2; // n line segments (x1,y1) to (x2,y2)
   x2 = s[idx++];

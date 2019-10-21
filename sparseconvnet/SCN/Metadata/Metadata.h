@@ -93,6 +93,7 @@ public:
                                 /*float*/ at::Tensor &vecs, bool overwrite);
 
   at::Tensor getSpatialLocations(/*long*/ at::Tensor &spatialSize);
+  Int getBatchSize(/*long*/ at::Tensor &spatialSize);
   void createMetadataForDenseToSparse(/*long*/ at::Tensor &spatialSize,
                                       /*long*/ at::Tensor &nz_, long batchSize);
 

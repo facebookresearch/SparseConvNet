@@ -28,8 +28,8 @@ void cuda_UnPooling_updateOutput(
   output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
   output_features.zero_();
 
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
+  auto iF = input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto oF = output_features.data_ptr<T>();
 
   cuda_UnPooling_ForwardPass<T>(iF, oF, nPlanes, input_features.size(1),
                                 output_features.size(1), _rules);
@@ -47,8 +47,8 @@ void cuda_UnPooling_updateGradInput(
   const auto &_rules =
       m.getRuleBook(outputSize, inputSize, poolSize, poolStride, true);
 
-  auto diF = d_input_features.data<T>() + nFeaturesToDrop;
-  auto doF = d_output_features.data<T>();
+  auto diF = d_input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto doF = d_output_features.data_ptr<T>();
 
   cuda_UnPooling_BackwardPass<T>(diF, doF, nPlanes, d_input_features.size(1),
                                  d_output_features.size(1), _rules);

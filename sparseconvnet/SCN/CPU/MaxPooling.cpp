@@ -49,8 +49,8 @@ void cpu_MaxPooling_updateOutput(
   output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
   output_features.zero_();
 
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
+  auto iF = input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto oF = output_features.data_ptr<T>();
 
   for (auto &r : _rules) {
     Int nHot = r.size() / 2;
@@ -74,10 +74,10 @@ void cpu_MaxPooling_updateGradInput(
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
 
-  auto iF = input_features.data<T>();
-  auto oF = output_features.data<T>();
-  auto diF = d_input_features.data<T>();
-  auto doF = d_output_features.data<T>();
+  auto iF = input_features.data_ptr<T>();
+  auto oF = output_features.data_ptr<T>();
+  auto diF = d_input_features.data_ptr<T>();
+  auto doF = d_output_features.data_ptr<T>();
 
   for (auto &r : _rules) {
     Int nHot = r.size() / 2;
@@ -101,8 +101,8 @@ void cpu_RandomizedStrideMaxPooling_updateOutput(
   output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
   output_features.zero_();
 
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
+  auto iF = input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto oF = output_features.data_ptr<T>();
 
   for (auto &r : _rules) {
     Int nHot = r.size() / 2;
@@ -126,10 +126,10 @@ void cpu_RandomizedStrideMaxPooling_updateGradInput(
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
 
-  auto iF = input_features.data<T>();
-  auto oF = output_features.data<T>();
-  auto diF = d_input_features.data<T>();
-  auto doF = d_output_features.data<T>();
+  auto iF = input_features.data_ptr<T>();
+  auto oF = output_features.data_ptr<T>();
+  auto diF = d_input_features.data_ptr<T>();
+  auto doF = d_output_features.data_ptr<T>();
 
   for (auto &r : _rules) {
     Int nHot = r.size() / 2;

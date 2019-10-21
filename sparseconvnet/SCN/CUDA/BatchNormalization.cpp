@@ -33,9 +33,9 @@ void cuda_BatchNormalization_updateOutput(
     auto nPlanes = input_features.size(1);
     auto input_stride = input_features.stride(0);
     auto output_stride = output_features.stride(0);
-    bn_f(input_features.data<T>(), output_features.data<T>(), nPlanes,
-         input_stride, output_stride, nActive, saveMean.data<T>(),
-         saveInvStd.data<T>(), runningMean.data<T>(), runningVar.data<T>(),
+    bn_f(input_features.data_ptr<T>(), output_features.data_ptr<T>(), nPlanes,
+         input_stride, output_stride, nActive, saveMean.data_ptr<T>(),
+         saveInvStd.data_ptr<T>(), runningMean.data_ptr<T>(), runningVar.data_ptr<T>(),
          OptionalTensorData<T>(weight), OptionalTensorData<T>(bias), eps,
          momentum, train, leakiness);
   }
@@ -60,10 +60,10 @@ void cuda_BatchNormalization_backward(
     auto nPlanes = input_features.size(1);
     auto input_stride = input_features.stride(0);
     auto output_stride = output_features.stride(0);
-    bn_b(input_features.data<T>(), d_input_features.data<T>(),
-         output_features.data<T>(), d_output_features.data<T>(), nPlanes,
-         input_stride, output_stride, nActive, saveMean.data<T>(),
-         saveInvStd.data<T>(), runningMean.data<T>(), runningVar.data<T>(),
+    bn_b(input_features.data_ptr<T>(), d_input_features.data_ptr<T>(),
+         output_features.data_ptr<T>(), d_output_features.data_ptr<T>(), nPlanes,
+         input_stride, output_stride, nActive, saveMean.data_ptr<T>(),
+         saveInvStd.data_ptr<T>(), runningMean.data_ptr<T>(), runningVar.data_ptr<T>(),
          OptionalTensorData<T>(weight), OptionalTensorData<T>(bias),
          OptionalTensorData<T>(d_weight), OptionalTensorData<T>(d_bias),
          leakiness);

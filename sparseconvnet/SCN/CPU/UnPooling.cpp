@@ -46,8 +46,8 @@ void cpu_UnPooling_updateOutput(
   output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
   output_features.zero_();
 
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
+  auto iF = input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto oF = output_features.data_ptr<T>();
 
   for (auto &r : _rules) {
     Int nHot = r.size() / 2;
@@ -67,8 +67,8 @@ void cpu_UnPooling_updateGradInput(
   const auto &_rules =
       m.getRuleBook(outputSize, inputSize, poolSize, poolStride, true);
 
-  auto diF = d_input_features.data<T>() + nFeaturesToDrop;
-  auto doF = d_output_features.data<T>();
+  auto diF = d_input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto doF = d_output_features.data_ptr<T>();
 
   for (auto &r : _rules) {
     Int nHot = r.size() / 2;

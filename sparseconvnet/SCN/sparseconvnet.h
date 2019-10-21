@@ -15,14 +15,15 @@ double AffineReluTrivialConvolution_updateOutput(at::Tensor &input_features,
 void AffineReluTrivialConvolution_backward(
     at::Tensor &input_features, at::Tensor &d_input_features,
     at::Tensor &d_output_features, at::Tensor &affineWeight,
-    at::Tensor &d_affineWeight, at::Tensor &affineBias, at::Tensor &d_affineBias,
-    at::Tensor &convWeight, at::Tensor &d_convWeight, bool additiveGrad);
+    at::Tensor &d_affineWeight, at::Tensor &affineBias,
+    at::Tensor &d_affineBias, at::Tensor &convWeight, at::Tensor &d_convWeight,
+    bool additiveGrad);
 
 void BatchNormalization_updateOutput(
-    at::Tensor &input_features, at::Tensor &output_features, at::Tensor &saveMean,
-    at::Tensor &saveInvStd, at::Tensor &runningMean, at::Tensor &runningVar,
-    at::Tensor &weight, at::Tensor &bias, double eps, double momentum, bool train,
-    double leakiness);
+    at::Tensor &input_features, at::Tensor &output_features,
+    at::Tensor &saveMean, at::Tensor &saveInvStd, at::Tensor &runningMean,
+    at::Tensor &runningVar, at::Tensor &weight, at::Tensor &bias, double eps,
+    double momentum, bool train, double leakiness);
 
 void BatchNormalization_backward(
     at::Tensor &input_features, at::Tensor &d_input_features,
@@ -57,13 +58,15 @@ void NetworkInNetwork_updateGradInput(at::Tensor &d_input_features,
 
 void NetworkInNetwork_accGradParameters(at::Tensor &input_features,
                                         at::Tensor &d_output_features,
-                                        at::Tensor &d_weight, at::Tensor &d_bias);
+                                        at::Tensor &d_weight,
+                                        at::Tensor &d_bias);
 template <Int Dimension>
 void ActivePooling_updateOutput(at::Tensor &inputSize, Metadata<Dimension> &m,
                                 at::Tensor &input_features,
                                 at::Tensor &output_features, bool average);
 template <Int Dimension>
-void ActivePooling_updateGradInput(at::Tensor &inputSize, Metadata<Dimension> &m,
+void ActivePooling_updateGradInput(at::Tensor &inputSize,
+                                   Metadata<Dimension> &m,
                                    at::Tensor &input_features,
                                    at::Tensor &d_input_features,
                                    at::Tensor &d_output_features, bool average);
@@ -75,20 +78,18 @@ void AveragePooling_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
                                  at::Tensor &output_features,
                                  long nFeaturesToDrop);
 template <Int Dimension>
-void AveragePooling_updateGradInput(at::Tensor &inputSize, at::Tensor &outputSize,
-                                    at::Tensor &poolSize, at::Tensor &poolStride,
-                                    Metadata<Dimension> &m,
-                                    at::Tensor &input_features,
-                                    at::Tensor &d_input_features,
-                                    at::Tensor &d_output_features,
-                                    long nFeaturesToDrop);
+void AveragePooling_updateGradInput(
+    at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &poolSize,
+    at::Tensor &poolStride, Metadata<Dimension> &m, at::Tensor &input_features,
+    at::Tensor &d_input_features, at::Tensor &d_output_features,
+    long nFeaturesToDrop);
 template <Int Dimension>
-double Convolution_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
-                                at::Tensor &filterSize, at::Tensor &filterStride,
-                                Metadata<Dimension> &m,
-                                at::Tensor &input_features,
-                                at::Tensor &output_features, at::Tensor &weight,
-                                at::Tensor &bias);
+double
+Convolution_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
+                         at::Tensor &filterSize, at::Tensor &filterStride,
+                         Metadata<Dimension> &m, at::Tensor &input_features,
+                         at::Tensor &output_features, at::Tensor &weight,
+                         at::Tensor &bias);
 template <Int Dimension>
 void Convolution_backward(at::Tensor &inputSize, at::Tensor &outputSize,
                           at::Tensor &filterSize, at::Tensor &filterStride,
@@ -97,12 +98,10 @@ void Convolution_backward(at::Tensor &inputSize, at::Tensor &outputSize,
                           at::Tensor &d_output_features, at::Tensor &weight,
                           at::Tensor &d_weight, at::Tensor &d_bias);
 template <Int Dimension>
-double SubmanifoldConvolution_updateOutput(at::Tensor &inputSize,
-                                           at::Tensor &filterSize,
-                                           Metadata<Dimension> &m,
-                                           at::Tensor &input_features,
-                                           at::Tensor &output_features,
-                                           at::Tensor &weight, at::Tensor &bias);
+double SubmanifoldConvolution_updateOutput(
+    at::Tensor &inputSize, at::Tensor &filterSize, Metadata<Dimension> &m,
+    at::Tensor &input_features, at::Tensor &output_features, at::Tensor &weight,
+    at::Tensor &bias);
 template <Int Dimension>
 void SubmanifoldConvolution_backward(
     at::Tensor &inputSize, at::Tensor &filterSize, Metadata<Dimension> &m,
@@ -136,19 +135,23 @@ void FullConvolution_backward(at::Tensor &inputSize, at::Tensor &outputSize,
 template <Int Dimension>
 double RandomizedStrideConvolution_updateOutput(
     at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &filterSize,
-    at::Tensor &filterStride, Metadata<Dimension> &m, at::Tensor &input_features,
-    at::Tensor &output_features, at::Tensor &weight, at::Tensor &bias);
+    at::Tensor &filterStride, Metadata<Dimension> &m,
+    at::Tensor &input_features, at::Tensor &output_features, at::Tensor &weight,
+    at::Tensor &bias);
 template <Int Dimension>
 void RandomizedStrideConvolution_backward(
     at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &filterSize,
-    at::Tensor &filterStride, Metadata<Dimension> &m, at::Tensor &input_features,
-    at::Tensor &d_input_features, at::Tensor &d_output_features,
-    at::Tensor &weight, at::Tensor &d_weight, at::Tensor &d_bias);
+    at::Tensor &filterStride, Metadata<Dimension> &m,
+    at::Tensor &input_features, at::Tensor &d_input_features,
+    at::Tensor &d_output_features, at::Tensor &weight, at::Tensor &d_weight,
+    at::Tensor &d_bias);
 template <Int Dimension>
-double Deconvolution_updateOutput(
-    at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &filterSize,
-    at::Tensor &filterStride, Metadata<Dimension> &m, at::Tensor &input_features,
-    at::Tensor &output_features, at::Tensor &weight, at::Tensor &bias);
+double
+Deconvolution_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
+                           at::Tensor &filterSize, at::Tensor &filterStride,
+                           Metadata<Dimension> &m, at::Tensor &input_features,
+                           at::Tensor &output_features, at::Tensor &weight,
+                           at::Tensor &bias);
 template <Int Dimension>
 void Deconvolution_backward(at::Tensor &inputSize, at::Tensor &outputSize,
                             at::Tensor &filterSize, at::Tensor &filterStride,
@@ -158,7 +161,8 @@ void Deconvolution_backward(at::Tensor &inputSize, at::Tensor &outputSize,
                             at::Tensor &d_weight, at::Tensor &d_bias);
 template <Int Dimension>
 void InputLayer_updateOutput(Metadata<Dimension> &m, at::Tensor &spatialSize,
-                             at::Tensor &input_coords, at::Tensor &input_features,
+                             at::Tensor &input_coords,
+                             at::Tensor &input_features,
                              at::Tensor &output_features, long batchSize,
                              long mode);
 template <Int Dimension>
@@ -166,7 +170,8 @@ void InputLayer_updateGradInput(Metadata<Dimension> &m,
                                 at::Tensor &d_input_features,
                                 at::Tensor &d_output_features);
 template <Int Dimension>
-void OutputLayer_updateOutput(Metadata<Dimension> &m, at::Tensor &input_features,
+void OutputLayer_updateOutput(Metadata<Dimension> &m,
+                              at::Tensor &input_features,
                               at::Tensor &output_features);
 template <Int Dimension>
 void OutputLayer_updateGradInput(Metadata<Dimension> &m,
@@ -216,7 +221,8 @@ void SparseToDense_updateOutput(at::Tensor &inputSize, Metadata<Dimension> &m,
                                 at::Tensor &input_features,
                                 at::Tensor &output_features, long nPlanes);
 template <Int Dimension>
-void SparseToDense_updateGradInput(at::Tensor &inputSize, Metadata<Dimension> &m,
+void SparseToDense_updateGradInput(at::Tensor &inputSize,
+                                   Metadata<Dimension> &m,
                                    at::Tensor &input_features,
                                    at::Tensor &d_input_features,
                                    at::Tensor &d_output_features);

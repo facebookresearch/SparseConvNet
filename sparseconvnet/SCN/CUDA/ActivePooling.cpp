@@ -27,8 +27,8 @@ void cuda_ActivePooling_updateOutput(
   output_features.resize_({batchSize, nPlanes});
   output_features.zero_();
 
-  auto iF = input_features.data<T>();
-  auto oF = output_features.data<T>();
+  auto iF = input_features.data_ptr<T>();
+  auto oF = output_features.data_ptr<T>();
   ActivePooling_ForwardPass<T>(iF, oF, batchSize, maxActive, nPlanes,
                                &_rules[0][0], average);
 }
@@ -46,8 +46,8 @@ void cuda_ActivePooling_updateGradInput(
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
 
-  auto diF = d_input_features.data<T>();
-  auto doF = d_output_features.data<T>();
+  auto diF = d_input_features.data_ptr<T>();
+  auto doF = d_output_features.data_ptr<T>();
 
   ActivePooling_BackwardPass<T>(diF, doF, batchSize, maxActive, nPlanes,
                                 &_rules[0][0], average);

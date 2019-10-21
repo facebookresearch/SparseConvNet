@@ -23,7 +23,7 @@ void cuda_SparseToDense_updateOutput(
     std::array<long, Dimension + 2> sz;
     sz[0] = m.grids.begin()->second.size(); // batch size
     sz[1] = nPlanes;
-    long *in_sz = inputSize.data<long>();
+    long *in_sz = inputSize.data_ptr<long>();
     for (Int i = 0; i < Dimension; ++i)
       sz[i + 2] = in_sz[i];
     output_features.resize_(sz);
@@ -32,9 +32,9 @@ void cuda_SparseToDense_updateOutput(
   if (input_features.ndimension() == 2) {
     const auto &_rules = m.getSparseToDenseRuleBook(inputSize, true);
     Int _nPlanes = input_features.size(1);
-    auto iF = input_features.data<T>();
-    auto oF = output_features.data<T>();
-    long spatialVolume = inputSize.prod().data<long>()[0];
+    auto iF = input_features.data_ptr<T>();
+    auto oF = output_features.data_ptr<T>();
+    long spatialVolume = inputSize.prod().data_ptr<long>()[0];
     cuda_SparseToDense_ForwardPass<T>(iF, oF, _nPlanes, spatialVolume, _rules);
   }
 }
@@ -50,10 +50,10 @@ void cuda_SparseToDense_updateGradInput(
 
   if (input_features.ndimension() == 2) {
     const auto &_rules = m.getSparseToDenseRuleBook(inputSize, true);
-    long spatialVolume = inputSize.prod().data<long>()[0];
+    long spatialVolume = inputSize.prod().data_ptr<long>()[0];
     Int _nPlanes = d_input_features.size(1);
-    auto diF = d_input_features.data<T>();
-    auto doF = d_output_features.data<T>();
+    auto diF = d_input_features.data_ptr<T>();
+    auto doF = d_output_features.data_ptr<T>();
     cuda_SparseToDense_BackwardPass<T>(diF, doF, _nPlanes, spatialVolume,
                                        _rules);
   }

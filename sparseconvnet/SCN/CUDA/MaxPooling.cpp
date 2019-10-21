@@ -29,8 +29,8 @@ void cuda_MaxPooling_updateOutput(
   output_features.resize_({nActive, nPlanes});
   output_features.zero_();
 
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
+  auto iF = input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto oF = output_features.data_ptr<T>();
   cuda_MaxPooling_ForwardPass<T>(iF, oF, nPlanes, input_features.size(1),
                                  output_features.size(1), _rules);
 }
@@ -50,10 +50,10 @@ void cuda_MaxPooling_updateGradInput(
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
 
-  auto iF = input_features.data<T>();
-  auto oF = output_features.data<T>();
-  auto diF = d_input_features.data<T>();
-  auto doF = d_output_features.data<T>();
+  auto iF = input_features.data_ptr<T>();
+  auto oF = output_features.data_ptr<T>();
+  auto diF = d_input_features.data_ptr<T>();
+  auto doF = d_output_features.data_ptr<T>();
   cuda_MaxPooling_BackwardPass<T>(iF, diF, oF, doF, nPlanes,
                                   input_features.size(1),
                                   d_output_features.size(1), _rules);
@@ -73,8 +73,8 @@ void cuda_RandomizedStrideMaxPooling_updateOutput(
   output_features.resize_({nActive, nPlanes});
   output_features.zero_();
 
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
+  auto iF = input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto oF = output_features.data_ptr<T>();
   cuda_MaxPooling_ForwardPass<T>(iF, oF, nPlanes, input_features.size(1),
                                  output_features.size(1), _rules);
 }
@@ -94,10 +94,10 @@ void cuda_RandomizedStrideMaxPooling_updateGradInput(
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
 
-  auto iF = input_features.data<T>();
-  auto oF = output_features.data<T>();
-  auto diF = d_input_features.data<T>();
-  auto doF = d_output_features.data<T>();
+  auto iF = input_features.data_ptr<T>();
+  auto oF = output_features.data_ptr<T>();
+  auto diF = d_input_features.data_ptr<T>();
+  auto doF = d_output_features.data_ptr<T>();
   cuda_MaxPooling_BackwardPass<T>(iF, diF, oF, doF, nPlanes,
                                   input_features.size(1),
                                   d_output_features.size(1), _rules);

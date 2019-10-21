@@ -49,8 +49,8 @@ void cpu_AveragePooling_updateOutput(
   output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
   output_features.zero_();
 
-  auto iF = input_features.data<T>() + nFeaturesToDrop;
-  auto oF = output_features.data<T>();
+  auto iF = input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto oF = output_features.data_ptr<T>();
 
   for (const auto &r : _rules) {
     Int nHot = r.size() / 2;
@@ -74,8 +74,8 @@ void cpu_AveragePooling_updateGradInput(
   d_input_features.resize_as_(input_features);
   d_input_features.zero_();
 
-  auto diF = d_input_features.data<T>() + nFeaturesToDrop;
-  auto doF = d_output_features.data<T>();
+  auto diF = d_input_features.data_ptr<T>() + nFeaturesToDrop;
+  auto doF = d_output_features.data_ptr<T>();
 
   for (const auto &r : _rules) {
     Int nHot = r.size() / 2;
@@ -90,9 +90,9 @@ void cpu_CopyFeaturesHelper_updateOutput(at::Tensor &rules, at::Tensor &context,
                                          at::Tensor &Context) {
   Int nHot = rules.size(0) / 2;
   Int nPlanes = context.size(1);
-  auto iF = context.data<T>();
-  auto oF = Context.data<T>();
-  auto r = rules.data<Int>();
+  auto iF = context.data_ptr<T>();
+  auto oF = Context.data_ptr<T>();
+  auto r = rules.data_ptr<Int>();
   Int outSite;
 #pragma omp parallel for private(outSite)
   for (outSite = 0; outSite < nHot; outSite++) {
@@ -107,9 +107,9 @@ void cpu_CopyFeaturesHelper_updateGradInput(at::Tensor &rules,
                                             at::Tensor &dContext) {
   Int nHot = rules.size(0) / 2;
   Int nPlanes = dcontext.size(1);
-  auto iF = dcontext.data<T>();
-  auto oF = dContext.data<T>();
-  auto r = rules.data<Int>();
+  auto iF = dcontext.data_ptr<T>();
+  auto oF = dContext.data_ptr<T>();
+  auto r = rules.data_ptr<Int>();
   Int outSite;
 #pragma omp parallel for private(outSite)
   for (outSite = 0; outSite < nHot; outSite++) {

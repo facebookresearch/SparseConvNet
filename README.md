@@ -114,7 +114,7 @@ python VGGplus.py
 
 ## Setup
 
-Tested with CUDA 10.0, Ubuntu 18.04, Python 3.6 with [Conda](https://www.anaconda.com/) and PyTorch 1.1.
+Tested with PyTorch 1.3, CUDA 10.0, and Python 3.3 with [Conda](https://www.anaconda.com/).
 
 ```
 conda install pytorch torchvision cudatoolkit=10.0 -c pytorch # See https://pytorch.org/get-started/locally/

@@ -14,8 +14,10 @@ if torch.cuda.is_available():
 this_dir = os.path.dirname(os.path.realpath(__file__))
 torch_dir = os.path.dirname(torch.__file__)
 conda_include_dir = '/'.join(torch_dir.split('/')[:-4]) + '/include'
+conda_lib_dir = os.environ["CONDA_PREFIX"] +  '/lib/'
 
 extra = {'cxx': ['-std=c++11', '-fopenmp'], 'nvcc': ['-std=c++11', '-Xcompiler', '-fopenmp']}
+extra_link = ['-ltbb', '-ltbbmalloc']
 
 setup(
     name='sparseconvnet',
@@ -29,13 +31,14 @@ setup(
       CUDAExtension('sparseconvnet.SCN',
         [
          'sparseconvnet/SCN/cuda.cu', 'sparseconvnet/SCN/sparseconvnet_cuda.cpp', 'sparseconvnet/SCN/pybind.cpp'],
-        include_dirs=[conda_include_dir, this_dir+'/sparseconvnet/SCN/'],
+        include_dirs=[conda_include_dir, this_dir+'/sparseconvnet/SCN/', conda_lib_dir],
         extra_compile_args=extra)
-      if torch.cuda.is_available()  else
+      if torch.cuda.is_available() else
       CppExtension('sparseconvnet.SCN',
         ['sparseconvnet/SCN/pybind.cpp', 'sparseconvnet/SCN/sparseconvnet_cpu.cpp'],
         include_dirs=[conda_include_dir, this_dir+'/sparseconvnet/SCN/'],
-        extra_compile_args=extra['cxx'])],
+        extra_compile_args=extra['cxx'], 
+        extra_link_args=extra_link)],
     cmdclass={'build_ext': BuildExtension},
     zip_safe=False,
 )

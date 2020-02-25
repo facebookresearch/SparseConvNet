@@ -7,29 +7,82 @@
 #ifndef SUBMANIFOLDCONVOLUTIONRULES_H
 #define SUBMANIFOLDCONVOLUTIONRULES_H
 
-// Full input region for an output point
+#include <map>
+#include <math.h>
+
+// Compute the input layer lower and upper bounds and return the L2 distance
+// betweem them
 template <Int dimension>
-RectangularRegion<dimension>
-InputRegionCalculator_Submanifold(const Point<dimension> &output, long *size) {
-  Point<dimension> lb, ub;
+void computeInputBounds(const Point<dimension> &output, long *size,
+                        Point<dimension> &lb, Point<dimension> &ub) {
   for (Int i = 0; i < dimension; i++) {
     Int pad = size[i] / 2;
     lb[i] = output[i] - pad;
     ub[i] = output[i] + size[i] - 1 - pad;
   }
+}
+
+// Full input region for an output point. We also store the distance of the
+// bordering points to avoind recomputing this later.
+template <Int dimension>
+RectangularRegion<dimension>
+InputRegionCalculator_Submanifold(const Point<dimension> &output, long *size) {
+  Point<dimension> lb, ub;
+  computeInputBounds<dimension>(output, size, lb, ub);
   return RectangularRegion<dimension>(lb, ub);
+}
+
+template <Int dimension>
+std::pair<Point<dimension>, int>
+computeSearchParams(const RectangularRegion<dimension> &region) {
+  Point<dimension> middle;
+  int L2_radius = 0;
+  for (Int i = 0; i < dimension; i++) {
+    int diff = (region.ub[i] - region.lb[i]) >> 1;
+    middle[i] = region.lb[i] + diff;
+    L2_radius += (diff + 1) * (diff + 1); // accounts for rounding error as well
+  }
+  return make_pair(middle, L2_radius);
 }
 
 // Call for each convolutional / max-pooling layer, once for each batch item.
 // rules is used to carry out the "lowering" whilst carrying out the convolution
-
 template <Int dimension>
 double SubmanifoldConvolution_SgToRules(SparseGrid<dimension> &grid,
                                         RuleBook &rules, long *size) {
   double countActiveInputs = 0;
-  for (auto const &outputIter : grid.mp) {
+#if defined(DICT_KD_TREE)
+  grid.mp.init();
+#endif
+
+  for (const auto &outputIter : grid.mp) {
     auto inRegion =
         InputRegionCalculator_Submanifold<dimension>(outputIter.first, size);
+
+#if defined(DICT_KD_TREE)
+    auto searchParams = computeSearchParams(inRegion);
+    auto results = grid.mp.search(searchParams.first, searchParams.second);
+    for (const auto &inputIndex : results) {
+      auto inputPoint = grid.mp.getIndexPointData(inputIndex.first);
+      if (inRegion.contains(inputPoint.first)) {
+        int offset = inRegion.offset(inputPoint.first);
+        rules[offset].push_back(inputPoint.second + grid.ctr);
+        rules[offset].push_back(outputIter.second + grid.ctr);
+        countActiveInputs++;
+      }
+    }
+#endif
+
+#if defined(DICT_CONTAINER_HASH)
+    grid.mp.populateActiveSites(inRegion, [&](const std::pair<Point<dimension>, Int> &data) {
+      int offset = inRegion.offset(data.first);
+      rules[offset].push_back(data.second + grid.ctr);
+      rules[offset].push_back(outputIter.second + grid.ctr);
+      countActiveInputs++;
+    });
+#endif
+
+#if !defined(DICT_KD_TREE) && !defined(DICT_CONTAINER_HASH)
     Int rulesOffset = 0;
     for (auto inputPoint : inRegion) {
       auto inputIter = grid.mp.find(inputPoint);
@@ -40,6 +93,7 @@ double SubmanifoldConvolution_SgToRules(SparseGrid<dimension> &grid,
       }
       rulesOffset++;
     }
+#endif
   }
   return countActiveInputs;
 }
@@ -51,6 +105,7 @@ Int SubmanifoldConvolution_SgsToRules(SparseGrids<dimension> &SGs,
   Int countActiveInputs = 0;
   rules.clear();
   rules.resize(sd);
+
   for (Int i = 0; i < (Int)SGs.size(); i++)
     countActiveInputs +=
         SubmanifoldConvolution_SgToRules<dimension>(SGs[i], rules, size);

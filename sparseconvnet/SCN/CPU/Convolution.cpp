@@ -5,6 +5,7 @@
 // LICENSE file in the root directory of this source tree.
 
 // rows x groups x planes -> groups x rows x planes
+
 template <typename T>
 at::Tensor rule_index_select(at::Tensor &src, Int nRules, const Int *rules,
                               Int groups) {

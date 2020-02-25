@@ -5,7 +5,6 @@
 // LICENSE file in the root directory of this source tree.
 
 #include "Metadata.h"
-
 #include "ActivePoolingRules.h"
 #include "ConvolutionRules.h"
 #include "FullConvolutionRules.h"
@@ -16,10 +15,9 @@
 
 template <Int dimension> SparseGrid<dimension>::SparseGrid() : ctr(0) {
   // Sparsehash needs a key to be set aside and never used
-  Point<dimension> empty_key;
-  for (Int i = 0; i < dimension; ++i)
-    empty_key[i] = std::numeric_limits<Int>::min();
-  mp.set_empty_key(empty_key);
+  #if defined(DICT_GOOGLE_HASH)
+    mp.set_empty_key(generateEmptyKey<dimension>());
+  #endif
 }
 
 template <typename T> T *OptionalTensorData(at::Tensor &tensor) {
@@ -128,6 +126,7 @@ void Metadata<dimension>::setInputSpatialLocations(
       v += nPlanes;
     }
   }
+
   if (locations.size(1) == dimension + 1) {
     // add new samples to batch as necessary
     auto &SGs = *inputSGs;
@@ -385,6 +384,7 @@ template <Int dimension> void Metadata<dimension>::generateRuleBooks2s2() {
   Point<dimension> p1;
   Point<2 * dimension> p2;
   Point<3 * dimension> p3;
+
   for (Int i = 0; i < dimension; ++i) {
     p1[i] = p2[i] = p3[i] = inS[i] = inputSpatialSize[i];
     p2[i + dimension] = s3[i] = 3;
@@ -442,6 +442,7 @@ RuleBook &Metadata<dimension>::getSubmanifoldRuleBook(
   auto &rb = submanifoldRuleBooks[p];
   if (rb.empty()) {
     auto &SGs = grids[LongTensorToPoint<dimension>(spatialSize)];
+
 #if defined(ENABLE_OPENMP)
     openMP ? SubmanifoldConvolution_SgsToRules_OMP(SGs, rb, size.data_ptr<long>()) :
 #endif
@@ -599,7 +600,7 @@ Metadata<dimension>::compareSparseHelper(Metadata<dimension> &mR,
     auto &Ls = L[sample];
     auto &Rs = R[sample];
     for (auto const &iter : sgL.mp) {
-      if (sgR.mp.find(iter.first) == sgR.mp.end()) {
+      if (!sgR.mp.count(iter.first)) {
         Ls.push_back(sgL.mp[iter.first] + sgL.ctr);
       } else {
         cLs.push_back(sgL.mp[iter.first] + sgL.ctr);
@@ -607,7 +608,7 @@ Metadata<dimension>::compareSparseHelper(Metadata<dimension> &mR,
       }
     }
     for (auto const &iter : sgR.mp) {
-      if (sgL.mp.find(iter.first) == sgL.mp.end()) {
+      if (!sgR.mp.count(iter.first)) {
         Rs.push_back(sgR.mp[iter.first] + sgR.ctr);
       }
     }
@@ -643,7 +644,7 @@ Metadata<dimension>::copyFeaturesHelper(Metadata<dimension> &mR,
     auto &sgR = sgsR[sample];
     auto &rs = r[sample];
     for (auto const &iter : sgL.mp) {
-      if (sgR.mp.find(iter.first) != sgR.mp.end()) {
+      if (sgR.mp.count(iter.first)) {
         rs.push_back(sgL.mp[iter.first] + sgL.ctr);
         rs.push_back(sgR.mp[iter.first] + sgR.ctr);
       }

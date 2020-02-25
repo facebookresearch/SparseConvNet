@@ -95,6 +95,10 @@ void RSR_InputSgToRulesAndOutputSg(SparseGrid<dimension> &inputGrid,
       rules[rulesOffset].push_back(outIter->second);
     }
   }
+
+  #if defined(DICT_KD_TREE)
+    outputGrid.mp.init();
+  #endif
 }
 
 template <Int dimension>

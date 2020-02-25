@@ -19,6 +19,20 @@ void FullConvolution_InputSgToRulesAndOutputSg(
   for (auto const &inIter : inputGrid.mp) {
     auto outRegion =
         InputRegionCalculator<dimension>(inIter.first, size, stride);
+#if defined(DICT_CONTAINER_HASH)
+    outputGrid.mp.populateBlock(
+        outRegion, [&](std::pair<Point<dimension>, Int> &data) {
+          if (data.second == -1) {
+            data.second = outputGrid.ctr++;
+          }
+
+          Int rulesOffset = outRegion.offset(data.first);
+          rules[rulesOffset].push_back(inIter.second + inputGrid.ctr);
+          rules[rulesOffset].push_back(data.second);
+        });
+#endif
+
+#if !defined(DICT_CONTAINER_HASH)
     for (auto j : outRegion) {
       Int rulesOffset = outRegion.offset(j);
       auto mapVal = outputGrid.mp.insert(std::make_pair(j, 0));
@@ -26,10 +40,11 @@ void FullConvolution_InputSgToRulesAndOutputSg(
       if (mapVal.second) {
         mapVal.first->second = outputGrid.ctr++;
       }
-      
+
       rules[rulesOffset].push_back(inIter.second + inputGrid.ctr);
       rules[rulesOffset].push_back(mapVal.first->second);
     }
+#endif
   }
 }
 

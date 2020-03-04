@@ -25,6 +25,36 @@ at::Tensor rule_index_select(at::Tensor &src, Int nRules, const Int *rules,
 
 // groups x rows x planes -> rows x groups x planes
 
+#if defined(__AVX__)
+#include <immintrin.h>
+template <typename T>
+void rule_index_add_(at::Tensor &target, at::Tensor &src, int nRules,
+                     const int *rules, int groups) {
+  auto planes = target.size(1) / groups;
+  auto s_ptr = src.data<T>();
+  auto t_ptr = target.data<T>();
+
+#pragma omp parallel for
+  for (Int i = 0; i < nRules; ++i) {
+    for (Int g = 0; g < groups; ++g) {
+      auto s = s_ptr + (g * nRules + i) * planes;
+      auto t = t_ptr + (rules[2 * i] * groups + g) * planes;
+      int rem = planes % 8;
+      int j = 0;
+
+      for (; j < planes - rem; j += 8) {
+        auto tar = _mm256_loadu_ps(t + j);
+        auto sour = _mm256_loadu_ps(s + j);
+        auto res = _mm256_add_ps(tar, sour);
+        _mm256_storeu_ps(t + j, res);
+      }
+
+      for (Int r = 0; r < rem; ++r)
+        t[j + r] += s[j + r];
+    }
+  }
+}
+#else
 template <typename T>
 void rule_index_add_(at::Tensor &target, at::Tensor &src, Int nRules,
                      const Int *rules, Int groups) {
@@ -41,6 +71,7 @@ void rule_index_add_(at::Tensor &target, at::Tensor &src, Int nRules,
     }
   }
 }
+#endif
 
 template <typename T, Int Dimension>
 double cpu_Convolution_updateOutput(

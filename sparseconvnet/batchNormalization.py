@@ -15,7 +15,7 @@ class BatchNormalization(Module):
     Parameters:
     nPlanes : number of input planes
     eps : small number used to stabilise standard deviation calculation
-    momentum : for calculating running average for testing (default 0.9)
+    momentum : for calculating running average for testing (default 0.99)
     affine : only 'true' is supported at present (default 'true')
     noise : add multiplicative and additive noise during training if >0.
     leakiness : Apply activation def inplace: 0<=leakiness<=1.
@@ -25,7 +25,7 @@ class BatchNormalization(Module):
             self,
             nPlanes,
             eps=1e-4,
-            momentum=0.9,
+            momentum=0.99,
             affine=True,
             leakiness=1):
         Module.__init__(self)
@@ -72,7 +72,7 @@ class BatchNormalization(Module):
 
 
 class BatchNormReLU(BatchNormalization):
-    def __init__(self, nPlanes, eps=1e-4, momentum=0.9):
+    def __init__(self, nPlanes, eps=1e-4, momentum=0.99):
         BatchNormalization.__init__(self, nPlanes, eps, momentum, True, 0)
 
     def __repr__(self):
@@ -82,7 +82,7 @@ class BatchNormReLU(BatchNormalization):
 
 
 class BatchNormLeakyReLU(BatchNormalization):
-    def __init__(self, nPlanes, eps=1e-4, momentum=0.9, leakiness=0.333):
+    def __init__(self, nPlanes, eps=1e-4, momentum=0.99, leakiness=0.333):
         BatchNormalization.__init__(self, nPlanes, eps, momentum, True, leakiness)
 
     def __repr__(self):
@@ -166,7 +166,7 @@ class MeanOnlyBNLeakyReLU(Module):
     """
     Parameters:
     nPlanes : number of input planes
-    momentum : for calculating running average for testing (default 0.9)
+    momentum : for calculating running average for testing (default 0.99)
     leakiness : Apply activation def inplace: 0<=leakiness<=1.
     0 for ReLU, values in (0,1) for LeakyReLU, 1 for no activation def.
     """
@@ -175,7 +175,7 @@ class MeanOnlyBNLeakyReLU(Module):
             nPlanes,
             affine=True,
             leakiness=1,
-            momentum=0.9):
+            momentum=0.99):
         Module.__init__(self)
         self.nPlanes = nPlanes
         self.momentum = momentum

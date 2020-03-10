@@ -318,7 +318,7 @@ def FullConvolutionalNetIntegratedLinear(dimension, reps, nPlanes, nClasses=-1, 
         return x+nPlanes
     def foo(m,np):
         for _ in range(reps):
-            if residual_blocks: #ResNet style blocks
+            if residual: #ResNet style blocks
                 m.add(scn.ConcatTable()
                       .add(scn.Identity())
                       .add(scn.Sequential()
@@ -333,7 +333,7 @@ def FullConvolutionalNetIntegratedLinear(dimension, reps, nPlanes, nClasses=-1, 
     def bar(m,nPlanes,bias):
         m.add(scn.BatchNormLeakyReLU(nPlanes,leakiness=leakiness))
         m.add(scn.NetworkInNetwork(nPlanes,nClasses,bias)) #accumulte softmax input, only one set of biases
-    def baz(depth,nPlanes):
+    def baz(nPlanes):
         m=scn.Sequential()
         foo(m,nPlanes[0])
         if len(nPlanes)==1:
@@ -348,4 +348,4 @@ def FullConvolutionalNetIntegratedLinear(dimension, reps, nPlanes, nClasses=-1, 
                 scn.UnPooling(dimension, downsample[0], downsample[1]))
             m.add(ConcatTable(a,b))
             m.add(scn.AddTable())
-    return baz(depth,nPlanes)
+    return baz(nPlanes)

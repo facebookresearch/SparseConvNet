@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch, torch.utils.checkpoint
+from .utils import checkpoint101
 
 class Sequential(torch.nn.Sequential):
     def input_spatial_size(self, out_size):
@@ -12,6 +13,14 @@ class Sequential(torch.nn.Sequential):
             out_size = self._modules[m].input_spatial_size(out_size)
         return out_size
 
+    def __add__(self, x):
+        r = Sequential()
+        for m in self:
+            r.append(m)
+        for m in x:
+            r.append(m)
+        return r            
+        
     def add(self, module):
         self._modules[str(len(self._modules))] = module
         return self

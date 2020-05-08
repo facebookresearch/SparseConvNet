@@ -142,7 +142,7 @@ SparseConvNet is BSD licensed, as found in the LICENSE file. [Terms of use](http
 9. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets, CVPR 2018
 10. [ScanNet 3D semantic label benchmark 2018](http://kaldir.vc.in.tum.de/scannet_benchmark/semantic_label_3d) 0.726 average IOU.
 11. [MinkowskiEngine](https://github.com/StanfordVL/MinkowskiEngine) is an alternative implementation of SparseConvNet.
-12. [OccuSeg](https://sites.google.com/view/lhanaf/) object detection using SparseConvNets
+12. [OccuSeg](https://arxiv.org/abs/2003.06537) object detection using SparseConvNets
 
 ## Citations
 

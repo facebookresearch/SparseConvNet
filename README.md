@@ -140,9 +140,12 @@ SparseConvNet is BSD licensed, as found in the LICENSE file. [Terms of use](http
 7. [Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1706.01307) Introduces deep 'submanifold' SparseConvNets.
 8. [Workshop on Learning to See from 3D Data, 2017](https://shapenet.cs.stanford.edu/iccv17workshop/) First place in the [semantic segmentation](https://shapenet.cs.stanford.edu/iccv17/) competition. [Report](https://arxiv.org/pdf/1710.06104)
 9. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets, CVPR 2018
-10. [ScanNet 3D semantic label benchmark 2018](http://kaldir.vc.in.tum.de/scannet_benchmark/semantic_label_3d) 0.726 average IOU.
-11. [MinkowskiEngine](https://github.com/StanfordVL/MinkowskiEngine) is an alternative implementation of SparseConvNet.
-12. [OccuSeg](https://arxiv.org/abs/2003.06537) object detection using SparseConvNets
+10. [Unsupervised learning with sparse space-and-time autoencoders](https://arxiv.org/abs/1811.10355) (3+1)D space-time autoencoders
+11. [ScanNet 3D semantic label benchmark 2018](http://kaldir.vc.in.tum.de/scannet_benchmark/semantic_label_3d) 0.726 average IOU.
+12. [MinkowskiEngine](https://github.com/StanfordVL/MinkowskiEngine) is an alternative implementation of SparseConvNet; [0.736 average IOU for ScanNet]( https://github.com/chrischoy/SpatioTemporalSegmentation).
+13. [SpConv: PyTorch Spatially Sparse Convolution Library](https://github.com/traveller59/spconv) is an alternative implementation of SparseConvNet.
+14. [Live Semantic 3D Perception for Immersive Augmented Reality](https://ieeexplore.ieee.org/document/8998140) describes a way to optimize memory access for SparseConvNet.
+15. [OccuSeg](https://arxiv.org/abs/2003.06537) real-time object detection using SparseConvNets.
 
 ## Citations
 

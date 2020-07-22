@@ -53,7 +53,7 @@ double AffineReluTrivialConvolution_updateOutput(at::Tensor &input_features,
                                                  at::Tensor &affineWeight,
                                                  at::Tensor &affineBias,
                                                  at::Tensor &convWeight) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     return cuda_AffineReluTrivialConvolution_updateOutput<float>(
         input_features, output_features, affineWeight, affineBias, convWeight);
   else
@@ -67,7 +67,7 @@ void AffineReluTrivialConvolution_backward(
     at::Tensor &d_affineWeight, at::Tensor &affineBias,
     at::Tensor &d_affineBias, at::Tensor &convWeight, at::Tensor &d_convWeight,
     bool additiveGrad) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_AffineReluTrivialConvolution_backward<float>(
         input_features, d_input_features, d_output_features, affineWeight,
         d_affineWeight, affineBias, d_affineBias, convWeight, d_convWeight,
@@ -84,7 +84,7 @@ void BatchNormalization_updateOutput(
     at::Tensor &saveMean, at::Tensor &saveInvStd, at::Tensor &runningMean,
     at::Tensor &runningVar, at::Tensor &weight, at::Tensor &bias, double eps,
     double momentum, bool train, double leakiness) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_BatchNormalization_updateOutput<float>(
         input_features, output_features, saveMean, saveInvStd, runningMean,
         runningVar, weight, bias, eps, momentum, train, leakiness);
@@ -100,7 +100,7 @@ void BatchNormalization_backward(
     at::Tensor &saveMean, at::Tensor &saveInvStd, at::Tensor &runningMean,
     at::Tensor &runningVar, at::Tensor &weight, at::Tensor &bias,
     at::Tensor &d_weight, at::Tensor &d_bias, double leakiness) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_BatchNormalization_backward<float>(
         input_features, d_input_features, output_features, d_output_features,
         saveMean, saveInvStd, runningMean, runningVar, weight, bias, d_weight,
@@ -116,7 +116,7 @@ void BatchwiseMultiplicativeDropout_updateOutput(at::Tensor &input_features,
                                                  at::Tensor &output_features,
                                                  at::Tensor &noise,
                                                  double alpha) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_BatchwiseMultiplicativeDropout_updateOutput<float>(
         input_features, output_features, noise, alpha);
   else
@@ -127,7 +127,7 @@ void BatchwiseMultiplicativeDropout_updateOutput(at::Tensor &input_features,
 void BatchwiseMultiplicativeDropout_updateGradInput(
     at::Tensor &input_features, at::Tensor &d_input_features,
     at::Tensor &d_output_features, at::Tensor &noise, double alpha) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_BatchwiseMultiplicativeDropout_updateGradInput<float>(
         input_features, d_input_features, d_output_features, noise, alpha);
   else
@@ -137,7 +137,7 @@ void BatchwiseMultiplicativeDropout_updateGradInput(
 
 void LeakyReLU_updateOutput(at::Tensor &input_features,
                             at::Tensor &output_features, double alpha) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_LeakyReLU_updateOutput<float>(input_features, output_features, alpha);
   else
     cpu_LeakyReLU_updateOutput<float>(input_features, output_features, alpha);
@@ -146,7 +146,7 @@ void LeakyReLU_updateOutput(at::Tensor &input_features,
 void LeakyReLU_updateGradInput(at::Tensor &input_features,
                                at::Tensor &d_input_features,
                                at::Tensor &d_output_features, double alpha) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_LeakyReLU_updateGradInput<float>(input_features, d_input_features,
                                           d_output_features, alpha);
   else
@@ -157,7 +157,7 @@ void LeakyReLU_updateGradInput(at::Tensor &input_features,
 double NetworkInNetwork_updateOutput(at::Tensor &input_features,
                                      at::Tensor &output_features,
                                      at::Tensor &weight, at::Tensor &bias) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     return cuda_NetworkInNetwork_updateOutput<float>(
         input_features, output_features, weight, bias);
   else
@@ -168,7 +168,7 @@ double NetworkInNetwork_updateOutput(at::Tensor &input_features,
 void NetworkInNetwork_updateGradInput(at::Tensor &d_input_features,
                                       at::Tensor &d_output_features,
                                       at::Tensor &weight) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_NetworkInNetwork_updateGradInput<float>(d_input_features,
                                                  d_output_features, weight);
   else
@@ -180,7 +180,7 @@ void NetworkInNetwork_accGradParameters(at::Tensor &input_features,
                                         at::Tensor &d_output_features,
                                         at::Tensor &d_weight,
                                         at::Tensor &d_bias) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_NetworkInNetwork_accGradParameters<float>(
         input_features, d_output_features, d_weight, d_bias);
   else
@@ -191,7 +191,7 @@ template <Int Dimension>
 void ActivePooling_updateOutput(at::Tensor &inputSize, Metadata<Dimension> &m,
                                 at::Tensor &input_features,
                                 at::Tensor &output_features, bool average) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_ActivePooling_updateOutput<float, Dimension>(
         inputSize, m, input_features, output_features, average);
   else
@@ -203,7 +203,7 @@ template <Int Dimension>
 void ActivePooling_updateGradInput(
     at::Tensor &inputSize, Metadata<Dimension> &m, at::Tensor &input_features,
     at::Tensor &d_input_features, at::Tensor &d_output_features, bool average) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     return cuda_ActivePooling_updateGradInput<float, Dimension>(
         inputSize, m, input_features, d_input_features, d_output_features,
         average);
@@ -219,7 +219,7 @@ void AveragePooling_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
                                  at::Tensor &input_features,
                                  at::Tensor &output_features,
                                  long nFeaturesToDrop) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_AveragePooling_updateOutput<float, Dimension>(
         inputSize, outputSize, poolSize, poolStride, m, input_features,
         output_features, nFeaturesToDrop);
@@ -234,7 +234,7 @@ void AveragePooling_updateGradInput(
     at::Tensor &poolStride, Metadata<Dimension> &m, at::Tensor &input_features,
     at::Tensor &d_input_features, at::Tensor &d_output_features,
     long nFeaturesToDrop) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_AveragePooling_updateGradInput<float, Dimension>(
         inputSize, outputSize, poolSize, poolStride, m, input_features,
         d_input_features, d_output_features, nFeaturesToDrop);
@@ -250,7 +250,7 @@ Convolution_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
                          Metadata<Dimension> &m, at::Tensor &input_features,
                          at::Tensor &output_features, at::Tensor &weight,
                          at::Tensor &bias) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     return cuda_Convolution_updateOutput<float, Dimension>(
         inputSize, outputSize, filterSize, filterStride, m, input_features,
         output_features, weight, bias);
@@ -266,7 +266,7 @@ void Convolution_backward(at::Tensor &inputSize, at::Tensor &outputSize,
                           at::Tensor &d_input_features,
                           at::Tensor &d_output_features, at::Tensor &weight,
                           at::Tensor &d_weight, at::Tensor &d_bias) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_Convolution_backward<float, Dimension>(
         inputSize, outputSize, filterSize, filterStride, m, input_features,
         d_input_features, d_output_features, weight, d_weight, d_bias);
@@ -280,7 +280,7 @@ double SubmanifoldConvolution_updateOutput(
     at::Tensor &inputSize, at::Tensor &filterSize, Metadata<Dimension> &m,
     at::Tensor &input_features, at::Tensor &output_features, at::Tensor &weight,
     at::Tensor &bias) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     return cuda_SubmanifoldConvolution_updateOutput<float, Dimension>(
         inputSize, filterSize, m, input_features, output_features, weight,
         bias);
@@ -295,7 +295,7 @@ void SubmanifoldConvolution_backward(
     at::Tensor &input_features, at::Tensor &d_input_features,
     at::Tensor &d_output_features, at::Tensor &weight, at::Tensor &d_weight,
     at::Tensor &d_bias) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_SubmanifoldConvolution_backward<float, Dimension>(
         inputSize, filterSize, m, input_features, d_input_features,
         d_output_features, weight, d_weight, d_bias);
@@ -308,7 +308,7 @@ template <Int Dimension>
 double PermutohedralSubmanifoldConvolution_updateOutput(
     at::Tensor &inputSize, Metadata<Dimension> &m, at::Tensor &input_features,
     at::Tensor &output_features, at::Tensor &weight, at::Tensor &bias) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     return cuda_PermutohedralSubmanifoldConvolution_updateOutput<float,
                                                                  Dimension>(
         inputSize, m, input_features, output_features, weight, bias);
@@ -322,7 +322,7 @@ void PermutohedralSubmanifoldConvolution_backward(
     at::Tensor &inputSize, Metadata<Dimension> &m, at::Tensor &input_features,
     at::Tensor &d_input_features, at::Tensor &d_output_features,
     at::Tensor &weight, at::Tensor &d_weight, at::Tensor &d_bias) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_PermutohedralSubmanifoldConvolution_backward<float, Dimension>(
         inputSize, m, input_features, d_input_features, d_output_features,
         weight, d_weight, d_bias);
@@ -337,7 +337,7 @@ double FullConvolution_updateOutput(
     at::Tensor &filterStride, Metadata<Dimension> &mIn,
     Metadata<Dimension> &mOut, at::Tensor &input_features,
     at::Tensor &output_features, at::Tensor &weight, at::Tensor &bias) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     return cuda_FullConvolution_updateOutput<float, Dimension>(
         inputSize, outputSize, filterSize, filterStride, mIn, mOut,
         input_features, output_features, weight, bias);
@@ -355,7 +355,7 @@ void FullConvolution_backward(at::Tensor &inputSize, at::Tensor &outputSize,
                               at::Tensor &d_input_features,
                               at::Tensor &d_output_features, at::Tensor &weight,
                               at::Tensor &d_weight, at::Tensor &d_bias) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_FullConvolution_backward<float, Dimension>(
         inputSize, outputSize, filterSize, filterStride, mIn, mOut,
         input_features, d_input_features, d_output_features, weight, d_weight,
@@ -372,7 +372,7 @@ double RandomizedStrideConvolution_updateOutput(
     at::Tensor &filterStride, Metadata<Dimension> &m,
     at::Tensor &input_features, at::Tensor &output_features, at::Tensor &weight,
     at::Tensor &bias) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     return cuda_RandomizedStrideConvolution_updateOutput<float, Dimension>(
         inputSize, outputSize, filterSize, filterStride, m, input_features,
         output_features, weight, bias);
@@ -388,7 +388,7 @@ void RandomizedStrideConvolution_backward(
     at::Tensor &input_features, at::Tensor &d_input_features,
     at::Tensor &d_output_features, at::Tensor &weight, at::Tensor &d_weight,
     at::Tensor &d_bias) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_RandomizedStrideConvolution_backward<float, Dimension>(
         inputSize, outputSize, filterSize, filterStride, m, input_features,
         d_input_features, d_output_features, weight, d_weight, d_bias);
@@ -404,7 +404,7 @@ Deconvolution_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
                            Metadata<Dimension> &m, at::Tensor &input_features,
                            at::Tensor &output_features, at::Tensor &weight,
                            at::Tensor &bias) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     return cuda_Deconvolution_updateOutput<float, Dimension>(
         inputSize, outputSize, filterSize, filterStride, m, input_features,
         output_features, weight, bias);
@@ -420,7 +420,7 @@ void Deconvolution_backward(at::Tensor &inputSize, at::Tensor &outputSize,
                             at::Tensor &d_input_features,
                             at::Tensor &d_output_features, at::Tensor &weight,
                             at::Tensor &d_weight, at::Tensor &d_bias) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_Deconvolution_backward<float, Dimension>(
         inputSize, outputSize, filterSize, filterStride, m, input_features,
         d_input_features, d_output_features, weight, d_weight, d_bias);
@@ -435,7 +435,7 @@ void InputLayer_updateOutput(Metadata<Dimension> &m, at::Tensor &spatialSize,
                              at::Tensor &input_features,
                              at::Tensor &output_features, long batchSize,
                              long mode) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_InputLayer_updateOutput<float, Dimension>(
         m, spatialSize, input_coords, input_features, output_features,
         batchSize, mode);
@@ -448,7 +448,7 @@ template <Int Dimension>
 void InputLayer_updateGradInput(Metadata<Dimension> &m,
                                 at::Tensor &d_input_features,
                                 at::Tensor &d_output_features) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_InputLayer_updateGradInput<float, Dimension>(m, d_input_features,
                                                       d_output_features);
   else
@@ -459,7 +459,7 @@ template <Int Dimension>
 void OutputLayer_updateOutput(Metadata<Dimension> &m,
                               at::Tensor &input_features,
                               at::Tensor &output_features) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_OutputLayer_updateOutput<float, Dimension>(m, input_features,
                                                     output_features);
   else
@@ -470,7 +470,7 @@ template <Int Dimension>
 void OutputLayer_updateGradInput(Metadata<Dimension> &m,
                                  at::Tensor &d_input_features,
                                  at::Tensor &d_output_features) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_OutputLayer_updateGradInput<float, Dimension>(m, d_input_features,
                                                        d_output_features);
   else
@@ -482,7 +482,7 @@ void BLInputLayer_updateOutput(Metadata<Dimension> &m, at::Tensor &spatialSize,
                                at::Tensor &input_coords,
                                at::Tensor &input_features,
                                at::Tensor &output_features, long mode) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_BLInputLayer_updateOutput<float, Dimension>(
         m, spatialSize, input_coords, input_features, output_features, mode);
   else
@@ -493,7 +493,7 @@ template <Int Dimension>
 void BLInputLayer_updateGradInput(Metadata<Dimension> &m,
                                   at::Tensor &d_input_features,
                                   at::Tensor &d_output_features) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_BLInputLayer_updateGradInput<float, Dimension>(m, d_input_features,
                                                         d_output_features);
   else
@@ -504,7 +504,7 @@ template <Int Dimension>
 void BLOutputLayer_updateOutput(Metadata<Dimension> &m,
                                 at::Tensor &input_features,
                                 at::Tensor &output_features) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_BLOutputLayer_updateOutput<float, Dimension>(m, input_features,
                                                       output_features);
   else
@@ -515,7 +515,7 @@ template <Int Dimension>
 void BLOutputLayer_updateGradInput(Metadata<Dimension> &m,
                                    at::Tensor &d_input_features,
                                    at::Tensor &d_output_features) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_BLOutputLayer_updateGradInput<float, Dimension>(m, d_input_features,
                                                          d_output_features);
   else
@@ -528,7 +528,7 @@ void MaxPooling_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
                              Metadata<Dimension> &m, at::Tensor &input_features,
                              at::Tensor &output_features,
                              long nFeaturesToDrop) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_MaxPooling_updateOutput<float, Dimension>(
         inputSize, outputSize, poolSize, poolStride, m, input_features,
         output_features, nFeaturesToDrop);
@@ -543,7 +543,7 @@ void MaxPooling_updateGradInput(
     at::Tensor &poolStride, Metadata<Dimension> &m, at::Tensor &input_features,
     at::Tensor &d_input_features, at::Tensor &output_features,
     at::Tensor &d_output_features, long nFeaturesToDrop) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_MaxPooling_updateGradInput<float, Dimension>(
         inputSize, outputSize, poolSize, poolStride, m, input_features,
         d_input_features, output_features, d_output_features, nFeaturesToDrop);
@@ -557,7 +557,7 @@ void RandomizedStrideMaxPooling_updateOutput(
     at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &poolSize,
     at::Tensor &poolStride, Metadata<Dimension> &m, at::Tensor &input_features,
     at::Tensor &output_features, long nFeaturesToDrop) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_RandomizedStrideMaxPooling_updateOutput<float, Dimension>(
         inputSize, outputSize, poolSize, poolStride, m, input_features,
         output_features, nFeaturesToDrop);
@@ -572,7 +572,7 @@ void RandomizedStrideMaxPooling_updateGradInput(
     at::Tensor &poolStride, Metadata<Dimension> &m, at::Tensor &input_features,
     at::Tensor &d_input_features, at::Tensor &output_features,
     at::Tensor &d_output_features, long nFeaturesToDrop) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_RandomizedStrideMaxPooling_updateGradInput<float, Dimension>(
         inputSize, outputSize, poolSize, poolStride, m, input_features,
         d_input_features, output_features, d_output_features, nFeaturesToDrop);
@@ -585,7 +585,7 @@ template <Int Dimension>
 void SparseToDense_updateOutput(at::Tensor &inputSize, Metadata<Dimension> &m,
                                 at::Tensor &input_features,
                                 at::Tensor &output_features, long nPlanes) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_SparseToDense_updateOutput<float, Dimension>(
         inputSize, m, input_features, output_features, nPlanes);
   else
@@ -598,7 +598,7 @@ void SparseToDense_updateGradInput(at::Tensor &inputSize,
                                    at::Tensor &input_features,
                                    at::Tensor &d_input_features,
                                    at::Tensor &d_output_features) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_SparseToDense_updateGradInput<float, Dimension>(
         inputSize, m, input_features, d_input_features, d_output_features);
   else
@@ -610,7 +610,7 @@ void UnPooling_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
                             at::Tensor &poolSize, at::Tensor &poolStride,
                             Metadata<Dimension> &m, at::Tensor &input_features,
                             at::Tensor &output_features, long nFeaturesToDrop) {
-  if (input_features.type().is_cuda())
+  if (input_features.device().type() == torch::kCUDA)
     cuda_UnPooling_updateOutput<float, Dimension>(
         inputSize, outputSize, poolSize, poolStride, m, input_features,
         output_features, nFeaturesToDrop);
@@ -626,7 +626,7 @@ void UnPooling_updateGradInput(at::Tensor &inputSize, at::Tensor &outputSize,
                                at::Tensor &d_input_features,
                                at::Tensor &d_output_features,
                                long nFeaturesToDrop) {
-  if (d_output_features.type().is_cuda())
+  if (d_output_features.device().type() == torch::kCUDA)
     cuda_UnPooling_updateGradInput<float, Dimension>(
         inputSize, outputSize, poolSize, poolStride, m, d_input_features,
         d_output_features, nFeaturesToDrop);

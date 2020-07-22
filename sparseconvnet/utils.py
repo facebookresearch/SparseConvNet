@@ -124,14 +124,15 @@ def batch_location_tensors(location_tensors):
             a.append(pad_with_batch_idx(lt,batch_idx))
     return torch.cat(a,0)
 
-def prepare_BLInput(l,f):
+def prepare_BLInput(batch):
     with torch.no_grad():
-        n=max([x.size(0) for x in l])
-        L=torch.empty(len(l),n,l[0].size(1),dtype=torch.int64).fill_(-1)
-        F=torch.zeros(len(l),n,f[0].size(1))
-        for i, (ll, ff) in enumerate(zip(l,f)):
-            L[i,:ll.size(0),:].copy_(ll)
-            F[i,:ff.size(0),:].copy_(ff)
+        n=max([l.size(0) for l,f in batch])
+        l,f=batch[0]
+        L=torch.empty(len(batch),n,l.size(1),dtype=torch.int64).fill_(-1)
+        F=torch.zeros(len(batch),n,f.size(1))
+        for i, (l, f) in enumerate(batch):
+            L[i,:l.size(0),:].copy_(l)
+            F[i,:f.size(0),:].copy_(f)
     return [L,F]
 
 def checkpoint_restore(model,exp_name,name2,use_cuda=True,epoch=0):

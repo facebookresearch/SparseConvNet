@@ -146,7 +146,8 @@ SparseConvNet is BSD licensed, as found in the LICENSE file. [Terms of use](http
 13. [SpConv: PyTorch Spatially Sparse Convolution Library](https://github.com/traveller59/spconv) is an alternative implementation of SparseConvNet.
 14. [Live Semantic 3D Perception for Immersive Augmented Reality](https://ieeexplore.ieee.org/document/8998140) describes a way to optimize memory access for SparseConvNet.
 15. [OccuSeg](https://arxiv.org/abs/2003.06537) real-time object detection using SparseConvNets.
-16. [TorchSparse](https://github.com/mit-han-lab/torchsparse) implements 3D sparse convolutions.
+16. [TorchSparse](https://github.com/mit-han-lab/torchsparse) implements 3D submanifold convolutions.
+17. [TensorFlow 3D](https://github.com/google-research/google-research/tree/master/tf3d) implements submanifold convolutions.
 
 ## Citations
 

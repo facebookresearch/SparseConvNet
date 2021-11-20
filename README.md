@@ -130,6 +130,8 @@ apt-get install unrar
 ## License
 SparseConvNet is BSD licensed, as found in the LICENSE file. [Terms of use](https://opensource.facebook.com/legal/terms). [Privacy](https://opensource.facebook.com/legal/privacy)
 
+Copyright © Meta Platforms, Inc
+
 ## Links
 1. [ICDAR 2013 Chinese Handwriting Recognition Competition 2013](https://web.archive.org/web/20160418143451/http://www.nlpr.ia.ac.cn/events/CHRcompetition2013/competition/Home.html) First place in task 3, with test error of 2.61%. Human performance on the test set was 4.81%. [Report](https://web.archive.org/web/20160910012723/http://www.nlpr.ia.ac.cn/events/CHRcompetition2013/competition/ICDAR%202013%20CHR%20competition.pdf)
 2. [Spatially-sparse convolutional neural networks, 2014](http://arxiv.org/abs/1409.6070) SparseConvNets for Chinese handwriting recognition

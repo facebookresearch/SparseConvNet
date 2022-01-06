@@ -150,6 +150,7 @@ Copyright © Meta Platforms, Inc
 15. [OccuSeg](https://arxiv.org/abs/2003.06537) real-time object detection using SparseConvNets.
 16. [TorchSparse](https://github.com/mit-han-lab/torchsparse) implements 3D submanifold convolutions.
 17. [TensorFlow 3D](https://github.com/google-research/google-research/tree/master/tf3d) implements submanifold convolutions.
+18. [VoTr](https://github.com/PointsCoder/VOTR) implements submanifold [voxel transformers](https://openaccess.thecvf.com/content/ICCV2021/papers/Mao_Voxel_Transformer_for_3D_Object_Detection_ICCV_2021_paper.pdf) using [SpConv](https://github.com/traveller59/spconv).
 
 ## Citations
 

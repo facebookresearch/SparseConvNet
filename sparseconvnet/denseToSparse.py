@@ -55,7 +55,7 @@ class DenseToSparseFunction(Function):
         s = torch.LongTensor(nz.stride()).view(1, dimension + 1)
         nz = nz.nonzero()
         s = s.type_as(nz)
-        aa = aa.view(-1, input.size(1))
+        aa = aa.reshape(-1, input.size(1))
         ctx.aas2 = aa.size()
         r = (nz * s.expand_as(nz)).sum(1).view(-1)
         output_features = aa.index_select(0, r)

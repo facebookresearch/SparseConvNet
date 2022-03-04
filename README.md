@@ -1,5 +1,7 @@
 # Submanifold Sparse Convolutional Networks
 
+[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://opensource.fb.com/support-ukraine)
+
 This is the PyTorch library for training Submanifold Sparse Convolutional Networks.
 
 ## Spatial sparsity

@@ -7,4 +7,6 @@
 
 #export TORCH_CUDA_ARCH_LIST="6.0;6.1;6.2;7.0;7.5"
 rm -rf build/ dist/ sparseconvnet.egg-info
+export CC=/usr/bin/gcc-10
+export CXX=/usr/bin/g++-10
 python setup.py install && python examples/hello-world.py

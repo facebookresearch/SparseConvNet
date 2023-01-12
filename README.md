@@ -141,18 +141,20 @@ Copyright © Meta Platforms, Inc
 4. [Sparse 3D convolutional neural networks, BMVC 2015](http://arxiv.org/abs/1505.02890) SparseConvNets for 3D object recognition and (2+1)D video action recognition.
 5. [Kaggle plankton recognition competition, 2015](https://www.kaggle.com/c/datasciencebowl) Third place. The competition solution is being adapted for research purposes in [EcoTaxa](http://ecotaxa.obs-vlfr.fr/).
 6. [Kaggle Diabetic Retinopathy Detection, 2015](https://www.kaggle.com/c/diabetic-retinopathy-detection/) First place in the Kaggle Diabetic Retinopathy Detection competition.
-7. [Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1706.01307) Introduces deep 'submanifold' SparseConvNets.
-8. [Workshop on Learning to See from 3D Data, 2017](https://shapenet.cs.stanford.edu/iccv17workshop/) First place in the [semantic segmentation](https://shapenet.cs.stanford.edu/iccv17/) competition. [Report](https://arxiv.org/pdf/1710.06104)
-9. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets, CVPR 2018
-10. [Unsupervised learning with sparse space-and-time autoencoders](https://arxiv.org/abs/1811.10355) (3+1)D space-time autoencoders
-11. [ScanNet 3D semantic label benchmark 2018](http://kaldir.vc.in.tum.de/scannet_benchmark/semantic_label_3d) 0.726 average IOU.
-12. [MinkowskiEngine](https://github.com/StanfordVL/MinkowskiEngine) is an alternative implementation of SparseConvNet; [0.736 average IOU for ScanNet]( https://github.com/chrischoy/SpatioTemporalSegmentation).
-13. [SpConv: PyTorch Spatially Sparse Convolution Library](https://github.com/traveller59/spconv) is an alternative implementation of SparseConvNet.
-14. [Live Semantic 3D Perception for Immersive Augmented Reality](https://ieeexplore.ieee.org/document/8998140) describes a way to optimize memory access for SparseConvNet.
-15. [OccuSeg](https://arxiv.org/abs/2003.06537) real-time object detection using SparseConvNets.
-16. [TorchSparse](https://github.com/mit-han-lab/torchsparse) implements 3D submanifold convolutions.
-17. [TensorFlow 3D](https://github.com/google-research/google-research/tree/master/tf3d) implements submanifold convolutions.
-18. [VoTr](https://github.com/PointsCoder/VOTR) implements submanifold [voxel transformers](https://openaccess.thecvf.com/content/ICCV2021/papers/Mao_Voxel_Transformer_for_3D_Object_Detection_ICCV_2021_paper.pdf) using [SpConv](https://github.com/traveller59/spconv).
+7. [SparseConvNet 'classic'](https://github.com/btgraham/SparseConvNet-archived) version
+8. [Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1706.01307) Introduces deep 'submanifold' SparseConvNets.
+9. [Workshop on Learning to See from 3D Data, 2017](https://shapenet.cs.stanford.edu/iccv17workshop/) First place in the [semantic segmentation](https://shapenet.cs.stanford.edu/iccv17/) competition. [Report](https://arxiv.org/pdf/1710.06104)
+10. [3D Semantic Segmentation with Submanifold Sparse Convolutional Networks, 2017](https://arxiv.org/abs/1711.10275) Semantic segmentation for the ShapeNet Core55 and NYU-DepthV2 datasets, CVPR 2018
+11. [Unsupervised learning with sparse space-and-time autoencoders](https://arxiv.org/abs/1811.10355) (3+1)D space-time autoencoders
+12. [ScanNet 3D semantic label benchmark 2018](http://kaldir.vc.in.tum.de/scannet_benchmark/semantic_label_3d) 0.726 average IOU for 3D semantic segmentation.
+13. [MinkowskiEngine](https://github.com/StanfordVL/MinkowskiEngine) is an alternative implementation of SparseConvNet; [0.736 average IOU for ScanNet]( https://github.com/chrischoy/SpatioTemporalSegmentation).
+14. [SpConv: PyTorch Spatially Sparse Convolution Library](https://github.com/traveller59/spconv) is an alternative implementation of SparseConvNet.
+15. [Live Semantic 3D Perception for Immersive Augmented Reality](https://ieeexplore.ieee.org/document/8998140) describes a way to optimize memory access for SparseConvNet.
+16. [OccuSeg](https://arxiv.org/abs/2003.06537) real-time object detection using SparseConvNets.
+17. [TorchSparse](https://github.com/mit-han-lab/torchsparse) implements 3D submanifold convolutions.
+18. [TensorFlow 3D](https://github.com/google-research/google-research/tree/master/tf3d) implements submanifold convolutions.
+19. [VoTr](https://github.com/PointsCoder/VOTR) implements submanifold [voxel transformers](https://openaccess.thecvf.com/content/ICCV2021/papers/Mao_Voxel_Transformer_for_3D_Object_Detection_ICCV_2021_paper.pdf) using [SpConv](https://github.com/traveller59/spconv).
+20. [Mix3D](https://github.com/kumuji/mix3d) brings [MixUp](https://openreview.net/forum?id=r1Ddp1-Rb) to the sparse setting&mdash;0.781 average IOU for ScanNet 3D semantic segmentation.
 
 ## Citations
 

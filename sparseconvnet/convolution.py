@@ -32,8 +32,8 @@ class Convolution(Module):
         assert input.features.nelement() == 0 or input.features.size(1) == self.nIn
         output = SparseConvNetTensor()
         output.metadata = input.metadata
-        output.spatial_size =\
-            (input.spatial_size - self.filter_size) // self.filter_stride + 1
+        output.spatial_size = (input.spatial_size - self.filter_size).div(
+            self.filter_stride, rounding_mode='trunc') + 1
         assert ((output.spatial_size - 1) * self.filter_stride +
                 self.filter_size == input.spatial_size).all(), (input.spatial_size,output.spatial_size,self.filter_size,self.filter_stride)
         output.features = ConvolutionFunction.apply(

@@ -208,3 +208,11 @@ class MeanOnlyBNLeakyReLU(Module):
     def __repr__(self):
         s = 'MeanOnlyBatchNorm(' + str(self.nPlanes) + ',momentum=' + str(self.momentum) + ',leakiness=' + str(self.leakiness) + ')'
         return s
+
+
+class SparseGroupNorm(torch.nn.GroupNorm):
+    def forward(self,x):
+        return scn.SparseConvNetTensor(
+            super().forward(x.features),
+            x.metadata,
+            x.spatial_size)

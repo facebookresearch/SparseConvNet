@@ -8,7 +8,7 @@ forward_pass_multiplyAdd_count = 0
 forward_pass_hidden_states = 0
 from .activations import Tanh, Sigmoid, ReLU, LeakyReLU, ELU, SELU, BatchNormELU
 from .averagePooling import AveragePooling
-from .batchNormalization import BatchNormalization, BatchNormReLU, BatchNormLeakyReLU, MeanOnlyBNLeakyReLU
+from .batchNormalization import BatchNormalization, BatchNormReLU, BatchNormLeakyReLU, MeanOnlyBNLeakyReLU, SparseGroupNorm
 from .classificationTrainValidate import ClassificationTrainValidate
 from .convolution import Convolution
 from .deconvolution import Deconvolution

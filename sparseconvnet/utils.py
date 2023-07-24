@@ -335,10 +335,3 @@ class VerboseIdentity(torch.nn.Module):
     def forward(self, x):
         print(x)
         return x
-
-class SparseGroupNorm(torch.nn.GroupNorm):
-    def forward(self,x):
-        return scn.SparseConvNetTensor(
-            super().forward(x.features),
-            x.metadata,
-            x.spatial_size)

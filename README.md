@@ -154,7 +154,8 @@ Copyright © Meta Platforms, Inc
 17. [TorchSparse](https://github.com/mit-han-lab/torchsparse) implements 3D submanifold convolutions.
 18. [TensorFlow 3D](https://github.com/google-research/google-research/tree/master/tf3d) implements submanifold convolutions.
 19. [VoTr](https://github.com/PointsCoder/VOTR) implements submanifold [voxel transformers](https://openaccess.thecvf.com/content/ICCV2021/papers/Mao_Voxel_Transformer_for_3D_Object_Detection_ICCV_2021_paper.pdf) using [SpConv](https://github.com/traveller59/spconv).
-20. [Mix3D](https://github.com/kumuji/mix3d) brings [MixUp](https://openreview.net/forum?id=r1Ddp1-Rb) to the sparse setting&mdash;0.781 average IOU for ScanNet 3D semantic segmentation.
+20. [Mix3D](https://github.com/kumuji/mix3d) brings [MixUp](https://openreview.net/forum?id=r1Ddp1-Rb) to the sparse setting&mdash; 0.781 average IOU for ScanNet 3D semantic segmentation.
+21. [Point Transformer V3](https://arxiv.org/abs/2312.10035) uses sparse convolutions as an enhanced conditional positional encoding (xCPE); 0.794 average IOU for ScanNet 3D semantic segmentation.
 
 ## Citations
 

@@ -41,7 +41,7 @@ In theory, the library supports up to 10 dimensions. In practice, ConvNets with 
 
 ## Hello World
 SparseConvNets can be built either by [defining a function that inherits from torch.nn.Module](examples/Assamese_handwriting/VGGplus.py) or by stacking modules in a [sparseconvnet.Sequential](PyTorch/sparseconvnet/sequential.py):
-```
+```python
 import torch
 import sparseconvnet as scn
 

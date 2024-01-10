@@ -114,6 +114,8 @@ cd examples/Assamese_handwriting
 python VGGplus.py
 ```
 
+Results of running the 3D Segmentation example are viewable [here](https://app.wandb.ai/nbaryd/SparseConvNet-examples_3d_segmentation/reports?view=nbaryd%2F3D%20Segmentation%20with%20Shapenet)
+
 ## Setup
 
 Tested with PyTorch 1.3, CUDA 10.0, and Python 3.3 with [Conda](https://www.anaconda.com/).

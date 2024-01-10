@@ -107,6 +107,7 @@ Examples in the examples folder include
 * [Chinese handwriting for recognition](http://www.nlpr.ia.ac.cn/databases/handwriting/Online_database.html)
 * [3D Segmentation](https://shapenet.cs.stanford.edu/iccv17/) using ShapeNet Core-55
 * [ScanNet](http://www.scan-net.org/) 3D Semantic label benchmark
+* [Indoor Segmentation and Support Inference from RGBD Images](https://cs.nyu.edu/~silberman/projects/indoor_scene_seg_sup.html) RGBD Indoor Segmentation Benchmark.
 
 For example:
 ```
